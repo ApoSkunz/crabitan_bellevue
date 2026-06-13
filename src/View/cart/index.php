@@ -169,9 +169,9 @@ require SRC_PATH . '/View/partials/checkout-stepper.php'; // NOSONAR — php:S20
                      aria-valuemax="<?= (int) ($nextTier['min_quantity'] ?? $totalQty) ?>"
                      aria-valuenow="<?= $totalQty ?>"
                      aria-label="<?= htmlspecialchars(__('cart.progress_aria')) ?>">
-                    <div class="cart-progress-bar__fill"
+                    <div class="cart-progress-bar__fill u-progress-bar"
                          id="cart-progress-fill"
-                         style="width:<?= $progressPct ?>%"></div>
+                         data-progress="<?= $progressPct ?>"></div>
                 </div>
             </div>
         </div>
@@ -303,9 +303,8 @@ require SRC_PATH . '/View/partials/checkout-stepper.php'; // NOSONAR — php:S20
                         <?= htmlspecialchars(__('cart.subtotal_label')) ?>
                         (<span id="cart-article-count"><?= $totalQty ?></span>&nbsp;<?= htmlspecialchars($bottleLabel) ?>)
                     </span>
-                    <span class="cart-summary__row-value js-cart-subtotal-display"
-                          id="cart-subtotal"
-                          <?= ($deliveryDiscount > 0.0) ? 'style="text-decoration:line-through;opacity:.55;font-size:.9em"' : '' ?>>
+                    <span class="cart-summary__row-value js-cart-subtotal-display <?= ($deliveryDiscount > 0.0) ? 'u-line-through u-opacity-55 u-text-9' : '' ?>"
+                          id="cart-subtotal">
                         <?= number_format($subtotal, 2, ',', ' ') ?>&nbsp;€
                     </span>
                 </div>
@@ -345,6 +344,15 @@ require SRC_PATH . '/View/partials/checkout-stepper.php'; // NOSONAR — php:S20
                    class="btn btn--gold cart-summary__cta">
                     <?= htmlspecialchars(__('cart.checkout')) ?>
                 </a>
+                <p class="cart-summary__delivery-note">
+                    <?php if ($isEn) : ?>
+                        Delivery outside mainland France?
+                        <a href="/en/contact" class="cart-summary__delivery-link">Contact us</a>.
+                    <?php else : ?>
+                        Livraison hors France métropolitaine&nbsp;?
+                        <a href="/fr/contact" class="cart-summary__delivery-link">Contactez-nous</a>.
+                    <?php endif; ?>
+                </p>
                 <p id="cart-checkout-over600-error" class="cart-checkout-error" hidden>
                     <?= htmlspecialchars(__('cart.over_600_checkout_error')) ?>
                 </p>
@@ -558,6 +566,10 @@ require SRC_PATH . '/View/partials/checkout-stepper.php'; // NOSONAR — php:S20
         ];
                             }, $pricingRules), JSON_UNESCAPED_UNICODE) ?>;
     window.__totalQty = <?= (int) $totalQty ?>;
+    // Initialise la barre de progression depuis data-progress (évite style="" inline)
+    document.querySelectorAll('[data-progress]').forEach(function (el) {
+        el.style.setProperty('--progress', el.dataset.progress + '%');
+    });
     window.__isMultiple12Error = <?= ($totalQty > 0 && $totalQty % 12 !== 0) ? 'true' : 'false' ?>;
     window.__multiple12Msg = <?= json_encode(
         $isEn

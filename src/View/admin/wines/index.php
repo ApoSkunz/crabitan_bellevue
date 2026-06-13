@@ -39,7 +39,7 @@ function wineListUrl(int $page, ?string $color, ?string $avail, int $perPage, ?s
 <?php endif; ?>
 
 <div class="admin-page-header">
-    <h1>Vins <small style="font-size:0.75rem;font-variant:normal;letter-spacing:0;color:#8a7a60;">(<?= $total ?>)</small></h1>
+    <h1>Vins <small class="admin-section-count">(<?= $total ?>)</small></h1>
     <a href="/admin/vins/ajouter" class="admin-btn admin-btn--gold">+ Ajouter un vin</a>
 </div>
 
@@ -115,28 +115,27 @@ function wineListUrl(int $page, ?string $color, ?string $avail, int $perPage, ?s
             </thead>
             <tbody>
             <?php if (empty($wines)) : ?>
-                <tr><td colspan="9" style="text-align:center;color:#8a7a60;padding:2rem;">Aucun vin trouvé</td></tr>
+                <tr><td colspan="9" class="admin-table-empty-cell">Aucun vin trouvé</td></tr>
             <?php else : ?>
                 <?php foreach ($wines as $wine) : ?>
                     <tr>
-                        <td class="col-hide-tablet" data-label="ID" style="color:#8a7a60;"><?= (int) $wine['id'] ?></td>
+                        <td class="col-hide-tablet text-muted" data-label="ID"><?= (int) $wine['id'] ?></td>
                         <td data-label="Appellation">
                             <strong><?= htmlspecialchars($wine['label_name']) ?></strong>
                             <?php if ($wine['is_cuvee_speciale']) : ?>
-                                <span class="badge badge--admin" style="margin-left:0.35rem;">Cuvée</span>
+                                <span class="badge badge--admin u-ml-1">Cuvée</span>
                             <?php endif; ?>
                         </td>
                         <td data-label="Couleur"><?= htmlspecialchars($colorLabels[$wine['wine_color']] ?? $wine['wine_color']) ?></td>
                         <td data-label="Millésime"><?= (int) $wine['vintage'] ?></td>
                         <td data-label="Prix"><?= number_format((float) $wine['price'], 2, ',', ' ') ?>&nbsp;€</td>
                         <td class="col-hide-tablet" data-label="Production"><?= number_format((int) $wine['production_quantity'], 0, ',', ' ') ?>&nbsp;bt</td>
-                        <td data-label="Stock" <?= (int) $wine['stock_quantity'] === 0 ? 'style="color:#c0392b;font-weight:600;"' : '' ?>>
+                        <td data-label="Stock" <?= (int) $wine['stock_quantity'] === 0 ? 'class="u-text-error u-font-semibold"' : '' ?>>
                             <?= number_format((int) $wine['stock_quantity'], 0, ',', ' ') ?>&nbsp;bt
                         </td>
                         <td data-label="Statut">
                             <?php if (!(bool) $wine['available'] && (int) $wine['stock_quantity'] === 0) : ?>
-                                <span class="admin-btn admin-btn--sm admin-btn--out"
-                                      style="cursor:default;opacity:0.7;"
+                                <span class="admin-btn admin-btn--sm admin-btn--out u-cursor-default u-opacity-55"
                                       title="Stock épuisé — réapprovisionner avant de remettre en vente">
                                     Indisponible
                                 </span>
@@ -152,7 +151,7 @@ function wineListUrl(int $page, ?string $color, ?string $avail, int $perPage, ?s
                             </button>
                             <?php endif; ?>
                         </td>
-                        <td data-label="Mis en avant" style="text-align:center;">
+                        <td data-label="Mis en avant" class="text-center">
                             <?php if ($wine['available']) : ?>
                             <button type="button"
                                     class="js-featured-btn admin-btn admin-btn--sm <?= $wine['featured'] ? 'admin-btn--gold' : 'admin-btn--outline' ?>"
@@ -164,7 +163,7 @@ function wineListUrl(int $page, ?string $color, ?string $avail, int $perPage, ?s
                                 <?= $wine['featured'] ? 'En avant' : 'Mettre en avant' ?>
                             </button>
                             <?php else : ?>
-                            <span style="color:#8a7a60;font-size:0.8rem;">—</span>
+                            <span class="text-muted u-text-sm">—</span>
                             <?php endif; ?>
                         </td>
                         <td>
@@ -205,42 +204,32 @@ function wineListUrl(int $page, ?string $color, ?string $avail, int $perPage, ?s
 
 <!-- Modal QR Code -->
 <div id="admin-qr-modal" role="dialog" aria-modal="true" aria-labelledby="admin-qr-modal-title"
-     style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,0.6);
-            align-items:center;justify-content:center;">
-    <div style="background:var(--color-surface,#fff);border-radius:6px;padding:2rem;
-                max-width:360px;width:90%;text-align:center;position:relative;">
+     class="admin-modal-overlay u-hidden">
+    <div class="admin-modal-box admin-modal-box--sm text-center">
         <button type="button" id="admin-qr-modal-close"
-                style="position:absolute;top:0.75rem;right:1rem;background:none;border:none;
-                       font-size:1.25rem;cursor:pointer;color:var(--color-text-muted);" aria-label="Fermer">✕</button>
-        <h3 id="admin-qr-modal-title" style="margin:0 0 0.5rem;font-size:0.9rem;"></h3>
-        <div id="admin-qr-spinner" style="display:none;text-align:center;padding:2rem 0;">
-            <span style="display:inline-block;width:32px;height:32px;border:3px solid #e0d5c0;
-                         border-top-color:var(--color-gold,#a0844d);border-radius:50%;
-                         animation:admin-spin 0.7s linear infinite;"></span>
-            <p style="margin:0.5rem 0 0;font-size:0.78rem;color:#8a7a60;">Génération en cours…</p>
+                class="admin-modal-close" aria-label="Fermer">✕</button>
+        <h3 id="admin-qr-modal-title" class="admin-modal-title admin-modal-title--sm"></h3>
+        <div id="admin-qr-spinner" class="admin-qr-spinner u-hidden">
+            <span class="admin-qr-spinner__icon"></span>
+            <p class="admin-qr-spinner__label">Génération en cours…</p>
         </div>
-        <style>@keyframes admin-spin { to { transform: rotate(360deg); } }</style>
         <canvas id="admin-qr-modal-canvas" width="300" height="300"
-                style="border:1px solid #e0d5c0;border-radius:4px;display:block;margin:0 auto 0.75rem;"></canvas>
-        <p id="admin-qr-modal-url" style="font-size:0.68rem;color:#8a7a60;word-break:break-all;margin-bottom:0.75rem;"></p>
+                class="admin-qr-canvas"></canvas>
+        <p id="admin-qr-modal-url" class="admin-qr-url"></p>
         <a id="admin-qr-modal-download" href="#" download=""
-           class="admin-btn admin-btn--gold admin-btn--sm"
-           style="display:inline-block;">Télécharger</a>
+           class="admin-btn admin-btn--gold admin-btn--sm u-inline-block">Télécharger</a>
     </div>
 </div>
 
 <!-- Modal générique confirmation -->
 <div id="admin-confirm-modal" role="dialog" aria-modal="true" aria-labelledby="admin-confirm-modal-title"
-     style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,0.6);
-            align-items:center;justify-content:center;">
-    <div style="background:var(--color-surface,#fff);border-radius:6px;padding:2rem;
-                max-width:440px;width:90%;position:relative;">
+     class="admin-modal-overlay u-hidden">
+    <div class="admin-modal-box admin-modal-box--md">
         <button type="button" id="admin-confirm-modal-close"
-                style="position:absolute;top:0.75rem;right:1rem;background:none;border:none;
-                       font-size:1.25rem;cursor:pointer;color:var(--color-text-muted);" aria-label="Fermer">✕</button>
-        <h3 id="admin-confirm-modal-title" style="margin:0 0 1rem;font-size:1rem;color:#1a1208;"></h3>
-        <p id="admin-confirm-modal-body" style="margin:0 0 1.5rem;font-size:0.9rem;color:#5a4e3a;"></p>
-        <div style="display:flex;gap:0.75rem;justify-content:flex-end;">
+                class="admin-modal-close" aria-label="Fermer">✕</button>
+        <h3 id="admin-confirm-modal-title" class="admin-modal-title"></h3>
+        <p id="admin-confirm-modal-body" class="admin-modal-body"></p>
+        <div class="u-flex u-gap-3 u-justify-end">
             <button type="button" id="admin-confirm-modal-cancel"
                     class="admin-btn admin-btn--outline admin-btn--sm">Annuler</button>
             <button type="button" id="admin-confirm-modal-confirm"
@@ -261,11 +250,11 @@ function wineListUrl(int $page, ?string $color, ?string $avail, int $perPage, ?s
         confirmBtn.textContent = btnLabel;
         confirmBtn.className   = 'admin-btn admin-btn--sm ' + btnClass;
         pendingAction = onConfirm;
-        document.getElementById('admin-confirm-modal').style.display = 'flex';
+        document.getElementById('admin-confirm-modal').classList.remove('u-hidden');
     }
 
     function closeModal() {
-        document.getElementById('admin-confirm-modal').style.display = 'none';
+        document.getElementById('admin-confirm-modal').classList.add('u-hidden');
         pendingAction = null;
     }
 
@@ -382,7 +371,7 @@ function wineListUrl(int $page, ?string $color, ?string $avail, int $perPage, ?s
                 var featuredCell = row.querySelector('td:nth-child(9)');
                 if (featuredCell) {
                     if (!data.available) {
-                        featuredCell.innerHTML = '<span style="color:#8a7a60;font-size:0.8rem;">—</span>';
+                        featuredCell.innerHTML = '<span class="text-muted u-text-sm">—</span>';
                     } else {
                         var csrf = btn.dataset.csrf;
                         var id   = btn.dataset.id;

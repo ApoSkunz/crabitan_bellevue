@@ -114,10 +114,11 @@ jobs:
           printf 'localhost\tFALSE\t/\tFALSE\t2147483647\tage_verified\t1\n' > /tmp/cookies-customer.txt
           printf 'localhost\tFALSE\t/\tFALSE\t2147483647\tdevice_token\tmock-jwt-sophie-active-001\n' >> /tmp/cookies-customer.txt
 
+          # CSRF token sur /fr/connexion (page dédiée login), pas sur la home
           curl -s \
             -b /tmp/cookies-customer.txt \
             -c /tmp/cookies-customer.txt \
-            "$BASE/fr" > /tmp/login.html
+            "$BASE/fr/connexion" > /tmp/login.html
 
           CSRF=$(grep -oP 'name="csrf_token" value="\K[^"]+' /tmp/login.html | head -1)
           echo "DEBUG customer CSRF=${CSRF:0:8}…"
@@ -172,7 +173,7 @@ jobs:
         with:
           target: 'http://${{ steps.host-ip.outputs.ip }}:8080/fr'
           rules_file_name: '.zap/rules.tsv'
-          cmd_options: '-n /zap/wrk/.zap/contexts/customer.context -j'
+          cmd_options: '-n /zap/wrk/.zap/contexts/customer.context -j -z "-config scanner.threadPerHost=2"'
           fail_action: false
           issue_title: '[DAST] ZAP Full Scan (customer) — alertes'
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -289,10 +290,11 @@ jobs:
           printf 'localhost\tFALSE\t/\tFALSE\t2147483647\tage_verified\t1\n' > /tmp/cookies-admin.txt
           printf 'localhost\tFALSE\t/\tFALSE\t2147483647\tdevice_token\tmock-jwt-admin-active-001\n' >> /tmp/cookies-admin.txt
 
+          # CSRF token sur /fr/connexion (page dédiée login), pas sur la home
           curl -s \
             -b /tmp/cookies-admin.txt \
             -c /tmp/cookies-admin.txt \
-            "$BASE/fr" > /tmp/login.html
+            "$BASE/fr/connexion" > /tmp/login.html
 
           CSRF=$(grep -oP 'name="csrf_token" value="\K[^"]+' /tmp/login.html | head -1)
           echo "DEBUG admin CSRF=${CSRF:0:8}…"
@@ -345,7 +347,7 @@ jobs:
         with:
           target: 'http://${{ steps.host-ip.outputs.ip }}:8080/admin'
           rules_file_name: '.zap/rules.tsv'
-          cmd_options: '-n /zap/wrk/.zap/contexts/admin.context -j'
+          cmd_options: '-n /zap/wrk/.zap/contexts/admin.context -j -z "-config scanner.threadPerHost=2"'
           fail_action: false
           issue_title: '[DAST] ZAP Full Scan (admin) — alertes'
           token: ${{ secrets.GITHUB_TOKEN }}

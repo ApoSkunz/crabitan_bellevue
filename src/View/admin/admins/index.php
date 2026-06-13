@@ -8,7 +8,7 @@
 <?php endif; ?>
 
 <div class="admin-page-header">
-    <h1>Gestion des admins <small style="font-size:0.75rem;font-variant:normal;letter-spacing:0;color:#8a7a60;">(<?= count($admins) ?>)</small></h1>
+    <h1>Gestion des admins <small class="u-text-2xs admin-subcount-alt">(<?= count($admins) ?>)</small></h1>
 </div>
 
 <div class="admin-card">
@@ -28,7 +28,7 @@
             <tbody>
             <?php if (empty($admins)) : ?>
                 <tr>
-                    <td colspan="7" style="text-align:center;color:#8a7a60;padding:2rem;">Aucun admin trouvé</td>
+                    <td colspan="7" class="text-center u-text-soft u-p-8">Aucun admin trouvé</td>
                 </tr>
             <?php else : ?>
                 <?php foreach ($admins as $admin) : ?>
@@ -39,47 +39,45 @@
                     $displayName = trim(($admin['firstname'] ?? '') . ' ' . ($admin['lastname'] ?? '')) ?: '—';
                     ?>
                     <tr>
-                        <td data-label="ID" style="color:#8a7a60;"><?= (int) $admin['id'] ?></td>
+                        <td data-label="ID" class="u-text-soft"><?= (int) $admin['id'] ?></td>
                         <td data-label="Nom"><?= htmlspecialchars($displayName) ?></td>
                         <td data-label="Email"><?= htmlspecialchars($admin['email']) ?></td>
                         <td data-label="Rôle"><?= htmlspecialchars($roleLabel) ?></td>
-                        <td data-label="Dernière connexion" style="white-space:nowrap;font-size:0.8rem;color:#8a7a60;">
+                        <td data-label="Dernière connexion" class="u-nowrap u-text-sm u-text-soft">
                             <?php if (!empty($admin['last_login_at'])) : ?>
                                 <?= date('d/m/Y H:i', strtotime($admin['last_login_at'])) ?>
                             <?php else : ?>
-                                <span style="color:#b91c1c;">Jamais</span>
+                                <span class="u-text-error-alt">Jamais</span>
                             <?php endif; ?>
                         </td>
                         <td data-label="Statut">
                             <?php if ($isBlocked) : ?>
-                                <span style="color:#b91c1c;font-size:0.8rem;font-weight:600;">Bloqué</span>
+                                <span class="u-text-error-alt u-text-sm u-font-semibold">Bloqué</span>
                             <?php else : ?>
-                                <span style="color:#15803d;font-size:0.8rem;">Actif</span>
+                                <span class="u-text-green u-text-sm">Actif</span>
                             <?php endif; ?>
                         </td>
-                        <td style="white-space:nowrap;">
+                        <td class="u-nowrap">
                             <?php if (!$isSelf) : ?>
                                 <?php if (!$isBlocked) : ?>
                                     <form method="POST"
                                           action="/admin/admins/<?= (int) $admin['id'] ?>/bloquer"
-                                          style="display:inline;"
+                                          class="u-inline-block"
                                           data-admin-confirm="Bloquer le compte <?= htmlspecialchars($admin['email']) ?> ?">
                                         <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
                                         <button type="submit"
-                                                class="admin-btn admin-btn--outline admin-btn--sm"
-                                                style="color:#b91c1c;border-color:#b91c1c;">
+                                                class="admin-btn admin-btn--outline admin-btn--sm admin-btn--block-action">
                                             Bloquer
                                         </button>
                                     </form>
                                 <?php else : ?>
                                     <form method="POST"
                                           action="/admin/admins/<?= (int) $admin['id'] ?>/debloquer"
-                                          style="display:inline;"
+                                          class="u-inline-block"
                                           data-admin-confirm="Débloquer le compte <?= htmlspecialchars($admin['email']) ?> ?">
                                         <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
                                         <button type="submit"
-                                                class="admin-btn admin-btn--outline admin-btn--sm"
-                                                style="color:#15803d;border-color:#15803d;">
+                                                class="admin-btn admin-btn--outline admin-btn--sm admin-btn--unblock-action">
                                             Débloquer
                                         </button>
                                     </form>

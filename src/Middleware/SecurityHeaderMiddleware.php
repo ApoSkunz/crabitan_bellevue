@@ -31,8 +31,8 @@ class SecurityHeaderMiddleware
         $csp = implode('; ', [
             "default-src 'self'",
             "script-src 'self' 'nonce-{$nonce}'",
-            "style-src 'self' 'unsafe-inline'",
-            "img-src 'self' data: https:",
+            "style-src 'self'",
+            "img-src 'self' data:",
             "font-src 'self'",
             "connect-src 'self' https://api.websitecarbon.com",
             "form-action 'self' https://tpeweb.e-transactions.fr https://tpeweb1.e-transactions.fr https://recette-tpeweb.e-transactions.fr",

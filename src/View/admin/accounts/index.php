@@ -51,7 +51,7 @@ function accountUrl( // NOSONAR — php:S107 : params nécessaires pour reconstr
 <?php endif; ?>
 
 <div class="admin-page-header">
-    <h1>Comptes <small style="font-size:0.75rem;font-variant:normal;letter-spacing:0;color:#8a7a60;">(<?= $total ?>)</small></h1>
+    <h1>Comptes <small class="admin-section-count">(<?= $total ?>)</small></h1>
 </div>
 
 <!-- Filtres -->
@@ -134,7 +134,7 @@ function accountUrl( // NOSONAR — php:S107 : params nécessaires pour reconstr
             <tbody>
             <?php if (empty($accounts)) : ?>
                 <tr><td colspan="<?= $isSuperAdmin ? 14 : 13 ?>"
-                        style="text-align:center;color:#8a7a60;padding:2rem;">Aucun compte trouvé</td></tr>
+                        class="admin-table-empty-cell">Aucun compte trouvé</td></tr>
             <?php else : ?>
                 <?php foreach ($accounts as $account) : ?>
                     <?php
@@ -151,10 +151,10 @@ function accountUrl( // NOSONAR — php:S107 : params nécessaires pour reconstr
                     $verified = !empty($account['email_verified_at']);
     ?>
                     <tr>
-                        <td class="col-hide-tablet" data-label="ID" style="color:#8a7a60;"><?= (int) $account['id'] ?></td>
+                        <td class="col-hide-tablet text-muted" data-label="ID"><?= (int) $account['id'] ?></td>
                         <td data-label="Email"><?= htmlspecialchars($account['email']) ?></td>
                         <td data-label="Nom / Société"><?= htmlspecialchars($displayName) ?></td>
-                        <td class="col-hide-tablet" data-label="Type" style="font-size:0.8rem;">
+                        <td class="col-hide-tablet u-text-sm" data-label="Type">
                             <?= $account['account_type'] === 'company' ? 'Société' : 'Particulier' ?>
                         </td>
                         <td data-label="Rôle">
@@ -162,59 +162,59 @@ function accountUrl( // NOSONAR — php:S107 : params nécessaires pour reconstr
                                 <?= htmlspecialchars($roleLabels[$account['role']] ?? $account['role']) ?>
                             </span>
                         </td>
-                        <td class="col-hide-tablet" data-label="Langue" style="text-transform:uppercase;font-size:0.8rem;">
+                        <td class="col-hide-tablet u-uppercase u-text-sm" data-label="Langue">
                             <?= htmlspecialchars($account['lang']) ?>
                         </td>
                         <td class="col-hide-tablet" data-label="Vérifié">
                             <?php if ($verified) : ?>
-                                <span style="color:#15803d;font-size:0.8rem;">✓</span>
+                                <span class="u-text-sm u-text-green">✓</span>
                             <?php else : ?>
-                                <span style="color:#b91c1c;font-size:0.8rem;">✗</span>
+                                <span class="u-text-sm u-text-red">✗</span>
                             <?php endif; ?>
                         </td>
                         <td class="col-hide-tablet" data-label="Connecté">
                             <?php if (!empty($account['has_connected'])) : ?>
-                                <span style="color:#15803d;font-size:0.8rem;">✓</span>
+                                <span class="u-text-sm u-text-green">✓</span>
                             <?php else : ?>
-                                <span style="color:#b91c1c;font-size:0.8rem;">✗</span>
+                                <span class="u-text-sm u-text-red">✗</span>
                             <?php endif; ?>
                         </td>
-                        <td data-label="Inscrit le" style="white-space:nowrap;font-size:0.8rem;">
+                        <td class="u-nowrap u-text-sm" data-label="Inscrit le">
                             <?= date('d/m/Y', strtotime($account['created_at'])) ?>
                         </td>
-                        <td class="col-hide-tablet" data-label="Dernière connexion" style="white-space:nowrap;font-size:0.8rem;">
+                        <td class="col-hide-tablet u-nowrap u-text-sm" data-label="Dernière connexion">
                             <?php if (!empty($account['last_connection'])) : ?>
                                 <?= date('d/m/Y H:i', strtotime($account['last_connection'])) ?>
                             <?php else : ?>
-                                <span style="color:#8a7a60;">—</span>
+                                <span class="text-muted">—</span>
                             <?php endif; ?>
                         </td>
-                        <td class="col-hide-tablet" data-label="Cmdes" style="font-size:0.85rem;text-align:center;">
+                        <td class="col-hide-tablet u-text-85 text-center" data-label="Cmdes">
                             <?php $orderCount = (int) ($account['order_count'] ?? 0); ?>
                             <?php if ($orderCount > 0) : ?>
                                 <?= $orderCount ?>
                             <?php else : ?>
-                                <span style="color:#8a7a60;">—</span>
+                                <span class="text-muted">—</span>
                             <?php endif; ?>
                         </td>
-                        <td class="col-hide-tablet" data-label="Activité" style="font-size:0.78rem;">
+                        <td class="col-hide-tablet u-text-9" data-label="Activité">
                             <?php
                             if (!empty($account['deleted_at'])) {
-                                echo '<span style="color:#c0392b;">Supprimé</span>';
+                                echo '<span class="u-text-error">Supprimé</span>';
                             } else {
                                 $lastConn = $account['last_connection'] ?? null;
                                 $isActive = $lastConn !== null && strtotime((string) $lastConn) >= strtotime('-3 years');
                                 echo $isActive
-                                    ? '<span style="color:#2d7a2d;">Actif</span>'
-                                    : '<span style="color:#8a7060;">Inactif</span>';
+                                    ? '<span class="u-text-green">Actif</span>'
+                                    : '<span class="u-text-soft">Inactif</span>';
                             }
                             ?>
                         </td>
-                        <td style="white-space:nowrap;">
+                        <td class="u-nowrap">
                             <?php if (!$verified) : ?>
                                 <form method="POST"
                                       action="/admin/comptes/<?= (int) $account['id'] ?>/verifier"
-                                      style="display:inline;"
+                                      class="u-inline-block"
                                       data-admin-confirm="Vérifier ce compte manuellement ?">
                                     <input type="hidden" name="csrf_token"
                                            value="<?= htmlspecialchars($_SESSION['csrf'] ?? '') ?>">
@@ -223,15 +223,15 @@ function accountUrl( // NOSONAR — php:S107 : params nécessaires pour reconstr
                                     </button>
                                 </form>
                             <?php else : ?>
-                                <span style="color:#ccc;">—</span>
+                                <span class="u-text-gray-light">—</span>
                             <?php endif; ?>
                         </td>
                         <?php if ($isSuperAdmin) : ?>
-                            <td style="white-space:nowrap;">
+                            <td class="u-nowrap">
                                 <?php if (!empty($account['email_verified_at']) && !empty($account['has_password'])) : ?>
                                     <form method="POST"
                                           action="/admin/comptes/<?= (int) $account['id'] ?>/reset-password"
-                                          style="display:inline;"
+                                          class="u-inline-block"
                                           data-admin-confirm="Envoyer un lien de réinitialisation à <?= htmlspecialchars($account['email']) ?> ?">
                                         <input type="hidden" name="csrf_token"
                                                value="<?= htmlspecialchars($_SESSION['csrf'] ?? '') ?>">
@@ -240,7 +240,7 @@ function accountUrl( // NOSONAR — php:S107 : params nécessaires pour reconstr
                                         </button>
                                     </form>
                                 <?php else : ?>
-                                    <span style="color:#ccc;">—</span>
+                                    <span class="u-text-gray-light">—</span>
                                 <?php endif; ?>
                             </td>
                         <?php endif; ?>

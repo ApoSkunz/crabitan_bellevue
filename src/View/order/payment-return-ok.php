@@ -5,50 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= htmlspecialchars(__('payment.success_title')) ?></title>
-    <link rel="stylesheet" href="/assets/css/app.css">
-    <style>
-        .payment-wait {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 60vh;
-            text-align: center;
-            padding: 2rem;
-        }
-        .payment-wait__spinner {
-            width: 48px;
-            height: 48px;
-            border: 4px solid var(--color-surface, #f0ebe1);
-            border-top-color: var(--color-gold, #8B6914);
-            border-radius: 50%;
-            animation: pw-spin 0.9s linear infinite;
-            margin-bottom: 1.5rem;
-        }
-        @keyframes pw-spin { to { transform: rotate(360deg); } }
-        .payment-wait__heading {
-            font-family: var(--font-serif, serif);
-            font-size: 1.5rem;
-            color: var(--color-text, #1a1a1a);
-            margin: 0 0 0.75rem;
-        }
-        .payment-wait__message {
-            color: var(--color-text-muted, #666);
-            margin: 0 0 0.5rem;
-        }
-        .payment-wait__ref {
-            font-size: 0.9rem;
-            color: var(--color-text-muted, #666);
-        }
-        .payment-wait__fallback {
-            margin-top: 2rem;
-            font-size: 0.85rem;
-            color: var(--color-text-muted, #666);
-        }
-        .payment-wait__fallback a {
-            color: var(--color-gold, #8B6914);
-        }
-    </style>
+    <link rel="stylesheet" href="/assets/css/main.css">
 </head>
 <body>
 <?php require_once SRC_PATH . '/View/partials/header.php'; ?>

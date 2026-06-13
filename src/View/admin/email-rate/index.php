@@ -37,31 +37,31 @@ $typeLabelsFr = [
 ?>
 
 <div class="admin-page-header">
-    <h1>Monitoring emails — dernières 25h <small style="font-size:0.75rem;color:#8a7060;">(<?= $totalLogs ?>)</small></h1>
+    <h1>Monitoring emails — dernières 25h <small class="u-text-2xs admin-subcount">(<?= $totalLogs ?>)</small></h1>
     <p class="admin-page-header__sub">
         Journal des envois par canal SMTP · purge automatique après 25&nbsp;heures
     </p>
 </div>
 
 <!-- Agrégat par canal -->
-<div class="admin-card" style="margin-bottom:1.5rem;">
+<div class="admin-card u-mb-6">
     <div class="admin-card__header">
-        <h2 style="font-size:0.85rem;letter-spacing:0.08em;text-transform:uppercase;color:#8a7060;margin:0;">
+        <h2 class="admin-card-section-title">
             Agrégat par canal (25&nbsp;h)
         </h2>
     </div>
-    <div class="admin-card__body" style="padding:0;">
+    <div class="admin-card__body u-p-0">
         <?php if (empty($summary)) : ?>
-            <p style="padding:1.5rem;color:#8a7060;font-size:0.875rem;">Aucun email envoyé dans les 25 dernières heures.</p>
+            <p class="admin-empty-state">Aucun email envoyé dans les 25 dernières heures.</p>
         <?php else : ?>
             <table class="admin-table">
                 <thead>
                     <tr>
                         <th>Adresse expéditrice</th>
-                        <th style="text-align:right;">Total (25h)</th>
-                        <th style="text-align:right;">Dernière heure / 500</th>
-                        <th style="text-align:right;">Succès</th>
-                        <th style="text-align:right;">Erreurs</th>
+                        <th class="u-text-right">Total (25h)</th>
+                        <th class="u-text-right">Dernière heure / 500</th>
+                        <th class="u-text-right">Succès</th>
+                        <th class="u-text-right">Erreurs</th>
                         <th>Premier envoi</th>
                         <th>Dernier envoi</th>
                     </tr>
@@ -73,31 +73,31 @@ $typeLabelsFr = [
                         $warn     = $lastHour >= 400;
                         $danger   = $lastHour >= 475;
                         if ($danger) {
-                            $textColorStyle = 'color:#c0392b;';
+                            $textColorClass = 'u-text-error';
                             $barColor       = '#c0392b';
                         } elseif ($warn) {
-                            $textColorStyle = 'color:#d97706;';
+                            $textColorClass = 'u-text-amber';
                             $barColor       = '#d97706';
                         } else {
-                            $textColorStyle = '';
+                            $textColorClass = '';
                             $barColor       = '#2d7a2d';
                         }
                     ?>
                         <tr>
                             <td data-label="Adresse"><?= htmlspecialchars($row['from_address']) ?></td>
-                            <td data-label="Total" style="text-align:right;font-weight:600;"><?= (int) $row['total_sent'] ?></td>
-                            <td data-label="Dernière heure" style="text-align:right;min-width:140px;">
-                                <span style="font-weight:600;white-space:nowrap;<?= $textColorStyle ?>"><?= $lastHour ?> / 500</span>
-                                <div style="width:100%;max-width:120px;margin-left:auto;height:4px;background:#ede8df;border-radius:2px;margin-top:4px;">
-                                    <div style="width:<?= $pct ?>%;height:100%;background:<?= $barColor ?>;border-radius:2px;"></div>
+                            <td data-label="Total" class="u-text-right u-font-semibold"><?= (int) $row['total_sent'] ?></td>
+                            <td data-label="Dernière heure" class="u-text-right admin-rate-cell">
+                                <span class="u-font-semibold u-nowrap <?= $textColorClass ?>"><?= $lastHour ?> / 500</span>
+                                <div class="admin-rate-bar-track">
+                                    <div class="admin-rate-bar-fill admin-rate-bar-fill--<?= $danger ? 'danger' : ($warn ? 'warn' : 'ok') ?>" data-pct="<?= $pct ?>"></div>
                                 </div>
                             </td>
-                            <td data-label="Succès" style="text-align:right;color:#2d7a2d;"><?= (int) $row['success_count'] ?></td>
-                            <td data-label="Erreurs" style="text-align:right;<?= (int) $row['error_count'] > 0 ? 'color:#c0392b;font-weight:600;' : '' ?>">
+                            <td data-label="Succès" class="u-text-right u-text-green"><?= (int) $row['success_count'] ?></td>
+                            <td data-label="Erreurs" class="u-text-right<?= (int) $row['error_count'] > 0 ? ' u-text-error u-font-semibold' : '' ?>">
                                 <?= (int) $row['error_count'] ?>
                             </td>
-                            <td data-label="Premier" style="font-size:0.8rem;color:#5a4a3a;"><?= htmlspecialchars($row['first_at'] ?? '—') ?></td>
-                            <td data-label="Dernier" style="font-size:0.8rem;color:#5a4a3a;"><?= htmlspecialchars($row['last_at'] ?? '—') ?></td>
+                            <td data-label="Premier" class="u-text-sm u-text-brown"><?= htmlspecialchars($row['first_at'] ?? '—') ?></td>
+                            <td data-label="Dernier" class="u-text-sm u-text-brown"><?= htmlspecialchars($row['last_at'] ?? '—') ?></td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>
@@ -107,7 +107,7 @@ $typeLabelsFr = [
 </div>
 
 <!-- Filtre pagination -->
-<form method="GET" action="/admin/emails-rate" class="admin-filters" data-auto-submit style="margin-bottom:0.75rem;">
+<form method="GET" action="/admin/emails-rate" class="admin-filters u-mb-3" data-auto-submit>
     <select name="per_page" class="admin-filters__select" aria-label="Lignes par page">
         <?php foreach ($perPageOpts as $n) : ?>
             <option value="<?= (int) $n ?>" <?= $perPage === (int) $n ? 'selected' : '' ?>><?= (int) $n ?> / page</option>
@@ -119,13 +119,13 @@ $typeLabelsFr = [
 <!-- Logs paginés -->
 <div class="admin-card">
     <div class="admin-card__header">
-        <h2 style="font-size:0.85rem;letter-spacing:0.08em;text-transform:uppercase;color:#8a7060;margin:0;">
+        <h2 class="admin-card-section-title">
             Journal des envois
         </h2>
     </div>
-    <div class="admin-card__body" style="padding:0;">
+    <div class="admin-card__body u-p-0">
         <?php if (empty($logs)) : ?>
-            <p style="padding:1.5rem;color:#8a7060;font-size:0.875rem;">Aucun log disponible.</p>
+            <p class="admin-empty-state">Aucun log disponible.</p>
         <?php else : ?>
             <table class="admin-table">
                 <thead>
@@ -135,7 +135,7 @@ $typeLabelsFr = [
                         <th>De</th>
                         <th>À</th>
                         <th>Sujet</th>
-                        <th style="text-align:center;">Statut</th>
+                        <th class="text-center">Statut</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -147,24 +147,24 @@ $typeLabelsFr = [
                             $type      = (string) ($log['type'] ?? 'other');
                         ?>
                         <tr>
-                            <td style="font-size:0.8rem;white-space:nowrap;"><?= htmlspecialchars($log['sent_at']) ?></td>
-                            <td style="font-size:0.72rem;"><span style="background:#f3ede0;color:#5a4a3a;padding:2px 8px;border-radius:12px;letter-spacing:0.04em;"><?= htmlspecialchars($typeLabelsFr[$type] ?? $type) ?></span></td>
-                            <td style="font-size:0.8rem;"><?= htmlspecialchars($log['from_address']) ?></td>
-                            <td style="font-size:0.8rem;"><?= htmlspecialchars($log['to_address']) ?></td>
-                            <td style="font-size:0.8rem;">
+                            <td class="u-text-sm u-nowrap"><?= htmlspecialchars($log['sent_at']) ?></td>
+                            <td class="u-text-xxs"><span class="admin-type-badge"><?= htmlspecialchars($typeLabelsFr[$type] ?? $type) ?></span></td>
+                            <td class="u-text-sm"><?= htmlspecialchars($log['from_address']) ?></td>
+                            <td class="u-text-sm"><?= htmlspecialchars($log['to_address']) ?></td>
+                            <td class="u-text-sm">
                                 <?= $subject ?><?= $truncated ? '&hellip;' : '' ?>
                                 <?php if (!$isOk && !empty($log['error_message'])) : ?>
                                     <br>
-                                    <span style="color:#c0392b;font-size:0.72rem;">
+                                    <span class="u-text-xxs u-text-error">
                                         <?= htmlspecialchars(mb_substr($log['error_message'], 0, 100)) ?>
                                     </span>
                                 <?php endif; ?>
                             </td>
-                            <td style="text-align:center;">
+                            <td class="text-center">
                                 <?php if ($isOk) : ?>
-                                    <span style="background:#e6f4ea;color:#1a6b1a;font-size:0.72rem;padding:2px 8px;border-radius:12px;letter-spacing:0.04em;">OK</span>
+                                    <span class="admin-status-badge admin-status-badge--ok">OK</span>
                                 <?php else : ?>
-                                    <span style="background:#fdecea;color:#c0392b;font-size:0.72rem;padding:2px 8px;border-radius:12px;letter-spacing:0.04em;">ERR</span>
+                                    <span class="admin-status-badge admin-status-badge--err">ERR</span>
                                 <?php endif; ?>
                             </td>
                         </tr>
@@ -196,4 +196,9 @@ $typeLabelsFr = [
     <?php endif; ?>
 </div>
 
+<script nonce="<?= htmlspecialchars(defined('CSP_NONCE') ? CSP_NONCE : '') ?>">
+document.querySelectorAll('[data-pct]').forEach(function (el) {
+    el.style.width = el.dataset.pct + '%';
+});
+</script>
 <?php require_once SRC_PATH . '/View/admin/_close.php'; ?>

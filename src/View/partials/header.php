@@ -297,10 +297,7 @@ document.addEventListener('DOMContentLoaded', function () {
         var inner = loginForm.closest('.login-modal__inner');
         if (inner) inner.classList.add('cb-loading');
         btn.disabled = true;
-        btn.innerHTML =
-            '<span style="display:inline-block;width:.85em;height:.85em;border:2px solid currentColor;'
-            + 'border-top-color:transparent;border-radius:50%;animation:cb-spin .6s linear infinite;'
-            + 'vertical-align:middle;margin-right:.4em;"></span>' + <?= json_encode(htmlspecialchars(__('auth.signing_in'))) ?>;
+        btn.innerHTML = '<span class="u-spinner" aria-hidden="true"></span>' + <?= json_encode(htmlspecialchars(__('auth.signing_in'))) ?>;
     });
 });
 </script>
@@ -331,11 +328,6 @@ document.addEventListener('DOMContentLoaded', function () {
     // Auto-open géré par main.js (initLoginModal) via window.__resendActivationSuccess
 });
 </script>
-<style>
-@keyframes cb-spin{to{transform:rotate(360deg)}}
-.login-modal__inner.cb-loading{opacity:.6;pointer-events:none;}
-.login-modal__inner.cb-loading .login-modal__submit{opacity:1;pointer-events:auto;}
-</style>
 
 <!-- ============================================================ -->
 <!-- Modal ajout au panier                                         -->
@@ -732,7 +724,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     <?= htmlspecialchars(__('auth.reset_invalid')) ?>
                 </div>
                 <button type="button" id="reset-to-forgot"
-                        class="btn btn--gold btn--full" style="margin-top:0.75rem;">
+                        class="btn btn--gold btn--full u-mt-3">
                     <?= htmlspecialchars(__('auth.forgot_password')) ?>
                 </button>
             <?php elseif ($resetSuccess) : ?>
@@ -818,6 +810,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 <a href="/admin/commandes">Commandes</a>
                 <a href="/admin/factures">Factures</a>
                 <a href="/admin/statistiques">Statistiques CA</a>
+                <a href="/admin/paniers">Paniers</a>
+                <a href="/admin/avis">Avis</a>
 
                 <span class="account-panel__section-label">Clients</span>
                 <a href="/admin/comptes">Comptes</a>

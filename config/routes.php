@@ -40,6 +40,8 @@ $router->post('/admin/bons-de-commande/ajouter', 'Admin\OrderFormAdminController
 $router->post('/admin/bons-de-commande/{id}/supprimer', 'Admin\OrderFormAdminController@delete');
 $router->get('/admin/bons-de-commande/{id}/telecharger', 'Admin\OrderFormAdminController@download');
 $router->get('/admin/statistiques', 'Admin\StatsAdminController@index');
+$router->get('/admin/paniers', 'Admin\CartAdminController@index');
+$router->get('/admin/avis', 'Admin\ReviewAdminController@index');
 $router->get('/admin/marketing', 'Admin\MarketingAdminController@index');
 $router->get('/admin/factures', 'Admin\InvoiceAdminController@index');
 $router->get('/admin/factures/export', 'Admin\InvoiceAdminController@export');

@@ -218,4 +218,51 @@ class ReviewModelTest extends TestCase
 
         $this->makeModel($db)->upsert(1, 5, 'Super vin', 'Sophie D.', 'Paris');
     }
+
+    // ----------------------------------------------------------------
+    // countAll
+    // ----------------------------------------------------------------
+
+    public function testCountAllReturnsInteger(): void
+    {
+        $db = $this->createStub(Database::class);
+        $db->method('fetchOne')->willReturn(['cnt' => '42']);
+
+        $this->assertSame(42, $this->makeModel($db)->countAll());
+    }
+
+    public function testCountAllReturnsZeroWhenFetchOneReturnsFalse(): void
+    {
+        $db = $this->createStub(Database::class);
+        $db->method('fetchOne')->willReturn(false);
+
+        $this->assertSame(0, $this->makeModel($db)->countAll());
+    }
+
+    // ----------------------------------------------------------------
+    // findPaginated
+    // ----------------------------------------------------------------
+
+    public function testFindPaginatedReturnsFetchAllResult(): void
+    {
+        $rows = [
+            ['id' => 1, 'rating' => 5, 'display_name' => 'Sophie D.', 'email' => 'sophie@example.com'],
+            ['id' => 2, 'rating' => 4, 'display_name' => 'Marc L.',   'email' => 'marc@example.com'],
+        ];
+
+        $db = $this->createStub(Database::class);
+        $db->method('fetchAll')->willReturn($rows);
+
+        $result = $this->makeModel($db)->findPaginated(1, 25);
+
+        $this->assertSame($rows, $result);
+    }
+
+    public function testFindPaginatedReturnsEmptyArrayWhenNoReviews(): void
+    {
+        $db = $this->createStub(Database::class);
+        $db->method('fetchAll')->willReturn([]);
+
+        $this->assertSame([], $this->makeModel($db)->findPaginated(1, 25));
+    }
 }

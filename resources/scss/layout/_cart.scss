@@ -763,6 +763,22 @@
     line-height: 1.4;
 }
 
+.cart-summary__delivery-note {
+    font-size: 0.8rem;
+    color: #8a7060;
+    text-align: center;
+    margin-top: 0.75rem;
+    margin-bottom: 0;
+    line-height: 1.4;
+}
+
+.cart-summary__delivery-link {
+    color: var(--color-gold);
+    text-decoration: underline;
+
+    &:hover { opacity: 0.8; }
+}
+
 .btn--disabled {
     opacity: 0.45;
     cursor: not-allowed;

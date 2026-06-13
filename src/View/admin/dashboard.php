@@ -29,7 +29,7 @@ $totalOrders  = array_sum($ordersByStatus);
     <div class="admin-stat-card admin-stat-card--green">
         <div class="admin-stat-card__label">CA <?= date('Y') ?></div>
         <div class="admin-stat-card__value"><?= number_format($revenueYear, 0, ',', ' ') ?>&nbsp;€</div>
-        <div class="admin-stat-card__sub" style="display:flex;flex-direction:column;gap:2px;">
+        <div class="admin-stat-card__sub u-flex u-flex-col u-gap-1">
             <span><?= date('Y') - 1 ?> : <?= number_format($revenueLastYear, 0, ',', ' ') ?>&nbsp;€</span>
             <span>30 j : <?= number_format($revenue30, 0, ',', ' ') ?>&nbsp;€</span>
         </div>
@@ -43,9 +43,9 @@ $totalOrders  = array_sum($ordersByStatus);
 
 <!-- Statuts des commandes -->
 <?php if (!empty($ordersByStatus)) : ?>
-<div class="admin-card" style="margin-bottom:1.5rem;">
+<div class="admin-card u-mb-6">
     <div class="admin-card__header"><h2>Répartition par statut</h2></div>
-    <div class="admin-card__body" style="display:flex;flex-wrap:wrap;gap:0.75rem;">
+    <div class="admin-card__body u-flex u-flex-wrap u-gap-3">
         <?php
         $statusLabels = [
             'pending'          => 'En attente',
@@ -60,7 +60,7 @@ $totalOrders  = array_sum($ordersByStatus);
         foreach ($statusLabels as $key => $label) :
             $cnt = $ordersByStatus[$key] ?? 0;
             ?>
-            <a href="/admin/commandes?status=<?= urlencode($key) ?>" style="text-decoration:none;">
+            <a href="/admin/commandes?status=<?= urlencode($key) ?>" class="u-no-underline">
                 <span class="badge badge--<?= htmlspecialchars($key) ?>"><?= htmlspecialchars($label) ?> (<?= $cnt ?>)</span>
             </a>
         <?php endforeach; ?>
@@ -88,15 +88,15 @@ $totalOrders  = array_sum($ordersByStatus);
             </thead>
             <tbody>
             <?php if (empty($recentOrders)) : ?>
-                <tr><td colspan="6" style="text-align:center;color:#8a7a60;padding:2rem;">Aucune commande</td></tr>
+                <tr><td colspan="6" class="text-center u-text-soft u-p-8">Aucune commande</td></tr>
             <?php else : ?>
                 <?php foreach ($recentOrders as $order) : ?>
                     <tr>
-                        <td><code style="font-size:0.8rem;"><?= htmlspecialchars($order['order_reference']) ?></code></td>
+                        <td><code class="u-text-sm"><?= htmlspecialchars($order['order_reference']) ?></code></td>
                         <td><?= htmlspecialchars($order['firstname'] ?: $order['email']) ?></td>
                         <td><span class="badge badge--<?= htmlspecialchars($order['status']) ?>"><?= htmlspecialchars($order['status']) ?></span></td>
                         <td><?= number_format((float) $order['price'], 2, ',', ' ') ?>&nbsp;€</td>
-                        <td style="white-space:nowrap;"><?= date('d/m/Y', strtotime($order['ordered_at'])) ?></td>
+                        <td class="u-nowrap"><?= date('d/m/Y', strtotime($order['ordered_at'])) ?></td>
                         <td><a href="/admin/commandes/<?= (int) $order['id'] ?>" class="admin-btn admin-btn--outline admin-btn--sm">Voir</a></td>
                     </tr>
                 <?php endforeach; ?>

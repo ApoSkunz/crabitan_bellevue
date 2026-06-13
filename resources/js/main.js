@@ -1763,7 +1763,7 @@ function initDeleteAccountModal() {
         if (!submitBtn || !confirmTxt) return;
         const ok = confirmTxt.value.trim().toUpperCase() === 'SUPPRESSION';
         if (pwdGroup) {
-            pwdGroup.style.display = ok ? '' : 'none';
+            pwdGroup.classList.toggle('u-hidden', !ok);
             if (ok && pwdInput) pwdInput.focus();
         }
         submitBtn.disabled = !ok;
@@ -2477,29 +2477,29 @@ document.addEventListener('DOMContentLoaded', () => {
             // QR pointe sur la page loader : scan → animation chargement → PDF auto-download
             const url     = appUrl + '/fr/vins/' + encodeURIComponent(slug) + '/fiche-technique/qr';
             const spinner = document.getElementById('admin-qr-spinner');
-            modalTitle.textContent      = label;
-            modalUrl.textContent        = url;
-            qrModal.style.display       = 'flex';
-            modalCanvas.style.display   = 'none';
-            if (spinner) spinner.style.display = 'block';
+            modalTitle.textContent = label;
+            modalUrl.textContent   = url;
+            qrModal.classList.remove('u-hidden');
+            modalCanvas.classList.add('u-hidden');
+            if (spinner) spinner.classList.remove('u-hidden');
 
             import('qrcode').then((QRCode) => {
                 QRCode.default.toCanvas(modalCanvas, url, { width: 300, margin: 2 }, () => {
-                    if (spinner) spinner.style.display = 'none';
-                    modalCanvas.style.display = 'block';
+                    if (spinner) spinner.classList.add('u-hidden');
+                    modalCanvas.classList.remove('u-hidden');
                     if (modalDownload) {
                         modalDownload.href     = modalCanvas.toDataURL('image/png');
                         modalDownload.download = 'qr-' + slug + '.png';
                     }
                 });
             }).catch(() => {
-                if (spinner) spinner.style.display = 'none';
-                modalCanvas.style.display = 'block';
+                if (spinner) spinner.classList.add('u-hidden');
+                modalCanvas.classList.remove('u-hidden');
             });
         }
 
         function closeQrModal() {
-            qrModal.style.display = 'none';
+            qrModal.classList.add('u-hidden');
         }
 
         document.querySelectorAll('.js-qr-btn').forEach((btn) => {

@@ -126,11 +126,11 @@ if (!function_exists('ordersUrl')) {
                                             <?= __('order.status.' . $order['status']) ?>
                                         </span>
                                     </td>
-                                    <td data-label="Mode" style="font-size:0.82rem;">
+                                    <td data-label="Mode" class="u-text-sm-plus">
                                         <?php if (($order['delivery_method'] ?? 'shipping') === 'pickup') : ?>
-                                            <span style="background:#f4e9d0;color:#6b4c1a;padding:2px 8px;border-radius:12px;">Retrait château</span>
+                                            <span class="badge-pickup">Retrait château</span>
                                         <?php else : ?>
-                                            <span style="background:#e8eefd;color:#2a4ab0;padding:2px 8px;border-radius:12px;">Livraison</span>
+                                            <span class="badge-delivery">Livraison</span>
                                         <?php endif; ?>
                                     </td>
                                     <td data-label="<?= htmlspecialchars(__('account.order_price')) ?>"><?= number_format((float) $order['price'], 2, ',', ' ') ?> €</td>

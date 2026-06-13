@@ -10,6 +10,7 @@
 @use 'base/fonts';
 @use 'base/reset';
 @use 'base/typography';
+@use 'base/utilities';
 
 // ============================================================
 // Composants
@@ -24,6 +25,7 @@
 @use 'components/majority-modal';
 @use 'components/checkout-stepper';
 @use 'components/toast';
+@use 'components/carbon-badge';
 
 // ============================================================
 // Layout
@@ -43,6 +45,7 @@
 @use 'layout/account';
 @use 'layout/cart';
 @use 'layout/checkout';
+@use 'layout/pdf-loader';
 @use 'layout/rating';
 @use 'layout/responsive-tablet';
 

@@ -27,8 +27,8 @@ require_once __DIR__ . '/../partials/header.php';
                                 <th><?= __('account.order_invoice') ?></th>
                                 <th><?= __('account.order_ref') ?></th>
                                 <th><?= __('account.order_date') ?></th>
-                                <th style="text-align:right;"><?= __('account.order_price') ?></th>
-                                <th style="text-align:center;"><?= __('account.download_invoice') ?></th>
+                                <th class="u-text-right"><?= __('account.order_price') ?></th>
+                                <th class="text-center"><?= __('account.download_invoice') ?></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -41,13 +41,13 @@ require_once __DIR__ . '/../partials/header.php';
                                             ) ?>
                                         </span>
                                     </td>
-                                    <td data-label="<?= htmlspecialchars(__('account.order_ref')) ?>" style="font-size:0.85rem;color:var(--color-text-muted);">
+                                    <td data-label="<?= htmlspecialchars(__('account.order_ref')) ?>" class="u-text-85 text-muted">
                                         <?= htmlspecialchars((string) $inv['order_reference']) ?>
                                     </td>
-                                    <td data-label="<?= htmlspecialchars(__('account.order_date')) ?>" style="white-space:nowrap;">
+                                    <td data-label="<?= htmlspecialchars(__('account.order_date')) ?>" class="u-nowrap">
                                         <?= date('d/m/Y', strtotime((string) $inv['ordered_at'])) ?>
                                     </td>
-                                    <td data-label="<?= htmlspecialchars(__('account.order_price')) ?>" style="font-weight:600;">
+                                    <td data-label="<?= htmlspecialchars(__('account.order_price')) ?>" class="u-font-semibold">
                                         <?= number_format((float) $inv['price'], 2, ',', '&nbsp;') ?>&nbsp;&euro;
                                     </td>
                                     <td data-label="<?= htmlspecialchars(__('account.download_invoice')) ?>">

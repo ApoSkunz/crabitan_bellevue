@@ -18,56 +18,61 @@ if (!function_exists('cronMonUrl')) {
 
 $statusBadge = function (string $status): string {
     $map = [
-        'success' => ['bg' => '#e6f4ea', 'color' => '#1a6b1a', 'label' => 'OK'],
-        'error'   => ['bg' => '#fdecea', 'color' => '#c0392b', 'label' => 'ERR'],
-        'running' => ['bg' => '#e8eefd', 'color' => '#2a4ab0', 'label' => 'EN COURS'],
-        'skipped' => ['bg' => '#f4f0e6', 'color' => '#8a7060', 'label' => 'SKIP'],
+        'success' => 'cron-badge--success',
+        'error'   => 'cron-badge--error',
+        'running' => 'cron-badge--running',
+        'skipped' => 'cron-badge--skipped',
     ];
-    $cfg = $map[$status] ?? $map['skipped'];
-    return '<span style="background:' . $cfg['bg'] . ';color:' . $cfg['color']
-        . ';font-size:0.72rem;padding:2px 8px;border-radius:12px;letter-spacing:0.04em;">'
-        . htmlspecialchars($cfg['label']) . '</span>';
+    $labels = [
+        'success' => 'OK',
+        'error'   => 'ERR',
+        'running' => 'EN COURS',
+        'skipped' => 'SKIP',
+    ];
+    $cls   = $map[$status]   ?? $map['skipped'];
+    $label = $labels[$status] ?? $labels['skipped'];
+    return '<span class="cron-badge ' . $cls . '">' . htmlspecialchars($label) . '</span>';
 };
 ?>
 
 <div class="admin-page-header">
-    <h1>Monitoring crons <small style="font-size:0.75rem;color:#8a7060;">(<?= $totalRuns ?>)</small></h1>
+    <h1>Monitoring crons <small class="u-text-2xs u-text-soft">(<?= $totalRuns ?>)</small></h1>
     <p class="admin-page-header__sub">Journal d'exécution des jobs cron · rétention 30&nbsp;jours</p>
 </div>
 
 <!-- Agrégat 24h -->
-<div class="admin-card" style="margin-bottom:1.5rem;">
+<div class="admin-card u-mb-6">
     <div class="admin-card__header">
-        <h2 style="font-size:0.85rem;letter-spacing:0.08em;text-transform:uppercase;color:#8a7060;margin:0;">
+        <h2 class="u-text-85 u-tracking-wider u-uppercase u-text-soft u-m-0">
             Agrégat 24&nbsp;h par job
         </h2>
     </div>
-    <div class="admin-card__body" style="padding:0;overflow-x:auto;">
+    <div class="admin-card__body u-p-0 u-overflow-x-auto">
         <?php if (empty($summary)) : ?>
-            <p style="padding:1.5rem;color:#8a7060;font-size:0.875rem;">Aucun run cron dans les 24 dernières heures.</p>
+            <p class="u-p-6 u-text-soft u-text-87">Aucun run cron dans les 24 dernières heures.</p>
         <?php else : ?>
             <table class="admin-table">
                 <thead>
                     <tr>
                         <th>Job</th>
-                        <th style="text-align:right;">Runs</th>
-                        <th style="text-align:right;">Succès</th>
-                        <th style="text-align:right;">Erreurs</th>
-                        <th style="text-align:right;">Actions</th>
-                        <th style="text-align:right;">Durée moy.</th>
+                        <th class="u-text-right">Runs</th>
+                        <th class="u-text-right">Succès</th>
+                        <th class="u-text-right">Erreurs</th>
+                        <th class="u-text-right">Actions</th>
+                        <th class="u-text-right">Durée moy.</th>
                         <th>Dernier run</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php foreach ($summary as $row) : ?>
                         <tr>
-                            <td><code style="font-size:0.8rem;"><?= htmlspecialchars($row['job_name']) ?></code></td>
-                            <td style="text-align:right;"><?= (int) $row['runs'] ?></td>
-                            <td style="text-align:right;color:#2d7a2d;"><?= (int) $row['success'] ?></td>
-                            <td style="text-align:right;<?= (int) $row['errors'] > 0 ? 'color:#c0392b;font-weight:600;' : '' ?>"><?= (int) $row['errors'] ?></td>
-                            <td style="text-align:right;"><?= (int) $row['actions_total'] ?></td>
-                            <td style="text-align:right;font-size:0.8rem;color:#5a4a3a;"><?= number_format((float) $row['avg_duration_ms'], 0, ',', ' ') ?>&nbsp;ms</td>
-                            <td style="font-size:0.8rem;color:#5a4a3a;"><?= htmlspecialchars($row['last_run'] ?? '—') ?></td>
+                            <td><code class="u-text-sm"><?= htmlspecialchars($row['job_name']) ?></code></td>
+                            <td class="u-text-right"><?= (int) $row['runs'] ?></td>
+                            <td class="u-text-right u-text-success"><?= (int) $row['success'] ?></td>
+                            <td class="u-text-right<?= (int) $row['errors'] > 0 ? ' u-text-error u-font-semibold' : '' ?>"><?= (int) $row['errors'] ?></td>
+                            <td class="u-text-right"><?= (int) $row['actions_total'] ?></td>
+                            <td class="u-text-right u-text-sm u-text-brown-warm"><?= number_format((float) $row['avg_duration_ms'], 0, ',', ' ') ?>&nbsp;ms</td>
+                            <td class="u-text-sm u-text-brown-warm"><?= htmlspecialchars($row['last_run'] ?? '—') ?></td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>
@@ -76,7 +81,7 @@ $statusBadge = function (string $status): string {
     </div>
 </div>
 
-<form method="GET" action="/admin/monitoring-crons" class="admin-filters" data-auto-submit style="margin-bottom:0.75rem;">
+<form method="GET" action="/admin/monitoring-crons" class="admin-filters u-mb-3" data-auto-submit>
     <select name="per_page" class="admin-filters__select" aria-label="Lignes par page">
         <?php foreach ($perPageOpts as $n) : ?>
             <option value="<?= (int) $n ?>" <?= $perPage === (int) $n ? 'selected' : '' ?>><?= (int) $n ?> / page</option>
@@ -86,18 +91,18 @@ $statusBadge = function (string $status): string {
 </form>
 
 <div class="admin-card">
-    <div class="admin-card__body" style="padding:0;overflow-x:auto;">
+    <div class="admin-card__body u-p-0 u-overflow-x-auto">
         <?php if (empty($runs)) : ?>
-            <p style="padding:1.5rem;color:#8a7060;font-size:0.875rem;">Aucun run disponible.</p>
+            <p class="u-p-6 u-text-soft u-text-87">Aucun run disponible.</p>
         <?php else : ?>
             <table class="admin-table">
                 <thead>
                     <tr>
                         <th>Démarré</th>
                         <th>Job</th>
-                        <th style="text-align:center;">Statut</th>
-                        <th style="text-align:right;">Durée</th>
-                        <th style="text-align:right;">Actions</th>
+                        <th class="text-center">Statut</th>
+                        <th class="u-text-right">Durée</th>
+                        <th class="u-text-right">Actions</th>
                         <th>Dry-run</th>
                         <th>Extrait log</th>
                     </tr>
@@ -109,13 +114,13 @@ $statusBadge = function (string $status): string {
                         $logTrunc = $run['log_output'] !== null && mb_strlen((string) $run['log_output']) > 160;
                     ?>
                         <tr>
-                            <td style="font-size:0.8rem;white-space:nowrap;"><?= htmlspecialchars($run['started_at']) ?></td>
-                            <td><code style="font-size:0.8rem;"><?= htmlspecialchars($run['job_name']) ?></code></td>
-                            <td style="text-align:center;"><?= $statusBadge((string) $run['status']) ?></td>
-                            <td style="text-align:right;font-size:0.8rem;"><?= $duration ?></td>
-                            <td style="text-align:right;"><?= (int) $run['actions_count'] ?></td>
-                            <td><?= $run['dry_run'] ? '<span style="color:#8a7060;font-size:0.75rem;">DRY</span>' : '' ?></td>
-                            <td class="cron-log-cell" data-label="Log" style="font-size:0.75rem;color:#5a4a3a;max-width:320px;">
+                            <td class="u-text-sm u-nowrap"><?= htmlspecialchars($run['started_at']) ?></td>
+                            <td><code class="u-text-sm"><?= htmlspecialchars($run['job_name']) ?></code></td>
+                            <td class="text-center"><?= $statusBadge((string) $run['status']) ?></td>
+                            <td class="u-text-right u-text-sm"><?= $duration ?></td>
+                            <td class="u-text-right"><?= (int) $run['actions_count'] ?></td>
+                            <td><?= $run['dry_run'] ? '<span class="u-text-soft u-text-2xs">DRY</span>' : '' ?></td>
+                            <td class="cron-log-cell u-text-2xs u-text-brown-warm cron-log-cell--maxw" data-label="Log">
                                 <div class="cron-log-excerpt"><?= htmlspecialchars($excerpt) ?><?= $logTrunc ? '&hellip;' : '' ?></div>
                                 <?php if (!empty($run['error_message'])) : ?>
                                     <div class="cron-log-error"><?= htmlspecialchars(mb_substr((string) $run['error_message'], 0, 200)) ?></div>
@@ -173,60 +178,6 @@ $statusBadge = function (string $status): string {
     </div>
 </dialog>
 
-<style>
-.cron-log-btn {
-    display: inline-block;
-    margin-left: 6px;
-    font-size: 0.7rem;
-    color: #8a7060;
-    background: none;
-    border: 1px solid #c9b99a;
-    border-radius: 4px;
-    padding: 1px 6px;
-    cursor: pointer;
-    vertical-align: middle;
-}
-.cron-log-btn:hover { background: #f4f0e6; }
-.cron-log-error { color: #c0392b; margin-top: 2px; }
-.cron-log-btn { margin-top: 4px; }
-
-#cron-log-modal { position: fixed; inset: 0; margin: auto; border: none; border-radius: 8px; padding: 0; width: min(860px, 95vw); max-height: 80vh; box-shadow: 0 8px 32px rgba(0,0,0,.2); }
-#cron-log-modal::backdrop { background: rgba(0,0,0,.45); }
-.cron-log-modal__panel {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-}
-.cron-log-modal__header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 1rem 1.25rem;
-    border-bottom: 1px solid #e8ddd0;
-    gap: 1rem;
-}
-.cron-log-modal__job { font-family: monospace; font-size: 0.9rem; font-weight: 600; color: #3a2a1a; }
-.cron-log-modal__date { font-size: 0.75rem; color: #8a7060; margin-left: 0.5rem; }
-.cron-log-modal__close {
-    background: none; border: none; cursor: pointer;
-    font-size: 1.1rem; color: #8a7060; padding: 4px 8px; border-radius: 4px;
-    flex-shrink: 0;
-}
-.cron-log-modal__close:hover { background: #f4f0e6; color: #3a2a1a; }
-.cron-log-modal__body {
-    flex: 1;
-    overflow-y: auto;
-    overscroll-behavior: contain;
-    padding: 1rem 1.25rem;
-    margin: 0;
-    font-size: 0.78rem;
-    line-height: 1.6;
-    color: #2a1a0a;
-    white-space: pre-wrap;
-    word-break: break-word;
-    background: #faf8f5;
-}
-</style>
 
 <script nonce="<?= htmlspecialchars(defined('CSP_NONCE') ? CSP_NONCE : '') ?>">
 (function () {

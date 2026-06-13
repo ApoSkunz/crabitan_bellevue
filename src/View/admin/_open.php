@@ -29,6 +29,8 @@ $navIcons = [
     'cron_monitoring' => '<svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7.5" cy="7.5" r="6"/><polyline points="7.5,4 7.5,7.5 10,9"/></svg>',
     'app_logs'       => '<svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="1.5" width="11" height="12" rx="1"/><line x1="4" y1="4.5" x2="11" y2="4.5"/><line x1="4" y1="7" x2="11" y2="7"/><line x1="4" y1="9.5" x2="9" y2="9.5"/><circle cx="11.5" cy="11.5" r="0.75" fill="currentColor" stroke="none"/></svg>',
     'feature_flags'  => '<svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 2v11"/><path d="M2 2h9l-2 3.5 2 3.5H2"/></svg>',
+    'carts'          => '<svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 1.5h2l1.5 7.5h7l1.5-5H4"/><circle cx="6.5" cy="12" r="1"/><circle cx="11" cy="12" r="1"/></svg>',
+    'reviews'        => '<svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.5 1.5l1.5 3 3.5.5-2.5 2.5.6 3.5L7.5 9.5l-3.1 1.5.6-3.5L2.5 5l3.5-.5z"/></svg>',
 ];
 
 $navSections = [
@@ -44,6 +46,8 @@ $navSections = [
         'orders'   => ['url' => '/admin/commandes',       'label' => 'Commandes'],
         'invoices' => ['url' => '/admin/factures',        'label' => 'Factures'],
         'stats'    => ['url' => '/admin/statistiques',    'label' => 'Statistiques CA'],
+        'carts'    => ['url' => '/admin/paniers',         'label' => 'Paniers'],
+        'reviews'  => ['url' => '/admin/avis',            'label' => 'Avis'],
     ],
     'Clients' => [
         'accounts' => ['url' => '/admin/comptes', 'label' => 'Comptes'],
@@ -313,7 +317,7 @@ if (empty($_SESSION['csrf'])) {
                 <?php endforeach; ?>
             </nav>
 
-            <a href="/fr" class="admin-btn admin-btn--outline admin-btn--sm" style="margin-left:auto;">
+            <a href="/fr" class="admin-btn admin-btn--outline admin-btn--sm u-ml-auto">
                 Voir le site
             </a>
         </header>

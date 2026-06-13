@@ -1,0 +1,48 @@
+// ============================================================
+// Carbon Badge — Website Carbon widget (footer)
+// CSS extrait de resources/js/carbon-badge.js pour supprimer
+// l'injection dynamique de <style> incompatible avec style-src sans unsafe-inline
+// ============================================================
+
+.carbonbadge {
+    --b2: #c9a84c;
+    font-size: 13px;
+    line-height: 1.15;
+    text-align: center;
+
+    a,
+    p {
+        text-align: center;
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 1em;
+        margin: .2em 0;
+        line-height: 1.15;
+        font-family: system-ui, sans-serif;
+    }
+}
+
+#wcb_g,
+.carbonbadge a {
+    padding: .3em .5em;
+    color: #2a2218;
+    background: #f5f0e8;
+    border: .125rem solid var(--b2);
+    border-radius: .3em 0 0 .3em;
+}
+
+#wcb_g {
+    border-right: 0;
+    min-width: 8.2em;
+}
+
+.carbonbadge a {
+    border-radius: 0 .3em .3em 0;
+    border-left: 0;
+    background: #080808;
+    color: #f5f0e8;
+    text-decoration: none;
+    font-weight: 700;
+    border-color: var(--b2);
+}

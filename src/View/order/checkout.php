@@ -350,7 +350,7 @@ $renderAddressForm = function (string $prefix, array $post, string $idSuffix) us
                                 <img src="/assets/images/payment/payment-cb-banner.png"
                                      alt="CB, Visa, Mastercard"
                                      height="26"
-                                     style="vertical-align:middle;margin-left:8px;"
+                                     class="u-align-middle u-ml-2"
                                      loading="lazy">
                             </p>
                             <p class="checkout-payment-info checkout-payment-info--sub"><?= htmlspecialchars(__('checkout.payment_card_redirect')) ?></p>

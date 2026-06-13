@@ -13,80 +13,77 @@ $cssDisabled = ' disabled';
 <?php endif; ?>
 
 <div class="admin-page-header">
-    <h1>Newsletter <small style="font-size:0.75rem;font-variant:normal;letter-spacing:0;color:#8a7a60;">(<?= $total ?> abonné<?= $total > 1 ? 's' : '' ?>)</small></h1>
+    <h1>Newsletter <small class="u-text-2xs admin-subcount-alt">(<?= $total ?> abonné<?= $total > 1 ? 's' : '' ?>)</small></h1>
 </div>
 
 <!-- ---- Formulaire envoi ---- -->
-<div class="admin-card" style="margin-bottom:1.5rem;">
+<div class="admin-card u-mb-6">
     <div class="admin-card__body">
-        <h2 style="font-size:0.85rem;letter-spacing:0.12em;text-transform:uppercase;color:#6b5f50;margin-bottom:1rem;">
+        <h2 class="admin-card-section-title u-mb-4">
             Envoyer une newsletter
         </h2>
         <?php if ($total === 0) : ?>
-            <p style="font-size:0.85rem;color:#8a7a60;">Aucun abonné — aucun envoi possible.</p>
+            <p class="u-text-85 u-text-soft">Aucun abonné — aucun envoi possible.</p>
         <?php else : ?>
             <form id="nl-form" method="POST" action="/admin/newsletter/envoyer"
                   class="admin-form" enctype="multipart/form-data">
                 <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
-                <div class="admin-field" style="margin-bottom:1rem;">
+                <div class="admin-field u-mb-4">
                     <label class="admin-field__label" for="nl-subject">Objet *</label>
-                    <div style="display:flex;align-items:center;gap:0;border:1px solid #ccc;border-radius:4px;overflow:hidden;">
-                        <span style="padding:0.5rem 0.75rem;background:#f5f0e8;color:#8a7a60;font-size:0.82rem;
-                                     white-space:nowrap;border-right:1px solid #ccc;">
+                    <div class="u-flex u-items-center admin-subject-wrap">
+                        <span class="admin-subject-prefix">
                             Château Crabitan Bellevue —
                         </span>
                         <input type="text" id="nl-subject" name="subject"
-                               class="admin-field__input"
-                               style="border:0;border-radius:0;flex:1;margin:0;"
+                               class="admin-field__input admin-subject-input"
                                placeholder="Nos nouveaux millésimes vous attendent…">
                     </div>
-                    <span id="nl-subject-error" class="admin-field__error" style="display:none;">Ce champ est obligatoire.</span>
-                    <p style="font-size:0.72rem;color:#8a7a60;margin-top:0.25rem;">
+                    <span id="nl-subject-error" class="admin-field__error u-hidden">Ce champ est obligatoire.</span>
+                    <p class="u-text-xxs u-text-soft u-mt-1">
                         Le préfixe château est ajouté automatiquement. Ne pas inclure "Newsletter" dans l'objet (impact délivrabilité).
                     </p>
                 </div>
-                <div class="admin-field" style="margin-bottom:1rem;">
+                <div class="admin-field u-mb-4">
                     <label class="admin-field__label" for="nl-title">
                         Titre de la newsletter
-                        <span style="font-weight:400;font-size:0.72rem;">(optionnel — affiché en grand titre dans l'email, avant le corps)</span>
+                        <span class="u-font-normal u-text-xxs">(optionnel — affiché en grand titre dans l'email, avant le corps)</span>
                     </label>
                     <input type="text" id="nl-title" name="nl_title"
                            class="admin-field__input"
                            placeholder="Ex : Découvrez nos nouveaux millésimes 2024…">
                 </div>
-                <div class="admin-field" style="margin-bottom:1rem;">
+                <div class="admin-field u-mb-4">
                     <label class="admin-field__label" for="nl-image">
                         Image — jpg / png / webp
-                        <span style="font-weight:400;font-size:0.72rem;">(optionnel — affichée en bas du corps, avant le désabonnement)</span>
+                        <span class="u-font-normal u-text-xxs">(optionnel — affichée en bas du corps, avant le désabonnement)</span>
                     </label>
                     <input type="file" id="nl-image" name="nl_image"
                            accept="image/jpeg,image/png,image/webp"
                            class="admin-field__input">
                     <img id="nl-image-preview" src="" alt=""
-                         style="display:none;max-height:120px;max-width:320px;object-fit:cover;
-                                margin-top:0.5rem;border:1px solid rgba(0,0,0,0.1);border-radius:4px;">
+                         class="u-hidden admin-nl-image-preview">
                 </div>
-                <div class="admin-field" style="margin-bottom:1rem;">
+                <div class="admin-field u-mb-4">
                     <label class="admin-field__label" for="nl-pdf">
                         Pièce jointe PDF
-                        <span style="font-weight:400;font-size:0.72rem;">(optionnel — max 10 Mo)</span>
+                        <span class="u-font-normal u-text-xxs">(optionnel — max 10 Mo)</span>
                     </label>
                     <input type="file" id="nl-pdf" name="nl_pdf"
                            accept="application/pdf"
                            class="admin-field__input">
-                    <p id="nl-pdf-name" style="display:none;font-size:0.78rem;color:#3d3425;margin-top:0.25rem;"></p>
+                    <p id="nl-pdf-name" class="u-hidden admin-nl-pdf-name"></p>
                 </div>
-                <div class="admin-field" style="margin-bottom:1rem;">
+                <div class="admin-field u-mb-4">
                     <label class="admin-field__label" for="nl-body">Contenu *</label>
                     <textarea id="nl-body" name="body"
                               class="admin-field__textarea" rows="8"
                               placeholder="Rédigez votre newsletter…"></textarea>
-                    <span id="nl-body-error" class="admin-field__error" style="display:none;">Ce champ est obligatoire.</span>
-                    <p style="font-size:0.72rem;color:#8a7a60;margin-top:0.25rem;">
+                    <span id="nl-body-error" class="admin-field__error u-hidden">Ce champ est obligatoire.</span>
+                    <p class="u-text-xxs u-text-soft u-mt-1">
                         Le texte sera envoyé en HTML avec mise en page Crabitan Bellevue.
                     </p>
                 </div>
-                <div class="admin-field" style="margin-bottom:1rem;">
+                <div class="admin-field u-mb-4">
                     <label class="admin-field__label" for="nl-segment">Segment</label>
                     <select id="nl-segment" name="segment" class="admin-field__input">
                         <option value="tous">Tous les abonnés</option>
@@ -98,7 +95,7 @@ $cssDisabled = ' disabled';
                         <option value="non-inscrit">Sans compte</option>
                     </select>
                     <p id="nl-segment-count"
-                       style="font-size:0.78rem;color:#8a7a60;margin-top:0.25rem;">
+                       class="admin-nl-segment-count">
                         <?= $total ?> abonné<?= $total > 1 ? 's' : '' ?> dans ce segment
                     </p>
                 </div>
@@ -111,30 +108,28 @@ $cssDisabled = ' disabled';
 
             <!-- Modal de confirmation -->
             <div id="nl-modal" role="dialog" aria-modal="true" aria-labelledby="nl-modal-title"
-                 style="display:none;position:fixed;inset:0;z-index:9999;
-                        background:rgba(0,0,0,0.55);align-items:center;justify-content:center;">
-                <div style="background:#fff;border-radius:6px;padding:2rem 2.5rem;max-width:440px;width:90%;
-                             box-shadow:0 8px 32px rgba(0,0,0,0.18);">
+                 class="u-hidden admin-nl-modal">
+                <div class="admin-nl-modal__box">
                     <h2 id="nl-modal-title"
-                        style="font-family:var(--font-serif);font-size:1.05rem;color:#1a1208;margin:0 0 0.75rem;">
+                        class="admin-nl-modal__title">
                         Confirmer l'envoi
                     </h2>
-                    <p style="font-size:0.9rem;color:#3d3425;margin:0 0 0.5rem;">
-                        Objet : <strong style="color:#8a7a60;">Château Crabitan Bellevue —&nbsp;</strong><strong id="nl-modal-subject" style="color:#1a1208;">—</strong>
+                    <p class="u-text-9 u-text-gray u-mb-2">
+                        Objet : <strong class="u-text-soft">Château Crabitan Bellevue —&nbsp;</strong><strong id="nl-modal-subject" class="u-text-primary">—</strong>
                     </p>
-                    <p style="font-size:0.9rem;color:#3d3425;margin:0 0 0.5rem;">
-                        Segment : <strong id="nl-modal-segment" style="color:#8a7a60;">Tous les abonnés</strong>
+                    <p class="u-text-9 u-text-gray u-mb-2">
+                        Segment : <strong id="nl-modal-segment" class="u-text-soft">Tous les abonnés</strong>
                     </p>
-                    <p style="font-size:0.9rem;color:#3d3425;margin:0 0 0.5rem;">
+                    <p class="u-text-9 u-text-gray u-mb-2">
                         Cette newsletter sera envoyée à
-                        <strong id="nl-modal-count" style="color:#c9a84c;"><?= $total ?> abonné<?= $total > 1 ? 's' : '' ?></strong>.
+                        <strong id="nl-modal-count" class="u-text-gold"><?= $total ?> abonné<?= $total > 1 ? 's' : '' ?></strong>.
                         Cette action est irréversible.
                     </p>
-                    <p id="nl-modal-pdf" style="display:none;font-size:0.85rem;color:#3d3425;margin:0 0 1rem;">
-                        Pièce jointe : <strong id="nl-modal-pdf-name" style="color:#1a1208;"></strong>
+                    <p id="nl-modal-pdf" class="u-hidden u-text-85 u-text-gray u-mb-4">
+                        Pièce jointe : <strong id="nl-modal-pdf-name" class="u-text-primary"></strong>
                     </p>
-                    <p style="margin:0 0 1.5rem;"></p>
-                    <div style="display:flex;gap:1rem;justify-content:flex-end;">
+                    <p class="u-mb-6"></p>
+                    <div class="u-flex u-gap-4 u-justify-end">
                         <button type="button" class="admin-btn admin-btn--outline" id="nl-close-modal-btn">Annuler</button>
                         <button type="button" class="admin-btn admin-btn--primary" id="nl-confirm-send-btn">
                             Confirmer l'envoi
@@ -147,21 +142,21 @@ $cssDisabled = ' disabled';
 </div>
 
 <!-- ---- Historique des campagnes ---- -->
-<div class="admin-card" style="margin-bottom:1.5rem;">
-    <div class="admin-card__body" style="padding-bottom:0;">
-        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.5rem;margin-bottom:1rem;">
-            <h2 style="font-size:0.85rem;letter-spacing:0.12em;text-transform:uppercase;color:#6b5f50;margin:0;">
+<div class="admin-card u-mb-6">
+    <div class="admin-card__body u-pb-0">
+        <div class="u-flex u-items-center u-justify-between u-flex-wrap u-gap-2 u-mb-4">
+            <h2 class="admin-card-section-title u-m-0">
                 Historique des envois
                 <?php if (($historyTotal ?? 0) > 0) : ?>
-                    <small style="font-size:0.75rem;font-variant:normal;letter-spacing:0;color:#8a7a60;text-transform:none;">
+                    <small class="admin-subcount-alt u-text-2xs">
                         (<?= (int) $historyTotal ?> campagne<?= $historyTotal > 1 ? 's' : '' ?>)
                     </small>
                 <?php endif; ?>
             </h2>
-            <form method="GET" style="display:flex;align-items:center;gap:0.4rem;font-size:0.8rem;">
-                <label for="hperpage" style="color:#6b5f50;">Par page :</label>
+            <form method="GET" class="u-flex u-items-center u-gap-2 u-text-sm">
+                <label for="hperpage" class="u-text-soft">Par page :</label>
                 <select id="hperpage" name="hperpage" data-auto-submit="1"
-                        style="font-size:0.8rem;padding:0.2em 0.5em;border:1px solid rgba(0,0,0,0.15);border-radius:3px;background:#fff;">
+                        class="admin-hperpage-select">
                     <?php foreach ([10, 25, 50] as $opt) : ?>
                         <option value="<?= $opt ?>" <?= ($historyPerPage ?? 10) === $opt ? 'selected' : '' ?>><?= $opt ?></option>
                     <?php endforeach; ?>
@@ -186,48 +181,48 @@ $cssDisabled = ' disabled';
             </thead>
             <tbody>
             <?php if (empty($history)) : ?>
-                <tr><td colspan="9" style="text-align:center;color:#8a7a60;padding:2rem;">Aucune campagne envoyée</td></tr>
+                <tr><td colspan="9" class="text-center u-text-soft u-p-8">Aucune campagne envoyée</td></tr>
             <?php else : ?>
                 <?php foreach ($history as $campaign) : ?>
                     <tr>
-                        <td style="color:#8a7a60;"><?= (int) $campaign['id'] ?></td>
+                        <td class="u-text-soft"><?= (int) $campaign['id'] ?></td>
                         <td><strong><?= htmlspecialchars($campaign['subject']) ?></strong></td>
-                        <td style="font-size:0.78rem;color:#8a7a60;">
+                        <td class="u-text-78 u-text-soft">
                             <?= $campaign['segment_label'] !== null
                                 ? htmlspecialchars((string) $campaign['segment_label'])
                                 : '—' ?>
                         </td>
-                        <td style="color:#2e7d32;"><?= (int) $campaign['sent_count'] ?></td>
+                        <td class="u-text-green"><?= (int) $campaign['sent_count'] ?></td>
                         <?php
                         $sent  = (int) $campaign['sent_count'];
                         $opens = (int) ($campaign['opens_count'] ?? 0);
                         $rate  = $sent > 0 ? round($opens / $sent * 100, 1) : 0.0;
                         ?>
-                        <td style="font-size:0.82rem;">
+                        <td class="u-text-sm-plus">
                             <?= $opens ?> / <?= $sent ?>
-                            &nbsp;<span style="font-weight:600;color:#5a5040;"><?= $rate ?>%</span>
+                            &nbsp;<span class="u-font-semibold u-text-brown-50"><?= $rate ?>%</span>
                         </td>
-                        <td style="color:<?= (int) $campaign['failed_count'] > 0 ? '#c62828' : '#8a7a60' ?>;">
+                        <td class="<?= (int) $campaign['failed_count'] > 0 ? 'u-text-error-dk' : 'u-text-soft' ?>">
                             <?= (int) $campaign['failed_count'] ?>
                         </td>
                         <?php
                         $queued    = (int) ($campaign['queued_count'] ?? 0);
                         $processed = (int) $campaign['sent_count'] + (int) $campaign['failed_count'];
                         if ($queued === 0) {
-                            echo '<td style="font-size:0.78rem;color:#8a7a60;">—</td>';
+                            echo '<td class="u-text-78 u-text-soft">—</td>';
                         } elseif ($processed >= $queued) {
-                            echo '<td style="font-size:0.78rem;">'
-                               . '<span style="color:#2e7d32;font-weight:600;">✓ Terminé</span>'
-                               . '<span style="font-size:0.72rem;color:#8a7a60;">&nbsp;(' . $queued . ')</span>'
+                            echo '<td class="u-text-78">'
+                               . '<span class="u-text-green u-font-semibold">✓ Terminé</span>'
+                               . '<span class="u-text-xxs u-text-soft">&nbsp;(' . $queued . ')</span>'
                                . '</td>';
                         } else {
-                            echo '<td style="font-size:0.78rem;">'
-                               . '<span style="color:#b45309;font-weight:600;">⏳ En cours</span>'
-                               . '<span style="font-size:0.72rem;color:#8a7a60;">&nbsp;' . $processed . '/' . $queued . '</span>'
+                            echo '<td class="u-text-78">'
+                               . '<span class="u-text-amber-dk u-font-semibold">⏳ En cours</span>'
+                               . '<span class="u-text-xxs u-text-soft">&nbsp;' . $processed . '/' . $queued . '</span>'
                                . '</td>';
                         }
                         ?>
-                        <td style="white-space:nowrap;font-size:0.8rem;">
+                        <td class="u-nowrap u-text-sm">
                             <?= date('d/m/Y H:i', strtotime($campaign['sent_at'])) ?>
                         </td>
                         <td>
@@ -281,7 +276,7 @@ $cssDisabled = ' disabled';
             </thead>
             <tbody>
             <?php if (empty($subscribers)) : ?>
-                <tr><td colspan="6" style="text-align:center;color:#8a7a60;padding:2rem;">Aucun abonné</td></tr>
+                <tr><td colspan="6" class="text-center u-text-soft u-p-8">Aucun abonné</td></tr>
             <?php else : ?>
                 <?php foreach ($subscribers as $sub) : ?>
                     <?php
@@ -293,16 +288,16 @@ $cssDisabled = ' disabled';
                     }
                     ?>
                     <tr>
-                        <td style="color:#8a7a60;">
+                        <td class="u-text-soft">
                             <?= $sub['id'] !== null ? (int) $sub['id'] : '<span title="Abonné sans compte">—</span>' ?>
                         </td>
                         <td><strong><?= $name ?></strong></td>
                         <td><?= htmlspecialchars($sub['email']) ?></td>
-                        <td style="font-size:0.78rem;">
+                        <td class="u-text-78">
                             <?php
                             $source = $sub['source'] ?? 'account';
                             if ($source === 'subscription') {
-                                echo '<span style="color:#8a7a60;" title="Abonné sans compte">visiteur</span>';
+                                echo '<span class="u-text-soft" title="Abonné sans compte">visiteur</span>';
                             } elseif ($sub['account_type'] === 'company') {
                                 echo 'Société';
                             } else {
@@ -310,8 +305,8 @@ $cssDisabled = ' disabled';
                             }
                             ?>
                         </td>
-                        <td style="font-size:0.78rem;text-transform:uppercase;"><?= htmlspecialchars($sub['lang'] ?? '—') ?></td>
-                        <td style="white-space:nowrap;font-size:0.8rem;">
+                        <td class="u-text-78 u-uppercase"><?= htmlspecialchars($sub['lang'] ?? '—') ?></td>
+                        <td class="u-nowrap u-text-sm">
                             <?= $sub['created_at'] ? date('d/m/Y', strtotime($sub['created_at'])) : '—' ?>
                         </td>
                     </tr>
@@ -364,7 +359,7 @@ function previewNlImage(input) {
     const preview = document.getElementById('nl-image-preview');
     if (input.files && input.files[0]) {
         const reader = new FileReader();
-        reader.onload = function(e) { preview.src = e.target.result; preview.style.display = 'block'; };
+        reader.onload = function(e) { preview.src = e.target.result; preview.classList.remove('u-hidden'); };
         reader.readAsDataURL(input.files[0]);
     }
 }
@@ -373,9 +368,9 @@ function updateNlPdfName(input) {
     const el = document.getElementById('nl-pdf-name');
     if (input.files && input.files[0]) {
         el.textContent = input.files[0].name;
-        el.style.display = 'block';
+        el.classList.remove('u-hidden');
     } else {
-        el.style.display = 'none';
+        el.classList.add('u-hidden');
     }
 }
 
@@ -392,19 +387,19 @@ function openNlModal() {
     const subjectWrap = subjectInput.parentElement;
     if (!subject) {
         if (subjectWrap) { subjectWrap.style.borderColor = '#dc2626'; }
-        subjectErr.style.display = 'block';
+        subjectErr.classList.remove('u-hidden');
         hasError = true;
     } else {
         if (subjectWrap) { subjectWrap.style.borderColor = ''; }
-        subjectErr.style.display = 'none';
+        subjectErr.classList.add('u-hidden');
     }
     if (!body) {
         bodyInput.classList.add('is-error');
-        bodyErr.style.display = 'block';
+        bodyErr.classList.remove('u-hidden');
         hasError = true;
     } else {
         bodyInput.classList.remove('is-error');
-        bodyErr.style.display = 'none';
+        bodyErr.classList.add('u-hidden');
     }
     if (hasError) { return; }
 
@@ -420,17 +415,20 @@ function openNlModal() {
     const modalPdfName = document.getElementById('nl-modal-pdf-name');
     if (pdfInput.files && pdfInput.files[0]) {
         modalPdfName.textContent = pdfInput.files[0].name;
-        modalPdf.style.display = 'block';
+        modalPdf.classList.remove('u-hidden');
     } else {
-        modalPdf.style.display = 'none';
+        modalPdf.classList.add('u-hidden');
     }
     const modal = document.getElementById('nl-modal');
+    modal.classList.remove('u-hidden');
     modal.style.display = 'flex';
     document.addEventListener('keydown', nlModalEsc);
 }
 
 function closeNlModal() {
-    document.getElementById('nl-modal').style.display = 'none';
+    const modal = document.getElementById('nl-modal');
+    modal.classList.add('u-hidden');
+    modal.style.display = '';
     document.removeEventListener('keydown', nlModalEsc);
 }
 

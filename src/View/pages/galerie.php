@@ -98,22 +98,18 @@ $isEn   = isset($lang) && $lang === 'en';
 
 <!-- Lightbox -->
 <div id="gallery-lightbox" role="dialog" aria-modal="true" aria-label="<?= htmlspecialchars(__('gallery.lightbox_label')) ?>"
-     style="display:none;position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,0.92);
-            align-items:center;justify-content:center;">
+     class="u-overlay u-hidden u-fixed u-items-center u-justify-center">
     <button type="button" id="gallery-lightbox-close"
             aria-label="<?= htmlspecialchars(__('gallery.close')) ?>"
-            style="position:absolute;top:1rem;right:1.5rem;background:none;border:none;
-                   color:#fff;font-size:2rem;cursor:pointer;line-height:1;">✕</button>
+            class="u-absolute u-text-white u-text-xl u-cursor-pointer u-border-0 gallery-lightbox__close">✕</button>
     <button type="button" id="gallery-lightbox-prev"
             aria-label="<?= $isEn ? 'Previous' : 'Précédente' ?>"
-            style="position:absolute;left:1rem;top:50%;transform:translateY(-50%);
-                   background:none;border:none;color:#fff;font-size:2.5rem;cursor:pointer;">‹</button>
+            class="u-absolute u-text-white u-text-2xl u-cursor-pointer u-border-0 gallery-lightbox__prev">‹</button>
     <img id="gallery-lightbox-img" src="" alt=""
-         style="max-width:90vw;max-height:88vh;object-fit:contain;border-radius:4px;">
+         class="u-object-contain u-rounded-sm gallery-lightbox__img">
     <button type="button" id="gallery-lightbox-next"
             aria-label="<?= $isEn ? 'Next' : 'Suivante' ?>"
-            style="position:absolute;right:1rem;top:50%;transform:translateY(-50%);
-                   background:none;border:none;color:#fff;font-size:2.5rem;cursor:pointer;">›</button>
+            class="u-absolute u-text-white u-text-2xl u-cursor-pointer u-border-0 gallery-lightbox__next">›</button>
 </div>
 
 <script nonce="<?= htmlspecialchars(defined('CSP_NONCE') ? CSP_NONCE : '') ?>">
@@ -153,12 +149,12 @@ $isEn   = isset($lang) && $lang === 'en';
         current = idx;
         img.src = photos[idx].src;
         img.alt = photos[idx].alt;
-        lb.style.display = 'flex';
+        lb.classList.remove('u-hidden');
         document.body.style.overflow = 'hidden';
     }
 
     function close() {
-        lb.style.display = 'none';
+        lb.classList.add('u-hidden');
         document.body.style.overflow = '';
     }
 
@@ -179,7 +175,7 @@ $isEn   = isset($lang) && $lang === 'en';
     lb.addEventListener('click', function (e) { if (e.target === lb) close(); });
 
     document.addEventListener('keydown', function (e) {
-        if (lb.style.display === 'none') return;
+        if (lb.classList.contains('u-hidden')) return;
         if (e.key === 'Escape') close();
         if (e.key === 'ArrowLeft') nav(-1);
         if (e.key === 'ArrowRight') nav(1);

@@ -14,8 +14,7 @@ require_once __DIR__ . '/../partials/header.php';
             </div>
             <h1><?= __('account.reactivate_success_title') ?></h1>
             <p><?= __('account.reactivate_success_body') ?></p>
-            <a class="btn btn--primary btn--sm" href="/<?= htmlspecialchars($lang) ?>"
-               style="display:block;text-align:center;margin-top:1.5rem;">
+            <a class="btn btn--primary btn--sm u-block text-center u-mt-6" href="/<?= htmlspecialchars($lang) ?>">
                 <?= __('account.reactivate_login_btn') ?>
             </a>
         <?php else : ?>
@@ -24,8 +23,7 @@ require_once __DIR__ . '/../partials/header.php';
             </div>
             <h1><?= __('account.reactivate_error_title') ?></h1>
             <p><?= __('account.reactivate_error_body') ?></p>
-            <a class="btn btn--ghost btn--sm" href="/<?= htmlspecialchars($lang) ?>"
-               style="display:block;text-align:center;margin-top:1.5rem;">
+            <a class="btn btn--ghost btn--sm u-block text-center u-mt-6" href="/<?= htmlspecialchars($lang) ?>">
                 <?= __('nav.home') ?>
             </a>
         <?php endif; ?>

@@ -12,7 +12,7 @@
 </div>
 
 <!-- Upload form -->
-<div class="admin-card" style="margin-bottom:1.5rem;">
+<div class="admin-card u-mb-6">
     <div class="admin-card__header"><h2>Ajouter un bon de commande</h2></div>
     <div class="admin-card__body">
         <form method="POST" action="/admin/bons-de-commande/ajouter"
@@ -28,7 +28,7 @@
                 </div>
                 <div class="admin-field">
                     <label class="admin-field__label" for="label">
-                        Version <span style="font-weight:400;font-size:0.72rem;">(optionnel — ex : V2, Mise à jour)</span>
+                        Version <span class="u-font-normal u-text-xxs">(optionnel — ex : V2, Mise à jour)</span>
                     </label>
                     <input type="text" id="label" name="label"
                            class="admin-field__input"
@@ -58,17 +58,17 @@ function buildPageUrl(int $page, int $perPage): string
 }
 }
 ?>
-<div style="display:flex;align-items:center;gap:1rem;margin-bottom:1rem;flex-wrap:wrap;">
-    <form method="GET" action="/admin/bons-de-commande" style="display:flex;align-items:center;gap:0.5rem;">
-        <label for="per-page-select" style="font-size:0.8rem;color:#8a7a60;">Par page :</label>
-        <select id="per-page-select" name="per_page" class="admin-field__select" style="padding:0.25rem 0.5rem;font-size:0.85rem;"
+<div class="u-flex u-items-center u-gap-4 u-mb-4 u-flex-wrap">
+    <form method="GET" action="/admin/bons-de-commande" class="u-flex u-items-center u-gap-2">
+        <label for="per-page-select" class="u-text-sm u-text-soft">Par page :</label>
+        <select id="per-page-select" name="per_page" class="admin-field__select admin-perpage-select"
                 data-auto-submit="1">
             <?php foreach ([10, 25, 50] as $opt) : ?>
                 <option value="<?= $opt ?>" <?= $perPage === $opt ? 'selected' : '' ?>><?= $opt ?></option>
             <?php endforeach; ?>
         </select>
     </form>
-    <span style="font-size:0.8rem;color:#8a7a60;margin-left:auto;">
+    <span class="u-text-sm u-text-soft u-ml-auto">
         <?= $total ?> bon<?= $total > 1 ? 's' : '' ?> de commande
     </span>
 </div>
@@ -89,22 +89,22 @@ function buildPageUrl(int $page, int $perPage): string
             </thead>
             <tbody>
             <?php if (empty($forms)) : ?>
-                <tr><td colspan="5" style="text-align:center;color:#8a7a60;padding:2rem;">Aucun bon de commande</td></tr>
+                <tr><td colspan="5" class="text-center u-text-soft u-p-8">Aucun bon de commande</td></tr>
             <?php else : ?>
                 <?php foreach ($forms as $form) : ?>
                     <tr>
                         <td><strong><?= (int) $form['year'] ?></strong></td>
                         <td><?= htmlspecialchars($form['label'] ?? '—') ?></td>
-                        <td style="font-size:0.8rem;color:#8a7a60;"><?= htmlspecialchars($form['filename']) ?></td>
-                        <td style="white-space:nowrap;"><?= date('d/m/Y', strtotime($form['uploaded_at'])) ?></td>
-                        <td style="display:flex;gap:0.5rem;align-items:center;">
+                        <td class="u-text-sm u-text-soft"><?= htmlspecialchars($form['filename']) ?></td>
+                        <td class="u-nowrap"><?= date('d/m/Y', strtotime($form['uploaded_at'])) ?></td>
+                        <td class="u-flex u-gap-2 u-items-center">
                             <a href="/admin/bons-de-commande/<?= (int) $form['id'] ?>/telecharger"
                                class="admin-btn admin-btn--outline admin-btn--sm"
                                target="_blank" rel="noopener">Aperçu</a>
                             <form method="POST"
                                   action="/admin/bons-de-commande/<?= (int) $form['id'] ?>/supprimer"
                                   data-admin-confirm="Supprimer ce bon de commande ?"
-                                  style="margin:0;">
+                                  class="u-m-0">
                                 <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
                                 <button type="submit" class="admin-btn admin-btn--danger admin-btn--sm">Supprimer</button>
                             </form>
@@ -118,7 +118,7 @@ function buildPageUrl(int $page, int $perPage): string
 
     <!-- Pagination -->
     <?php if ($pages > 1) : ?>
-    <div class="admin-pagination" style="padding:1rem 1.25rem;display:flex;gap:0.35rem;flex-wrap:wrap;align-items:center;">
+    <div class="admin-pagination admin-pagination--forms">
         <?php if ($page > 1) : ?>
             <a href="<?= buildPageUrl($page - 1, $perPage) ?>" class="admin-btn admin-btn--outline admin-btn--sm">←</a>
         <?php endif; ?>
@@ -131,7 +131,7 @@ function buildPageUrl(int $page, int $perPage): string
         <?php if ($page < $pages) : ?>
             <a href="<?= buildPageUrl($page + 1, $perPage) ?>" class="admin-btn admin-btn--outline admin-btn--sm">→</a>
         <?php endif; ?>
-        <span style="margin-left:auto;font-size:0.78rem;color:#8a7a60;">
+        <span class="u-ml-auto u-text-78 u-text-soft">
             Page <?= $page ?> / <?= $pages ?>
         </span>
     </div>

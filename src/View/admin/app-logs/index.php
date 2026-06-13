@@ -36,7 +36,7 @@ $levelColors = [
 ?>
 
 <div class="admin-page-header">
-    <h1>Logs applicatifs <small style="font-size:0.75rem;color:#8a7060;">(<?= $totalEntries ?> entrées / <?= $retention ?>&nbsp;j)</small></h1>
+    <h1>Logs applicatifs <small class="u-text-2xs admin-subcount">(<?= $totalEntries ?> entrées / <?= $retention ?>&nbsp;j)</small></h1>
     <p class="admin-page-header__sub">
         Rétention <?= $retention ?>&nbsp;jours · JSON consolidé depuis <code>storage/logs/app-YYYY-MM-DD.log</code>
     </p>
@@ -62,15 +62,15 @@ $levelColors = [
 </form>
 
 <div class="admin-card">
-    <div class="admin-card__body" style="padding:0;">
+    <div class="admin-card__body u-p-0">
         <?php if (empty($entries)) : ?>
-            <p style="padding:1.5rem;color:#8a7060;font-size:0.875rem;">Aucun log disponible.</p>
+            <p class="admin-empty-state">Aucun log disponible.</p>
         <?php else : ?>
             <table class="admin-table">
                 <thead>
                     <tr>
                         <th>Horodatage</th>
-                        <th style="text-align:center;">Niveau</th>
+                        <th class="text-center">Niveau</th>
                         <th>Message</th>
                         <th>Fichier</th>
                         <th>URL</th>
@@ -96,13 +96,13 @@ $levelColors = [
                         }
                     ?>
                     <tr>
-                        <td style="font-size:0.78rem;white-space:nowrap;color:#5a4a3a;"><?= htmlspecialchars($ts) ?></td>
-                        <td style="text-align:center;">
-                            <span style="background:<?= $col[0] ?>;color:<?= $col[1] ?>;font-size:0.72rem;padding:2px 8px;border-radius:12px;letter-spacing:0.04em;font-weight:600;"><?= htmlspecialchars($lvl) ?></span>
+                        <td class="u-text-78 u-nowrap u-text-brown"><?= htmlspecialchars($ts) ?></td>
+                        <td class="text-center">
+                            <span class="admin-log-level-badge admin-log-level-badge--<?= strtolower(str_replace('_', '-', $lvl)) ?>"><?= htmlspecialchars($lvl) ?></span>
                         </td>
-                        <td style="font-size:0.82rem;"><?= htmlspecialchars($short) ?></td>
-                        <td style="font-size:0.75rem;color:#5a4a3a;" title="<?= htmlspecialchars($file) ?>"><?= htmlspecialchars($fileShort) ?></td>
-                        <td style="font-size:0.75rem;color:#5a4a3a;"><?= htmlspecialchars(mb_substr($url, 0, 60)) ?></td>
+                        <td class="u-text-sm-plus"><?= htmlspecialchars($short) ?></td>
+                        <td class="u-text-2xs u-text-brown" title="<?= htmlspecialchars($file) ?>"><?= htmlspecialchars($fileShort) ?></td>
+                        <td class="u-text-2xs u-text-brown"><?= htmlspecialchars(mb_substr($url, 0, 60)) ?></td>
                     </tr>
                     <?php endforeach; ?>
                 </tbody>

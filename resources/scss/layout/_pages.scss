@@ -951,3 +951,33 @@
     font-size: 0.95rem;
     margin-bottom: 2rem;
 }
+
+// ============================================================
+// Galerie — lightbox
+// ============================================================
+
+.gallery-lightbox__close {
+    top: 1rem;
+    right: 1.5rem;
+    background: none;
+    line-height: 1;
+}
+
+.gallery-lightbox__prev {
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+}
+
+.gallery-lightbox__next {
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+}
+
+.gallery-lightbox__img {
+    max-width: 90vw;
+    max-height: 88vh;
+}

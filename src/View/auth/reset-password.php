@@ -42,7 +42,7 @@ require_once __DIR__ . '/../partials/header.php';
                            autocomplete="new-password" required minlength="12">
                 </div>
 
-                <button type="submit" class="btn btn--gold btn--full" style="margin-top:0.5rem;">
+                <button type="submit" class="btn btn--gold btn--full u-mt-2">
                     <?= __('btn.save') ?>
                 </button>
             </form>

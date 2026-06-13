@@ -58,29 +58,23 @@ $categories = [
         <?php if (!$otpBatch && !empty($_SESSION['admin_flash'])): ?>
             <?php $resultFlash = $_SESSION['admin_flash']; unset($_SESSION['admin_flash']); ?>
             <div id="ff-result-overlay" role="dialog" aria-modal="true" aria-live="polite"
-                 style="position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,0.55);
-                        display:flex;align-items:center;justify-content:center;">
-                <div style="background:#fff;border-radius:10px;padding:2rem 2.5rem;
-                            max-width:400px;width:90%;box-shadow:0 8px 40px rgba(0,0,0,0.25);
-                            text-align:center;">
+                 class="admin-ff-result-overlay">
+                <div class="admin-ff-result-card">
                     <?php foreach ($resultFlash as $fType => $fMsg): ?>
                     <?php $isSuccess = $fType === 'success'; ?>
-                    <div style="width:3rem;height:3rem;border-radius:50%;margin:0 auto 1rem;
-                                display:flex;align-items:center;justify-content:center;font-size:1.5rem;
-                                <?= $isSuccess ? 'background:#f0fdf4;color:#15803d;' : 'background:#fef2f2;color:#b91c1c;' ?>">
+                    <div class="admin-ff-result-icon<?= $isSuccess ? ' admin-ff-result-icon--success' : ' admin-ff-result-icon--error' ?>">
                         <?= $isSuccess ? '✓' : '✕' ?>
                     </div>
-                    <p style="font-size:0.95rem;font-weight:600;color:#3d3425;margin:0 0 0.5rem;">
+                    <p class="u-text-95 u-font-semibold u-text-gray u-mb-2">
                         <?= htmlspecialchars((string) $fMsg) ?>
                     </p>
                     <?php endforeach; ?>
-                    <p style="font-size:0.82rem;color:#aaa;margin:1rem 0 1.25rem;">
+                    <p class="u-text-sm-plus u-mb-5 u-mt-4 u-text-muted-aa">
                         Fermeture automatique dans <strong id="ff-result-timer"
-                            style="color:#3d3425;">15</strong>s
+                            class="u-text-gray">15</strong>s
                     </p>
                     <button id="ff-result-close"
-                            class="admin-btn admin-btn--outline"
-                            style="width:100%;justify-content:center;">
+                            class="admin-btn admin-btn--outline u-w-full u-justify-center">
                         Fermer
                     </button>
                 </div>
@@ -107,8 +101,7 @@ $categories = [
 
         <?php if ($otpBlockSecondsLeft > 0): ?>
             <p id="ff-block-banner"
-               style="color:#b91c1c;font-size:0.85rem;font-weight:500;margin-bottom:1.5rem;
-                      border:none;outline:none;background:none;padding:0;">
+               class="u-text-85 u-font-medium u-mb-6 admin-ff-block-banner">
                 Accès bloqué — nouvelle demande possible dans
                 <strong id="ff-block-countdown">…</strong>.
             </p>
@@ -143,7 +136,7 @@ $categories = [
         <?php endif; ?>
 
         <?php if (!$isSuperAdmin): ?>
-            <div class="admin-alert admin-alert--info" role="note" style="margin-bottom:1.5rem;">
+            <div class="admin-alert admin-alert--info u-mb-6" role="note">
                 <strong>Lecture seule.</strong>
                 Pour modifier ces paramètres, contactez un super administrateur :
                 <?php foreach ($superAdminEmails as $i => $email): ?>
@@ -154,15 +147,11 @@ $categories = [
 
         <?php if ($otpBatch): ?>
         <div id="ff-otp-overlay" role="dialog" aria-modal="true" aria-labelledby="ff-otp-title"
-             style="position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,0.55);
-                    display:flex;align-items:center;justify-content:center;">
-            <div id="ff-otp-card" style="background:#fff;border-radius:10px;padding:2rem 2.5rem;
-                        max-width:420px;width:90%;box-shadow:0 8px 40px rgba(0,0,0,0.25);
-                        position:relative;transition:opacity 0.25s;">
+             class="admin-ff-otp-overlay">
+            <div id="ff-otp-card" class="admin-ff-otp-card">
 
-                <h2 id="ff-otp-title" style="font-size:1rem;font-weight:600;color:#3d3425;
-                                              margin:0 0 0.25rem;">Confirmation OTP requise</h2>
-                <p style="font-size:0.8rem;color:#888;margin:0 0 1rem;">
+                <h2 id="ff-otp-title" class="admin-ff-otp-title">Confirmation OTP requise</h2>
+                <p class="u-text-sm u-mb-4 u-text-muted-88">
                     Entrez le code à 6 chiffres reçu par email.
                 </p>
 
@@ -171,42 +160,32 @@ $categories = [
                 unset($_SESSION['admin_flash']);
                 foreach ($otpFlashMessages as $fType => $fMsg): // NOSONAR — php:S3973 : syntaxe alternative PHP standard dans les vues
                 ?>
-                <div style="display:flex;align-items:flex-start;gap:0.5rem;padding:0.65rem 0.9rem;
-                            border-radius:6px;font-size:0.82rem;font-weight:500;margin-bottom:1rem;
-                            <?= $fType === 'error'
-                                ? 'background:#fef2f2;color:#b91c1c;border:1px solid #fecaca;'
-                                : 'background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;' ?>">
+                <div class="admin-ff-otp-flash u-flex u-items-start u-gap-2 u-mb-4 u-text-sm-plus u-font-medium<?= $fType === 'error' ? ' admin-ff-otp-flash--error' : ' admin-ff-otp-flash--success' ?>">
                     <span><?= $fType === 'error' ? '✕' : '✓' ?></span>
                     <span><?= htmlspecialchars((string) $fMsg) ?></span>
                 </div>
                 <?php endforeach; ?>
 
                 <?php if ($remainingAttempts !== null && $remainingAttempts <= 0): ?>
-                <div style="padding:0.75rem 1rem;background:#fef2f2;border:1px solid #fecaca;
-                            border-radius:6px;color:#b91c1c;font-size:0.85rem;margin-bottom:1.25rem;">
+                <div class="admin-ff-otp-blocked u-mb-5">
                     <strong>Compte bloqué 1 heure.</strong>
                     3 tentatives incorrectes — vos modifications ont été annulées.
                     Nouvelle demande possible dans 1 heure.
                 </div>
-                <a href="/admin/feature-flags" class="admin-btn admin-btn--outline"
-                   style="width:100%;justify-content:center;">
+                <a href="/admin/feature-flags" class="admin-btn admin-btn--outline u-w-full u-justify-center">
                     Retour à la liste
                 </a>
                 <?php else: ?>
 
-                <div style="display:flex;align-items:center;justify-content:space-between;
-                            margin-bottom:1.25rem;">
-                    <div style="display:flex;align-items:center;gap:0.4rem;">
-                        <span style="font-size:0.8rem;color:#888;">Expire dans</span>
-                        <span id="ff-otp-countdown"
-                              style="font-size:1rem;font-weight:700;color:#c9a84c;
-                                     font-variant-numeric:tabular-nums;min-width:2.2em;">
+                <div class="u-flex u-items-center u-justify-between u-mb-5">
+                    <div class="u-flex u-items-center u-gap-2">
+                        <span class="u-text-sm u-text-muted-88">Expire dans</span>
+                        <span id="ff-otp-countdown" class="admin-ff-otp-countdown">
                             2:00
                         </span>
                     </div>
                     <?php if ($remainingAttempts !== null): ?>
-                    <span style="font-size:0.78rem;font-weight:600;
-                                 <?= $remainingAttempts === 1 ? 'color:#b91c1c;' : 'color:#888;' ?>">
+                    <span class="u-text-78 u-font-semibold<?= $remainingAttempts === 1 ? ' admin-ff-otp-attempts--danger' : ' u-text-muted-88' ?>">
                         <?= (int) $remainingAttempts ?> tentative<?= $remainingAttempts > 1 ? 's' : '' ?> restante<?= $remainingAttempts > 1 ? 's' : '' ?>
                     </span>
                     <?php endif; ?>
@@ -215,14 +194,12 @@ $categories = [
                 <form method="POST" action="/admin/feature-flags/batch-confirm" id="ff-otp-form">
                     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf) ?>">
 
-                    <div id="ff-otp-field" style="margin-bottom:1.25rem;">
-                        <label for="ff-otp-digit-0" style="display:block;font-size:0.8rem;font-weight:600;
-                                      color:#3d3425;margin-bottom:0.75rem;">
+                    <div id="ff-otp-field" class="u-mb-5">
+                        <label for="ff-otp-digit-0" class="u-block u-text-sm u-font-semibold u-text-gray u-mb-3">
                             Code OTP
                         </label>
                         <input type="hidden" id="otp-input" name="otp">
-                        <div id="ff-otp-digits"
-                             style="display:flex;gap:0.75rem;justify-content:center;">
+                        <div id="ff-otp-digits" class="u-flex u-gap-3 u-justify-center">
                             <?php for ($i = 0; $i < 6; $i++): ?>
                             <input
                                 type="text"
@@ -232,11 +209,7 @@ $categories = [
                                 <?= $i === 0 ? 'id="ff-otp-digit-0"' : '' ?>
                                 autocomplete="<?= $i === 0 ? 'one-time-code' : 'off' ?>"
                                 <?= $i === 0 ? 'autofocus' : '' ?>
-                                style="width:2.5rem;height:3rem;border:none;
-                                       border-bottom:2px solid #c5b99a;
-                                       outline:none;background:transparent;
-                                       font-size:1.75rem;font-weight:700;text-align:center;
-                                       color:#3d3425;transition:border-color 0.15s;"
+                                class="admin-ff-otp-digit"
                                 onfocus="this.style.borderBottomColor='#3d3425'"
                                 onblur="this.style.borderBottomColor='#c5b99a'"
                             >
@@ -245,21 +218,19 @@ $categories = [
                     </div>
 
                     <div id="ff-otp-expired"
-                         style="display:none;color:#b91c1c;font-size:0.85rem;
-                                margin-bottom:1rem;text-align:center;">
+                         class="u-hidden u-text-error u-text-85 u-mb-4 text-center">
                         Code expiré —
-                        <a href="/admin/feature-flags" style="color:#b91c1c;">demandez un nouveau code</a>
+                        <a href="/admin/feature-flags" class="u-text-error">demandez un nouveau code</a>
                     </div>
 
-                    <div id="ff-otp-actions" style="display:flex;gap:0.75rem;align-items:center;">
+                    <div id="ff-otp-actions" class="u-flex u-gap-3 u-items-center">
                         <button type="submit" id="ff-otp-submit"
-                                class="admin-btn admin-btn--primary"
-                                style="display:flex;align-items:center;gap:0.5rem;">
+                                class="admin-btn admin-btn--primary u-flex u-items-center u-gap-2">
                             <span id="ff-otp-btn-text">Valider les modifications</span>
                             <svg id="ff-otp-spinner" xmlns="http://www.w3.org/2000/svg"
                                  width="16" height="16" viewBox="0 0 24 24" fill="none"
                                  stroke="currentColor" stroke-width="2.5"
-                                 style="display:none;animation:ff-spin 0.7s linear infinite;">
+                                 class="u-hidden admin-ff-otp-spinner-svg">
                                 <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83
                                          M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
                             </svg>
@@ -305,8 +276,8 @@ $categories = [
                 if (remaining <= 0) {
                     countEl.textContent = '0:00';
                     countEl.style.color = '#b91c1c';
-                    document.getElementById('ff-otp-field').style.display = 'none';
-                    expiredEl.style.display = 'block';
+                    document.getElementById('ff-otp-field').classList.add('u-hidden');
+                    expiredEl.classList.remove('u-hidden');
                     var closeBtn = document.createElement('button');
                     closeBtn.type = 'button';
                     closeBtn.className = 'admin-btn admin-btn--outline';
@@ -372,7 +343,7 @@ $categories = [
                 collectOtp();
                 // Animation soumission
                 submitBtn.disabled = true;
-                spinner.style.display = 'inline';
+                spinner.classList.remove('u-hidden');
                 btnText.textContent   = 'Vérification…';
                 document.getElementById('ff-otp-card').style.opacity = '0.6';
             });

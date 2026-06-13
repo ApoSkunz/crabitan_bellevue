@@ -479,6 +479,8 @@
     }
 }
 
+.admin-filters__input--wide { min-width: 200px; }
+
 .admin-filters__btn {
     padding: 0.42rem 1rem;
     background: #1a1208;
@@ -1351,4 +1353,1009 @@
     .ff-row {
         grid-template-columns: 1fr 160px;
     }
+}
+
+// ---- Cron monitoring — bouton log + modal -----------------
+
+.cron-log-cell--maxw { max-width: 320px; }
+
+.cron-log-btn {
+    display: inline-block;
+    margin-left: 6px;
+    margin-top: 4px;
+    font-size: 0.7rem;
+    color: #8a7060;
+    background: none;
+    border: 1px solid #c9b99a;
+    border-radius: 4px;
+    padding: 1px 6px;
+    cursor: pointer;
+    vertical-align: middle;
+
+    &:hover { background: #f4f0e6; }
+}
+
+.cron-log-error {
+    color: #c0392b;
+    margin-top: 2px;
+}
+
+#cron-log-modal {
+    position: fixed;
+    inset: 0;
+    margin: auto;
+    border: none;
+    border-radius: 8px;
+    padding: 0;
+    width: min(860px, 95vw);
+    max-height: 80vh;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, .2);
+
+    &::backdrop { background: rgba(0, 0, 0, .45); }
+}
+
+.cron-log-modal__panel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.cron-log-modal__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid #e8ddd0;
+    gap: 1rem;
+}
+
+.cron-log-modal__job {
+    font-family: monospace;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #3a2a1a;
+}
+
+.cron-log-modal__date {
+    font-size: 0.75rem;
+    color: #8a7060;
+    margin-left: 0.5rem;
+}
+
+.cron-log-modal__close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.1rem;
+    color: #8a7060;
+    padding: 4px 8px;
+    border-radius: 4px;
+    flex-shrink: 0;
+
+    &:hover {
+        background: #f4f0e6;
+        color: #3a2a1a;
+    }
+}
+
+.cron-log-modal__body {
+    flex: 1;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 1rem 1.25rem;
+    margin: 0;
+    font-size: 0.78rem;
+    line-height: 1.6;
+    color: #2a1a0a;
+    white-space: pre-wrap;
+    word-break: break-word;
+    background: #faf8f5;
+}
+
+// ---- Champ mot de passe avec œil -------------------------
+
+.admin-field__pwd-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+
+    .admin-field__input {
+        flex: 1;
+        padding-right: 2.5rem;
+    }
+}
+
+.admin-field__eye {
+    position: absolute;
+    right: 0.625rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    color: #8a7a60;
+    display: flex;
+    align-items: center;
+    transition: color 150ms ease;
+
+    &:hover { color: #1a1208; }
+}
+
+// ---- QR code modal — spinner rotation --------------------
+
+@keyframes admin-spin {
+    to { transform: rotate(360deg); }
+}
+
+// ---- Flash warning ----------------------------------------
+
+.admin-flash--warning {
+    background: #fff3cd;
+    border: 1px solid #ffc107;
+    color: #856404;
+    padding: 0.625rem 0.875rem;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+}
+
+// ---- Divider ----------------------------------------------
+
+.admin-divider {
+    margin: 2rem 0;
+    border: none;
+    border-top: 1px solid #e8e0d0;
+}
+
+// ---- Section count (small in headings) -------------------
+
+.admin-section-count {
+    font-size: 0.75rem;
+    font-variant: normal;
+    letter-spacing: 0;
+    color: #8a7a60;
+}
+
+// ---- Muted text (admin palette) --------------------------
+
+.admin-muted { color: #8a7a60; }
+
+// ---- Table overdue state ---------------------------------
+
+.admin-row--overdue { background: #fff8e1; }
+.admin-text--overdue { color: #c62828; font-weight: bold; }
+
+// ---- Monospace table cell --------------------------------
+
+.admin-td--mono { font-family: monospace; font-size: 0.85rem; }
+
+// ---- RGPD actions dropdown -------------------------------
+
+.rgpd-actions {
+    position: relative;
+
+    summary { cursor: pointer; list-style: none; }
+
+    &__dropdown {
+        position: absolute;
+        z-index: 10;
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 0.5rem;
+        min-width: 220px;
+        right: 0;
+        top: 100%;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, .1);
+    }
+}
+
+.rgpd-note-textarea {
+    width: 100%;
+    font-size: 0.8rem;
+    padding: 4px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    resize: vertical;
+}
+
+.rgpd-note-details {
+    font-size: 0.8rem;
+    color: #5a4030;
+    background: #fafaf8;
+    border: 1px solid #e8e0d0;
+    border-radius: 3px;
+    padding: 4px 6px;
+}
+
+// ---- Cron status badges -----------------------------------
+
+.cron-badge {
+    font-size: 0.72rem;
+    padding: 2px 8px;
+    border-radius: 12px;
+    letter-spacing: 0.04em;
+
+    &--success { background: #e6f4ea; color: #1a6b1a; }
+    &--error   { background: #fdecea; color: #c0392b; }
+    &--running { background: #e8eefd; color: #2a4ab0; }
+    &--skipped { background: #f4f0e6; color: #8a7060; }
+}
+
+// ---- Rate bar progress fill --------------------------------
+
+.admin-rate-bar-fill { height: 100%; transition: width 300ms ease; }
+
+// ---- Invoice / admin table semantic cells ----------------
+
+.admin-td--sm          { font-size: 0.8rem; }
+.admin-td--sm-nowrap   { font-size: 0.8rem; white-space: nowrap; }
+.admin-td--amount      { font-size: 0.85rem; font-weight: 600; }
+.admin-td--tiny-muted  { font-size: 0.72rem; color: #8a8a8a; }
+.admin-td--meta        { font-size: 0.78rem; white-space: nowrap; color: #8a8a8a; }
+.admin-td--center      { text-align: center; }
+
+// ---- DPO / form helpers ----------------------------------
+
+.admin-label-secondary { color: #6b5f50; }
+.admin-text-amber      { color: #8a6a2e; }
+.admin-text-muted-dk   { color: #9a8f80; }
+.admin-text-required   { color: #c62828; }
+.admin-text-success    { color: #2e7d32; }
+.admin-td--check-ok    { color: #27ae60; font-size: 1rem; }
+
+// ---- Newsletter show — stats values ----------------------
+
+.admin-nl-sent-count  { color: #2e7d32; font-weight: 600; }
+.admin-nl-fail-count  { font-weight: 600; }
+.admin-nl-link-muted  { color: #5a5040; }
+
+// ---- Feature flags — overlays & OTP modal ----------------
+
+.admin-ff-result-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9000;
+    background: rgba(0, 0, 0, 0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.admin-ff-result-card {
+    background: #fff;
+    border-radius: 10px;
+    padding: 2rem 2.5rem;
+    max-width: 400px;
+    width: 90%;
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.25);
+    text-align: center;
+}
+
+.admin-ff-result-icon {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    margin: 0 auto 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+
+    &--success { background: #f0fdf4; color: #15803d; }
+    &--error   { background: #fef2f2; color: #b91c1c; }
+}
+
+.admin-ff-block-banner {
+    color: #b91c1c;
+    border: none;
+    outline: none;
+    background: none;
+    padding: 0;
+}
+
+.admin-ff-otp-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9000;
+    background: rgba(0, 0, 0, 0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.admin-ff-otp-card {
+    background: #fff;
+    border-radius: 10px;
+    padding: 2rem 2.5rem;
+    max-width: 420px;
+    width: 90%;
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.25);
+    position: relative;
+    transition: opacity 0.25s;
+}
+
+.admin-ff-otp-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #3d3425;
+    margin: 0 0 0.25rem;
+}
+
+.admin-ff-otp-flash {
+    padding: 0.65rem 0.9rem;
+    border-radius: 6px;
+
+    &--error   { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+    &--success { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+}
+
+.admin-ff-otp-blocked {
+    padding: 0.75rem 1rem;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 6px;
+    color: #b91c1c;
+    font-size: 0.85rem;
+}
+
+.admin-ff-otp-countdown {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #c9a84c;
+    font-variant-numeric: tabular-nums;
+    min-width: 2.2em;
+}
+
+.admin-ff-otp-attempts--danger { color: #b91c1c; }
+
+.admin-ff-otp-digit {
+    width: 2.5rem;
+    height: 3rem;
+    border: none;
+    border-bottom: 2px solid #c5b99a;
+    outline: none;
+    background: transparent;
+    font-size: 1.75rem;
+    font-weight: 700;
+    text-align: center;
+    color: #3d3425;
+    transition: border-color 0.15s;
+}
+
+// ---- DPO pages légales — confirm & edit forms -----------
+
+.admin-dpo-dl {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 0.35rem 1.5rem;
+    font-size: 0.875rem;
+    margin-bottom: 1.5rem;
+}
+
+.admin-dpo-dl__label { color: #8a7a60; }
+
+.admin-dpo-success-box {
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+    background: #e8f5e9;
+    border-left: 4px solid #2e7d32;
+    border-radius: 0 4px 4px 0;
+}
+
+.admin-dpo-success-box__text {
+    margin: 0;
+    font-size: 1rem;
+    color: #1b5e20;
+}
+
+.admin-dpo-success-box__note {
+    margin: 0.5rem 0 0;
+    font-size: 0.85rem;
+    color: #4a7a50;
+}
+
+.admin-dpo-confirm-link {
+    font-size: 0.85rem;
+    color: #8a7a60;
+    text-decoration: underline;
+}
+
+.admin-dpo-edit-input {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #d4c9b0;
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+.admin-dpo-edit-textarea {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #d4c9b0;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    resize: vertical;
+}
+
+.admin-dpo-notif-box {
+    margin-bottom: 1.5rem;
+    padding: 0.75rem 1rem;
+    background: #f5f0e8;
+    border-left: 3px solid #c1a14b;
+    border-radius: 0 4px 4px 0;
+}
+
+.admin-dpo-notif-label {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    cursor: pointer;
+    font-size: 0.875rem;
+    color: #5a4030;
+}
+
+.admin-dpo-notif-hint {
+    color: #8a7a60;
+    font-size: 0.8rem;
+}
+
+// ---- DPO index — cards grid ------------------------------
+
+.admin-dpo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+.admin-dpo-card {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.admin-dpo-card__icon {
+    font-size: 1.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.admin-dpo-card__title {
+    font-size: 1rem;
+    margin: 0 0 0.5rem;
+    color: var(--color-gold, #c1a14b);
+}
+
+.admin-dpo-card__desc {
+    font-size: 0.8rem;
+    color: #8a7a60;
+    margin: 0 0 1rem;
+    flex: 1;
+}
+
+.admin-dpo-card__btn {
+    display: inline-block;
+    text-decoration: none;
+    margin-top: auto;
+}
+
+.admin-dpo-legal-note {
+    margin-top: 2rem;
+    padding: 1rem;
+    background: #f5f0e8;
+    border-left: 3px solid #c1a14b;
+    font-size: 0.8rem;
+    color: #5a4030;
+    border-radius: 0 4px 4px 0;
+}
+
+.admin-dpo-legal-note__link {
+    color: #c1a14b;
+}
+
+// ---- Profile / security page —  session & device rows ---
+
+.admin-profile-section-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 1.25rem;
+    color: #1a1208;
+}
+
+.admin-profile-empty {
+    color: #8a7a60;
+    font-size: 0.875rem;
+}
+
+.admin-profile-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+}
+
+.admin-profile-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.75rem;
+    border: 1px solid #e8e0d0;
+    border-radius: 6px;
+
+    &--current { background: #fdf9f0; }
+}
+
+.admin-profile-row__info {
+    flex: 1;
+    min-width: 0;
+}
+
+.admin-profile-row__name {
+    font-size: 0.875rem;
+    color: #1a1208;
+    display: block;
+}
+
+.admin-profile-row__meta {
+    font-size: 0.8rem;
+    color: #8a7a60;
+}
+
+.admin-profile-badge {
+    display: inline-block;
+    margin-top: 0.2rem;
+    font-size: 0.7rem;
+    color: #fff;
+    padding: 0.1rem 0.45rem;
+    border-radius: 3px;
+
+    &--session { background: #c9a84c; }
+    &--device  { background: #2d7a4f; }
+}
+
+// ---- Newsletter show — tracking tables -------------------
+
+.admin-nl-dl {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 0.4rem 1.5rem;
+    font-size: 0.9rem;
+}
+
+.admin-nl-dl__label { color: #8a7a60; }
+
+.admin-nl-section-title {
+    font-size: 0.85rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #6b5f50;
+    margin-bottom: 1rem;
+}
+
+.admin-nl-subsection-title {
+    font-size: 0.8rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #6b5f50;
+    margin-bottom: 0.6rem;
+}
+
+.admin-nl-preview-img {
+    max-height: 100px;
+    max-width: 260px;
+    object-fit: cover;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+}
+
+.admin-nl-link-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+}
+
+.admin-nl-link-table thead tr {
+    border-bottom: 1px solid #e8e0d0;
+    color: #6b5f50;
+    font-weight: 600;
+}
+
+.admin-nl-link-table tr {
+    border-bottom: 1px solid #f0ece4;
+}
+
+.admin-nl-link-table__th {
+    font-weight: 600;
+
+    &--url        { text-align: left;  padding: 0.35rem 0.75rem 0.35rem 0; }
+    &--right      { text-align: right; padding: 0.35rem 0.75rem; }
+    &--right-last { text-align: right; padding: 0.35rem 0; }
+}
+
+.admin-nl-link-table__td {
+    &--url        { padding: 0.4rem 0.75rem 0.4rem 0; word-break: break-all; }
+    &--right      { text-align: right; padding: 0.4rem 0.75rem; }
+    &--right-last { text-align: right; padding: 0.4rem 0; }
+}
+
+.admin-nl-link-table__link {
+    color: #8a6a2e;
+    font-size: 0.8rem;
+}
+
+.admin-nl-body-wrap {
+    background: #faf8f4;
+    border: 1px solid #e8e0d0;
+    border-radius: 4px;
+    padding: 1.25rem;
+    font-size: 0.9rem;
+    line-height: 1.65;
+    color: #3d3425;
+    white-space: pre-wrap;
+}
+
+// ============================================================
+// Composants utilitaires — migration style="" (ajoutés 2026-05)
+// ============================================================
+
+// ---- Heading counts in page/card titles -------------------
+
+.admin-subcount {
+    font-size: 0.75rem;
+    color: #8a7060;
+}
+
+.admin-subcount-alt {
+    font-size: 0.75rem;
+    font-variant: normal;
+    letter-spacing: 0;
+    color: #8a7a60;
+}
+
+// ---- Card section h2 (compact uppercase label) ------------
+
+.admin-card-section-title {
+    font-size: 0.85rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #8a7060;
+    margin: 0;
+}
+
+// ---- Empty state paragraph inside card --------------------
+
+.admin-empty-state {
+    padding: 1.5rem;
+    color: #8a7060;
+    font-size: 0.875rem;
+}
+
+// ---- Email-rate — progress bar ----------------------------
+
+.admin-rate-cell {
+    min-width: 140px;
+}
+
+.admin-rate-bar-track {
+    width: 100%;
+    max-width: 120px;
+    margin-left: auto;
+    height: 4px;
+    background: #ede8df;
+    border-radius: 2px;
+    margin-top: 4px;
+}
+
+.admin-rate-bar-fill {
+    height: 100%;
+    border-radius: 2px;
+}
+
+// ---- Email type pill badge --------------------------------
+
+.admin-type-badge {
+    background: #f3ede0;
+    color: #5a4a3a;
+    padding: 2px 8px;
+    border-radius: 12px;
+    letter-spacing: 0.04em;
+    font-size: 0.72rem;
+}
+
+// ---- Email/log status badge (OK / ERR) -------------------
+
+.admin-status-badge {
+    font-size: 0.72rem;
+    padding: 2px 8px;
+    border-radius: 12px;
+    letter-spacing: 0.04em;
+
+    &--ok  { background: #e6f4ea; color: #1a6b1a; }
+    &--err { background: #fdecea; color: #c0392b; }
+}
+
+// ---- App-logs level badge --------------------------------
+
+.admin-log-level-badge {
+    font-size: 0.72rem;
+    padding: 2px 8px;
+    border-radius: 12px;
+    letter-spacing: 0.04em;
+    font-weight: 600;
+}
+
+// ---- Newsletter send-form --------------------------------
+
+.admin-nl-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: rgba(0, 0, 0, 0.55);
+    align-items: center;
+    justify-content: center;
+
+    &:not(.u-hidden) { display: flex; }
+}
+
+.admin-nl-modal__box {
+    background: #fff;
+    border-radius: 6px;
+    padding: 2rem 2.5rem;
+    max-width: 440px;
+    width: 90%;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+}
+
+.admin-nl-modal__title {
+    font-family: var(--font-serif);
+    font-size: 1.05rem;
+    color: #1a1208;
+    margin: 0 0 0.75rem;
+}
+
+.admin-subject-wrap {
+    gap: 0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.admin-subject-prefix {
+    padding: 0.5rem 0.75rem;
+    background: #f5f0e8;
+    color: #8a7a60;
+    font-size: 0.82rem;
+    white-space: nowrap;
+    border-right: 1px solid #ccc;
+}
+
+.admin-subject-input {
+    border: 0;
+    border-radius: 0;
+    flex: 1;
+    margin: 0;
+}
+
+.admin-nl-image-preview {
+    max-height: 120px;
+    max-width: 320px;
+    object-fit: cover;
+    margin-top: 0.5rem;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+}
+
+.admin-nl-pdf-name {
+    font-size: 0.78rem;
+    color: #3d3425;
+    margin-top: 0.25rem;
+}
+
+.admin-nl-segment-count {
+    font-size: 0.78rem;
+    color: #8a7a60;
+    margin-top: 0.25rem;
+}
+
+.admin-hperpage-select {
+    font-size: 0.8rem;
+    padding: 0.2em 0.5em;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    border-radius: 3px;
+    background: #fff;
+}
+
+// ---- Marketing dashboard cards ----------------------------
+
+.admin-marketing-kpi-card {
+    display: inline-block;
+    padding: 1.5rem 2.5rem;
+}
+
+.admin-marketing-stat-card {
+    flex: 1;
+    min-width: 140px;
+    padding: 1.25rem;
+}
+
+.admin-table-pad {
+    padding: 0.75rem 1rem;
+}
+
+// ---- Orders show — layout ---------------------------------
+
+.admin-order-grid {
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: 1.5rem;
+    align-items: start;
+}
+
+.admin-order-price-note {
+    margin: 0 1.5rem 0.5rem;
+}
+
+.admin-order-totals {
+    padding: 0.75rem 1.5rem;
+    border-top: 1px solid rgba(8, 8, 8, 0.06);
+}
+
+.admin-order-totals__label {
+    padding: 3px 0;
+    color: #8a7a60;
+    font-weight: normal;
+    text-align: left;
+}
+
+.admin-order-totals__total-label {
+    padding: 6px 0 3px;
+    font-weight: 700;
+    color: #1a1208;
+    text-align: left;
+}
+
+// ---- Address label (facturation / livraison) --------------
+
+.admin-addr-label {
+    font-family: var(--font-sans);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #8a7a60;
+    margin-bottom: 0.5rem;
+}
+
+// ---- Invoice history list ---------------------------------
+
+.admin-invoice-history {
+    margin-top: 1.25rem;
+    border-top: 1px solid rgba(8, 8, 8, 0.06);
+    padding-top: 1rem;
+}
+
+.admin-invoice-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.35rem 0;
+    border-bottom: 1px solid rgba(8, 8, 8, 0.04);
+    font-size: 0.78rem;
+    color: #3d3425;
+}
+
+// ---- Refund-pending card ----------------------------------
+
+.admin-card--warning-border { border: 1px solid #f59e0b; }
+
+.admin-card-header--warning { background: #fff8e1; }
+
+// ---- Status modal (orders/show) --------------------------
+
+.admin-status-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: rgba(10, 8, 4, 0.45);
+    align-items: center;
+    justify-content: center;
+
+    &:not(.u-hidden) { display: flex; }
+}
+
+.admin-status-modal__box {
+    background: #fff;
+    border-radius: 6px;
+    padding: 1.75rem 2rem;
+    max-width: 400px;
+    width: 90%;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+}
+
+.admin-status-modal__title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1a1208;
+    margin: 0 0 0.75rem;
+}
+
+// ---- Replace-invoice checkbox ----------------------------
+
+.admin-replace-checkbox {
+    width: 1rem;
+    height: 1rem;
+    accent-color: #b45309;
+}
+
+// ---- Cuvée Spéciale badge --------------------------------
+
+.admin-cuvee-badge {
+    font-size: 0.72rem;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #c9a84c;
+    font-family: Georgia, serif;
+}
+
+// ---- News thumbnail in table ----------------------------
+
+.admin-news-thumb {
+    height: 36px;
+    width: 54px;
+    object-fit: cover;
+    border-radius: 3px;
+}
+
+// ---- Admin block / unblock button colors -----------------
+
+.admin-btn--block-action {
+    color: #b91c1c;
+    border-color: #b91c1c;
+}
+
+.admin-btn--unblock-action {
+    color: #15803d;
+    border-color: #15803d;
+}
+
+// ---- order_forms per-page select -------------------------
+
+.admin-perpage-select {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.85rem;
+}
+
+// ---- order_forms pagination variant ----------------------
+
+.admin-pagination--forms {
+    padding: 1rem 1.25rem;
+    display: flex;
+    gap: 0.35rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+// ---- Card width variants ---------------------------------
+
+.admin-card--narrow { max-width: 480px; }
+.admin-card--form   { max-width: 560px; }
+.admin-card--medium { max-width: 600px; }
+.admin-card--danger { max-width: 480px; border-color: #fca5a5; }
+
+// ---- Profile security — danger section -------------------
+
+.admin-profile-section-title--danger { color: #991b1b; }
+
+// ---- DPO forms — label color -----------------------------
+
+.admin-dpo-label { color: #6b5f50; }
+
+// ---- Avis clients — étoiles de notation -----------------
+
+.admin-review-stars {
+    color: #c9a84c;
+    font-size: 1rem;
+    letter-spacing: 0.05em;
+
+    &--1, &--2 { color: #c0392b; }
+    &--3        { color: #b38a00; }
+    &--4, &--5  { color: #c9a84c; }
 }
