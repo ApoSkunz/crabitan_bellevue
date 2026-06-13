@@ -1724,6 +1724,66 @@ INNER;
     }
 
     /**
+     * Notifie le propriétaire qu'un statut de commande a changé.
+     *
+     * @param string $ownerEmail Email destinataire propriétaire
+     * @param string $orderRef   Référence de la commande
+     * @param string $newStatus  Nouveau statut (clé anglaise)
+     * @param string $clientName Nom ou email du client
+     * @param string $clientEmail Email du client
+     * @param float  $total      Montant total de la commande (€)
+     * @param string $appUrl     URL racine de l'application
+     * @param int    $orderId    Identifiant commande (pour lien admin)
+     * @return void
+     */
+    public function sendOrderStatusEmailToOwner(
+        string $ownerEmail,
+        string $orderRef,
+        string $newStatus,
+        string $clientName,
+        string $clientEmail,
+        float $total,
+        string $appUrl = '',
+        int $orderId = 0
+    ): void {
+        $this->setMailType('order');
+
+        $statusLabels = [
+            'processing' => 'En préparation',
+            'shipped'    => 'Expédiée',
+            'delivered'  => 'Livrée',
+            'cancelled'  => 'Annulée',
+            'refunded'   => 'Remboursée',
+        ];
+        $statusLabel = $statusLabels[$newStatus] ?? ucfirst($newStatus);
+
+        $safeRef    = htmlspecialchars($orderRef, ENT_QUOTES);
+        $safeClient = htmlspecialchars($clientName, ENT_QUOTES);
+        $safeEmail  = htmlspecialchars($clientEmail, ENT_QUOTES);
+        $safeUrl    = rtrim($appUrl, '/');
+
+        $adminLink = $orderId > 0 && $safeUrl !== ''
+            ? '<a href="' . $safeUrl . '/admin/commandes/' . $orderId . '" style="color:#c1a14b;">Voir la commande</a>'
+            : '';
+
+        $subject = '[Commande ' . $safeRef . '] Statut → ' . $statusLabel;
+        $title   = 'Changement de statut commande';
+        $greeting = 'Notification automatique';
+        $message  = '<p>La commande <strong>' . $safeRef . '</strong> vient de passer au statut '
+            . '<strong>' . htmlspecialchars($statusLabel, ENT_QUOTES) . '</strong>.</p>'
+            . '<table style="border-collapse:collapse;margin:12px 0;">'
+            . '<tr><td style="padding:4px 10px 4px 0;color:#666;">Client</td>'
+            . '<td>' . $safeClient . ' (' . $safeEmail . ')</td></tr>'
+            . '<tr><td style="padding:4px 10px 4px 0;color:#666;">Montant</td>'
+            . '<td>' . number_format($total, 2, ',', ' ') . '&nbsp;&euro;</td></tr>'
+            . '</table>'
+            . ($adminLink !== '' ? '<p>' . $adminLink . '</p>' : '');
+
+        $body = $this->emailSimpleLayout($title, $greeting, $message, 'fr');
+        $this->send($ownerEmail, 'Propriétaire', $subject, $body);
+    }
+
+    /**
      * Sélectionne la valeur localisée avec fallback vers l'autre langue si absente.
      *
      * @param string $fr   Valeur en français

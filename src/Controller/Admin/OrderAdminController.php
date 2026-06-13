@@ -284,6 +284,24 @@ class OrderAdminController extends AdminController
                     \Core\ErrorLogger::warning($e);
                 }
             }
+
+            $ownerEmail = (string) ($_ENV['CONTACT_OWNER_EMAIL'] ?? '');
+            if ($ownerEmail !== '') {
+                try {
+                    $this->newMailService()->sendOrderStatusEmailToOwner(
+                        $ownerEmail,
+                        $orderRef,
+                        $status,
+                        $clientName,
+                        $clientEmail,
+                        (float) ($order['price'] ?? 0),
+                        $appUrl,
+                        $id
+                    );
+                } catch (\Throwable $e) {
+                    \Core\ErrorLogger::warning($e);
+                }
+            }
         }
 
         // Génération automatique de la facture dès le premier changement de statut actif (virement/chèque)
