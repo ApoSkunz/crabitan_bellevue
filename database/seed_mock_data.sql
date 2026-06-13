@@ -551,6 +551,7 @@ VALUES
 INSERT INTO `trusted_devices` (`user_id`, `device_token`, `device_name`, `confirmed_at`, `last_seen`, `expires_at`) VALUES
 (3, 'b2c3d4e5b2c3d4e5b2c3d4e5b2c3d4e5b2c3d4e5b2c3d4e5b2c3d4e5b2c3d4e5',  'Chrome · macOS',    '2026-01-10 10:05:00', '2026-03-28 08:00:00', DATE_ADD('2026-03-28 08:00:00', INTERVAL 90 DAY)),
 (3, 'c3d4e5f6c3d4e5f6c3d4e5f6c3d4e5f6c3d4e5f6c3d4e5f6c3d4e5f6c3d4e5f6',   'Safari · iOS',      '2026-02-01 11:00:00', '2026-03-20 14:00:00', DATE_ADD('2026-03-20 14:00:00', INTERVAL 90 DAY)),
+(1, 'a1b2c3d4a1b2c3d4a1b2c3d4a1b2c3d4a1b2c3d4a1b2c3d4a1b2c3d4a1b2c3d4',    'Firefox · Windows', '2026-01-01 08:05:00', '2026-03-28 07:30:00', DATE_ADD('2026-03-28 07:30:00', INTERVAL 90 DAY)),
 (2, 'a1b2c3d4a1b2c3d4a1b2c3d4a1b2c3d4a1b2c3d4a1b2c3d4a1b2c3d4a1b2c3d4',    'Firefox · Windows', '2026-01-01 08:05:00', '2026-03-28 07:30:00', DATE_ADD('2026-03-28 07:30:00', INTERVAL 90 DAY)),
 (5, 'd4e5f600d4e5f600d4e5f600d4e5f600d4e5f600d4e5f600d4e5f600d4e5f600',    'Safari · iOS',      '2026-01-15 14:05:00', '2026-03-01 10:00:00', DATE_ADD('2026-03-01 10:00:00', INTERVAL 90 DAY));
 
