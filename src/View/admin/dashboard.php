@@ -42,21 +42,23 @@ $totalOrders  = array_sum($ordersByStatus);
 </div>
 
 <!-- Statuts des commandes -->
+<?php
+$statusLabels = [
+    'pending'          => 'En attente',
+    'paid'             => 'Payée',
+    'processing'       => 'En préparation',
+    'shipped'          => 'Expédiée',
+    'delivered'        => 'Livrée',
+    'cancelled'        => 'Annulée',
+    'refunded'         => 'Remboursée',
+    'return_requested' => 'Retour en cours',
+];
+?>
 <?php if (!empty($ordersByStatus)) : ?>
 <div class="admin-card u-mb-6">
     <div class="admin-card__header"><h2>Répartition par statut</h2></div>
     <div class="admin-card__body u-flex u-flex-wrap u-gap-3">
         <?php
-        $statusLabels = [
-            'pending'          => 'En attente',
-            'paid'             => 'Payée',
-            'processing'       => 'En préparation',
-            'shipped'          => 'Expédiée',
-            'delivered'        => 'Livrée',
-            'cancelled'        => 'Annulée',
-            'refunded'         => 'Remboursée',
-            'return_requested' => 'Retour en cours',
-        ];
         foreach ($statusLabels as $key => $label) :
             $cnt = $ordersByStatus[$key] ?? 0;
             ?>
@@ -94,7 +96,7 @@ $totalOrders  = array_sum($ordersByStatus);
                     <tr>
                         <td><code class="u-text-sm"><?= htmlspecialchars($order['order_reference']) ?></code></td>
                         <td><?= htmlspecialchars($order['firstname'] ?: $order['email']) ?></td>
-                        <td><span class="badge badge--<?= htmlspecialchars($order['status']) ?>"><?= htmlspecialchars($order['status']) ?></span></td>
+                        <td><span class="badge badge--<?= htmlspecialchars($order['status']) ?>"><?= htmlspecialchars($statusLabels[$order['status']] ?? $order['status']) ?></span></td>
                         <td><?= number_format((float) $order['price'], 2, ',', ' ') ?>&nbsp;€</td>
                         <td class="u-nowrap"><?= date('d/m/Y', strtotime($order['ordered_at'])) ?></td>
                         <td><a href="/admin/commandes/<?= (int) $order['id'] ?>" class="admin-btn admin-btn--outline admin-btn--sm">Voir</a></td>
