@@ -54,7 +54,7 @@ class MfaController extends Controller
     public function poll(array $params): void // NOSONAR — $params requis par le router
     {
         // VULN-011 : limiter le polling à 30 requêtes/minute par IP
-        $ip    = $_SERVER['REMOTE_ADDR'] ?? '';
+        $ip    = (string) $_SERVER['REMOTE_ADDR'];
         $rlKey = 'mfa-poll:' . $ip;
         if (!$this->rateLimiter->checkLimit($rlKey, 30, 60)) {
             $this->json(['error' => 'Too Many Requests'], 429);
