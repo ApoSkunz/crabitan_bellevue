@@ -1686,7 +1686,7 @@ INNER;
         int $orderId = 0
     ): void {
         $this->setMailType('order');
-        $triggerStatuses = ['processing', 'shipped', 'delivered', 'cancelled', 'refunded'];
+        $triggerStatuses = ['processing', 'shipped', 'delivered', 'cancelled', 'refunded', 'paid', 'refund_refused'];
         if (!in_array($newStatus, $triggerStatuses, true)) {
             return;
         }
@@ -1721,6 +1721,69 @@ INNER;
 
         $body = $this->emailSimpleLayout($title, $greeting, $message, $lang);
         $this->send($toEmail, $toName, $subject, $body);
+    }
+
+    /**
+     * Notifie le propriétaire qu'un statut de commande a changé.
+     *
+     * @param string $ownerEmail Email destinataire propriétaire
+     * @param string $orderRef   Référence de la commande
+     * @param string $newStatus  Nouveau statut (clé anglaise)
+     * @param string $clientName Nom ou email du client
+     * @param string $clientEmail Email du client
+     * @param float  $total      Montant total de la commande (€)
+     * @param string $appUrl     URL racine de l'application
+     * @param int    $orderId    Identifiant commande (pour lien admin)
+     * @return void
+     */
+    public function sendOrderStatusEmailToOwner(
+        string $ownerEmail,
+        string $orderRef,
+        string $newStatus,
+        string $clientName,
+        string $clientEmail,
+        float $total,
+        string $appUrl = '',
+        int $orderId = 0
+    ): void {
+        $this->setMailType('order');
+
+        $statusLabels = [
+            'processing'     => 'En préparation',
+            'shipped'        => 'Expédiée',
+            'delivered'      => 'Livrée',
+            'cancelled'      => 'Annulée',
+            'refunded'       => 'Remboursée',
+            'return_requested' => 'Retour en cours',
+            'refund_pending'   => 'Remboursement en attente',
+            'refund_refused'   => 'Remboursement refusé',
+        ];
+        $statusLabel = $statusLabels[$newStatus] ?? ucfirst($newStatus);
+
+        $safeRef    = htmlspecialchars($orderRef, ENT_QUOTES);
+        $safeClient = htmlspecialchars($clientName, ENT_QUOTES);
+        $safeEmail  = htmlspecialchars($clientEmail, ENT_QUOTES);
+        $safeUrl    = rtrim($appUrl, '/');
+
+        $adminLink = $orderId > 0 && $safeUrl !== ''
+            ? '<a href="' . $safeUrl . '/admin/commandes/' . $orderId . '" style="color:#c1a14b;">Voir la commande</a>'
+            : '';
+
+        $subject = '[Commande ' . $safeRef . '] Statut → ' . $statusLabel;
+        $title   = 'Changement de statut commande';
+        $greeting = 'Notification automatique';
+        $message  = '<p>La commande <strong>' . $safeRef . '</strong> vient de passer au statut '
+            . '<strong>' . htmlspecialchars($statusLabel, ENT_QUOTES) . '</strong>.</p>'
+            . '<table style="border-collapse:collapse;margin:12px 0;">'
+            . '<tr><td style="padding:4px 10px 4px 0;color:#666;">Client</td>'
+            . '<td>' . $safeClient . ' (' . $safeEmail . ')</td></tr>'
+            . '<tr><td style="padding:4px 10px 4px 0;color:#666;">Montant</td>'
+            . '<td>' . number_format($total, 2, ',', ' ') . '&nbsp;&euro;</td></tr>'
+            . '</table>'
+            . ($adminLink !== '' ? '<p>' . $adminLink . '</p>' : '');
+
+        $body = $this->emailSimpleLayout($title, $greeting, $message, 'fr');
+        $this->send($ownerEmail, 'Propriétaire', $subject, $body);
     }
 
     /**
@@ -1789,18 +1852,22 @@ INNER;
         int $orderId = 0
     ): array {
         $subjects = [
-            'processing' => "Votre commande est en préparation — {$safeRef}",
-            'shipped'    => "Votre commande a été expédiée — {$safeRef}",
-            'delivered'  => "Votre commande a été livrée — {$safeRef}",
-            'cancelled'  => "Votre commande a été annulée — {$safeRef}",
-            'refunded'   => "Votre commande a été remboursée — {$safeRef}",
+            'processing'     => "Votre commande est en préparation — {$safeRef}",
+            'shipped'        => "Votre commande a été expédiée — {$safeRef}",
+            'delivered'      => "Votre commande a été livrée — {$safeRef}",
+            'cancelled'      => "Votre commande a été annulée — {$safeRef}",
+            'refunded'       => "Votre commande a été remboursée — {$safeRef}",
+            'paid'           => "Votre paiement a été reçu — {$safeRef}",
+            'refund_refused' => "Demande de remboursement refusée — {$safeRef}",
         ];
         $titles = [
-            'processing' => 'Commande en préparation',
-            'shipped'    => 'Commande expédiée',
-            'delivered'  => 'Commande livrée',
-            'cancelled'  => 'Commande annulée',
-            'refunded'   => 'Commande remboursée',
+            'processing'     => 'Commande en préparation',
+            'shipped'        => 'Commande expédiée',
+            'delivered'      => 'Commande livrée',
+            'cancelled'      => 'Commande annulée',
+            'refunded'       => 'Commande remboursée',
+            'paid'           => 'Paiement reçu',
+            'refund_refused' => 'Remboursement refusé',
         ];
         $messages = [
             'processing' => "Votre commande <strong>{$safeRef}</strong> est actuellement en cours de préparation."
@@ -1813,8 +1880,12 @@ INNER;
                 . " depuis votre espace client.",
             'cancelled'  => "Votre commande <strong>{$safeRef}</strong> a été annulée."
                 . " Si vous avez déjà été débité(e), le remboursement sera traité dans les meilleurs délais.",
-            'refunded'   => "Votre commande <strong>{$safeRef}</strong> a été remboursée."
+            'refunded'       => "Votre commande <strong>{$safeRef}</strong> a été remboursée."
                 . " Le crédit sera visible sur votre compte bancaire dans un délai de 3 à 5 jours ouvrés.",
+            'paid'           => "Votre virement pour la commande <strong>{$safeRef}</strong> a bien été reçu."
+                . " Votre commande va être mise en préparation dans les meilleurs délais.",
+            'refund_refused' => "Votre demande de remboursement pour la commande <strong>{$safeRef}</strong>"
+                . " n'a pas pu être acceptée. Pour toute question, n'hésitez pas à nous contacter.",
         ];
 
         $extraBlocks = '';
@@ -1902,18 +1973,22 @@ INNER;
         int $orderId = 0
     ): array {
         $subjects = [
-            'processing' => "Your order is being prepared — {$safeRef}",
-            'shipped'    => "Your order has been shipped — {$safeRef}",
-            'delivered'  => "Your order has been delivered — {$safeRef}",
-            'cancelled'  => "Your order has been cancelled — {$safeRef}",
-            'refunded'   => "Your order has been refunded — {$safeRef}",
+            'processing'     => "Your order is being prepared — {$safeRef}",
+            'shipped'        => "Your order has been shipped — {$safeRef}",
+            'delivered'      => "Your order has been delivered — {$safeRef}",
+            'cancelled'      => "Your order has been cancelled — {$safeRef}",
+            'refunded'       => "Your order has been refunded — {$safeRef}",
+            'paid'           => "Your payment has been received — {$safeRef}",
+            'refund_refused' => "Refund request refused — {$safeRef}",
         ];
         $titles = [
-            'processing' => 'Order in preparation',
-            'shipped'    => 'Order shipped',
-            'delivered'  => 'Order delivered',
-            'cancelled'  => 'Order cancelled',
-            'refunded'   => 'Order refunded',
+            'processing'     => 'Order in preparation',
+            'shipped'        => 'Order shipped',
+            'delivered'      => 'Order delivered',
+            'cancelled'      => 'Order cancelled',
+            'refunded'       => 'Order refunded',
+            'paid'           => 'Payment received',
+            'refund_refused' => 'Refund refused',
         ];
         $messages = [
             'processing' => "Your order <strong>{$safeRef}</strong> is currently being prepared."
@@ -1926,8 +2001,12 @@ INNER;
                 . " from your customer account.",
             'cancelled'  => "Your order <strong>{$safeRef}</strong> has been cancelled."
                 . " If you have already been charged, a refund will be processed as soon as possible.",
-            'refunded'   => "Your order <strong>{$safeRef}</strong> has been refunded."
+            'refunded'       => "Your order <strong>{$safeRef}</strong> has been refunded."
                 . " The credit should appear on your bank account within 3 to 5 working days.",
+            'paid'           => "Your bank transfer for order <strong>{$safeRef}</strong> has been received."
+                . " Your order will be prepared shortly.",
+            'refund_refused' => "Your refund request for order <strong>{$safeRef}</strong> could not be accepted."
+                . " If you have any questions, please do not hesitate to contact us.",
         ];
 
         $extraBlocks = '';

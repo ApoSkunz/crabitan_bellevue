@@ -1570,4 +1570,36 @@ class MailServiceCoverageTest extends TestCase
 
         $this->assertTrue(true);
     }
+
+    // ----------------------------------------------------------------
+    // sendOrderStatusEmail() — statuts paid + refund_refused (FR + EN)
+    // ----------------------------------------------------------------
+
+    public function testSendOrderStatusEmailPaidFrDoesNotThrow(): void
+    {
+        $this->injectMockMailer($this->service);
+        $this->service->sendOrderStatusEmail('alice@example.com', 'Alice', 'CB-2026-PAID-FR', 'paid', 'fr', 'http://crabitan.local');
+        $this->assertTrue(true);
+    }
+
+    public function testSendOrderStatusEmailPaidEnDoesNotThrow(): void
+    {
+        $this->injectMockMailer($this->service);
+        $this->service->sendOrderStatusEmail('alice@example.com', 'Alice', 'CB-2026-PAID-EN', 'paid', 'en', 'http://crabitan.local');
+        $this->assertTrue(true);
+    }
+
+    public function testSendOrderStatusEmailRefundRefusedFrDoesNotThrow(): void
+    {
+        $this->injectMockMailer($this->service);
+        $this->service->sendOrderStatusEmail('bob@example.com', 'Bob', 'CB-2026-REFUSED-FR', 'refund_refused', 'fr', 'http://crabitan.local');
+        $this->assertTrue(true);
+    }
+
+    public function testSendOrderStatusEmailRefundRefusedEnDoesNotThrow(): void
+    {
+        $this->injectMockMailer($this->service);
+        $this->service->sendOrderStatusEmail('bob@example.com', 'Bob', 'CB-2026-REFUSED-EN', 'refund_refused', 'en', 'http://crabitan.local');
+        $this->assertTrue(true);
+    }
 }

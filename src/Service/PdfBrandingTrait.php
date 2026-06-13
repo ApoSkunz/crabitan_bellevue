@@ -45,6 +45,9 @@ trait PdfBrandingTrait
                     $name .= ' <span style="color:#8a7060;">' . $vintage . '</span>';
                 }
             }
+            if (!empty($item['is_cuvee_speciale'])) {
+                $name .= ' <span style="color:#c9a84c;">&#10022; Cuv&eacute;e sp&eacute;ciale</span>';
+            }
             $qty      = (int)   ($item['qty']   ?? 0);
             $price    = (float) ($item['price'] ?? 0.0);
             $subtotal = $qty * $price;

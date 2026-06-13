@@ -18,7 +18,7 @@ class OrderAdminController extends AdminController
     private const ALLOWED_PER_PAGES = [10, 25, 50];
     private const ORDER_NOT_FOUND   = 'Commande introuvable';
 
-    private const TRIGGER_STATUSES = ['processing', 'shipped', 'delivered', 'cancelled', 'refunded'];
+    private const TRIGGER_STATUSES = ['processing', 'shipped', 'delivered', 'cancelled', 'refunded', 'paid', 'refund_refused'];
 
     private OrderModel $orders;
 
@@ -279,6 +279,24 @@ class OrderAdminController extends AdminController
                         $status,
                         $clientLang,
                         $appUrl
+                    );
+                } catch (\Throwable $e) {
+                    \Core\ErrorLogger::warning($e);
+                }
+            }
+
+            $ownerEmail = (string) ($_ENV['CONTACT_OWNER_EMAIL'] ?? '');
+            if ($ownerEmail !== '') {
+                try {
+                    $this->newMailService()->sendOrderStatusEmailToOwner(
+                        $ownerEmail,
+                        $orderRef,
+                        $status,
+                        $clientName,
+                        $clientEmail,
+                        (float) ($order['price'] ?? 0),
+                        $appUrl,
+                        $id
                     );
                 } catch (\Throwable $e) {
                     \Core\ErrorLogger::warning($e);

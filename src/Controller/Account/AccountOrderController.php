@@ -238,6 +238,7 @@ class AccountOrderController extends AbstractAccountController
                 }
 
                 $this->orders->updateStatus($id, 'refunded');
+                $this->sendCancelStatusEmails('refunded', $order, $id, $userId, $lang);
                 $_SESSION['flash']['order_success'] = __('account.order_cancelled');
                 Response::redirect($back);
             } else {
@@ -266,6 +267,7 @@ class AccountOrderController extends AbstractAccountController
             }
         } else {
             $_SESSION['flash']['order_success'] = __('account.order_cancelled');
+            $this->sendCancelStatusEmails('cancelled', $order, $id, $userId, $lang);
         }
 
         Response::redirect($back);
@@ -396,6 +398,42 @@ class AccountOrderController extends AbstractAccountController
      * @param string $lang    Langue du client
      * @return void
      */
+    /**
+     * Envoie les emails de changement de statut annulation au client et au propriétaire.
+     *
+     * Non bloquant : les erreurs SMTP sont avalées.
+     *
+     * @param string               $status  Statut cible (`cancelled` ou `refunded`)
+     * @param array<string, mixed> $order   Données de la commande (order_reference, price…)
+     * @param int                  $orderId Identifiant de la commande
+     * @param int                  $userId  Identifiant du client
+     * @param string               $lang    Langue de session (fallback)
+     * @return void
+     */
+    private function sendCancelStatusEmails(string $status, array $order, int $orderId, int $userId, string $lang): void
+    {
+        try {
+            $account = $this->userRepo->findById($userId);
+            if (!$account || ($account['email'] ?? '') === '') {
+                return;
+            }
+            $clientEmail = (string) $account['email'];
+            $clientName  = trim(($account['firstname'] ?? '') . ' ' . ($account['lastname'] ?? '')) ?: $clientEmail;
+            $clientLang  = (string) ($account['lang'] ?? $lang);
+            $orderRef    = (string) ($order['order_reference'] ?? '');
+            $appUrl      = rtrim($_ENV['APP_URL'] ?? '', '/');
+            $mailer      = $this->newMailService();
+            $mailer->sendOrderStatusEmail($clientEmail, $clientName, $orderRef, $status, $clientLang, $appUrl);
+            $ownerEmail = (string) ($_ENV['CONTACT_OWNER_EMAIL'] ?? '');
+            if ($ownerEmail !== '') {
+                // phpcs:ignore Generic.Files.LineLength
+                $mailer->sendOrderStatusEmailToOwner($ownerEmail, $orderRef, $status, $clientName, $clientEmail, (float) ($order['price'] ?? 0), $appUrl, $orderId);
+            }
+        } catch (\Throwable $e) {
+            \Core\ErrorLogger::warning($e);
+        }
+    }
+
     private function sendReturnEmails(int $orderId, int $userId, string $lang): void
     {
         $order   = $this->orders->findDetailForUser($orderId, $userId);

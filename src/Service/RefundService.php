@@ -87,6 +87,7 @@ class RefundService
 
         $this->orders->updateStatus($orderId, 'refunded');
         $this->sendRefundInitiatedEmail($order, 'refunded');
+        $this->notifyOwnerRefunded($order);
 
         return 'refunded';
     }
@@ -144,6 +145,42 @@ class RefundService
 
         try {
             $this->mailer->sendRefundRequestedToOwner($order, $clientName, $clientEmail);
+        } catch (\Throwable $e) {
+            \Core\ErrorLogger::warning($e, '[RefundService]');
+        }
+    }
+
+    /**
+     * Notifie le propriétaire qu'un remboursement GAE a été effectué avec succès.
+     *
+     * Non bloquant : les erreurs SMTP sont loggées sans lever d'exception.
+     *
+     * @param array<string, mixed> $order Données de la commande
+     * @return void
+     */
+    private function notifyOwnerRefunded(array $order): void
+    {
+        $ownerEmail = (string) ($_ENV['CONTACT_OWNER_EMAIL'] ?? '');
+        if ($ownerEmail === '') {
+            return;
+        }
+
+        $clientEmail = (string) ($order['email'] ?? '');
+        if ($clientEmail === '' || str_ends_with($clientEmail, '@purged.invalid')) {
+            return;
+        }
+
+        $firstname  = (string) ($order['firstname'] ?? '');
+        $lastname   = (string) ($order['lastname']  ?? '');
+        $clientName = trim($firstname . ' ' . $lastname) ?: $clientEmail;
+        $orderRef   = (string) ($order['order_reference'] ?? '');
+        $appUrl     = rtrim($_ENV['APP_URL'] ?? 'https://crabitanbellevue.fr', '/');
+        $orderId    = (int) ($order['id'] ?? 0);
+        $total      = (float) ($order['price'] ?? 0);
+
+        try {
+            // phpcs:ignore Generic.Files.LineLength
+            $this->mailer->sendOrderStatusEmailToOwner($ownerEmail, $orderRef, 'refunded', $clientName, $clientEmail, $total, $appUrl, $orderId);
         } catch (\Throwable $e) {
             \Core\ErrorLogger::warning($e, '[RefundService]');
         }

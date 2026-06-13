@@ -149,6 +149,37 @@ class RefundServiceTest extends TestCase
         $this->assertSame('refund_pending', $result);
     }
 
+    public function testRefundWithGaeEnabledNotifiesOwnerWhenEmailSet(): void
+    {
+        FeatureFlags::setCache(['ca_enable_gae' => ['key' => 'ca_enable_gae', 'value' => 'true', 'type' => 'bool']]);
+        $_ENV['APP_URL']             = 'https://crabitanbellevue.fr';
+        $_ENV['CONTACT_OWNER_EMAIL'] = 'owner@crabitanbellevue.fr';
+
+        $this->ordersMock->method('findByIdForAdmin')->willReturn($this->fakeOrder);
+        $this->gaeMock->method('refund')->willReturn(true);
+        $this->ordersMock->method('updateStatus');
+        $this->mailerMock->method('sendOrderStatusEmail');
+
+        $this->mailerMock->expects($this->once())
+            ->method('sendOrderStatusEmailToOwner')
+            ->with(
+                'owner@crabitanbellevue.fr',
+                'CB-2026-0042',
+                'refunded',
+                'Jean Dupont',
+                'client@example.com',
+                $this->anything(),
+                $this->anything(),
+                $this->anything()
+            );
+
+        $service = new RefundService($this->ordersMock, $this->gaeMock, $this->mailerMock);
+        $result  = $service->refund(42);
+
+        $this->assertSame('refunded', $result);
+        unset($_ENV['CONTACT_OWNER_EMAIL']);
+    }
+
     public function testRefundThrowsInvalidArgumentWhenOrderNotFound(): void
     {
         $this->ordersMock->method('findByIdForAdmin')->willReturn(null);
