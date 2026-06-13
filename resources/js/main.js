@@ -8,6 +8,25 @@ import { initLazyCards } from './wines-lazy-cards.js';
 import { initWinePdfDownload } from './wine-pdf-download.js';
 
 // ============================================================
+// Utilitaires sécurité
+// ============================================================
+
+/**
+ * Échappe les caractères HTML spéciaux pour éviter les injections XSS via innerHTML.
+ *
+ * @param {unknown} s Valeur à échapper
+ * @returns {string}
+ */
+function esc(s) {
+    return String(s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+// ============================================================
 // Thème jour / nuit
 // ============================================================
 
@@ -1891,8 +1910,10 @@ function initCartPage() {
                     li.className = 'cart-guest__item';
                     li.dataset.wineId = item.id;
 
+                    const safeName  = esc(name);
+                    const safeImage = esc(image);
                     const imgHtml = image
-                        ? `<img src="${image}" alt="${name}" class="cart-guest__img" width="48" height="48" loading="lazy">`
+                        ? `<img src="${safeImage}" alt="${safeName}" class="cart-guest__img" width="48" height="48" loading="lazy">`
                         : '';
                     const vintageHtml = vintage > 0
                         ? ` <span class="cart-table__vintage">${vintage}</span>`
@@ -1904,12 +1925,12 @@ function initCartPage() {
                     li.innerHTML = `
                         ${imgHtml}
                         <div class="cart-guest__info">
-                            <p class="cart-guest__name">${name}${vintageHtml}</p>
+                            <p class="cart-guest__name">${safeName}${vintageHtml}</p>
                             ${cuveeHtml}
                             <p class="cart-guest__qty">${qtyLabel}\u00a0: ${item.qty || 1}</p>
                             <p class="cart-guest__price-note">${priceNote}</p>
                         </div>
-                        <button type="button" class="btn-retirer cart-guest__remove" aria-label="${removeLabel} — ${name}">
+                        <button type="button" class="btn-retirer cart-guest__remove" aria-label="${removeLabel} — ${safeName}">
                             <svg class="btn-retirer__icon" aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
                             </svg>
@@ -2325,9 +2346,9 @@ function initCartPage() {
                                         wineHtml = `
                                             <div class="cart-empty-wine">
                                                 <p class="cart-empty-wine__label">${isEnSec ? 'You might enjoy' : 'Vous pourriez apprécier'}</p>
-                                                <a href="/${lang}/vins/${wine.slug}" class="cart-empty-wine__card">
-                                                    <img src="/assets/images/wines/${wine.image_path}" alt="${wine.label_name}" class="cart-empty-wine__img" width="120" height="160" loading="lazy">
-                                                    <span class="cart-empty-wine__name">${wine.label_name}</span>
+                                                <a href="/${lang}/vins/${esc(wine.slug)}" class="cart-empty-wine__card">
+                                                    <img src="/assets/images/wines/${esc(wine.image_path)}" alt="${esc(wine.label_name)}" class="cart-empty-wine__img" width="120" height="160" loading="lazy">
+                                                    <span class="cart-empty-wine__name">${esc(wine.label_name)}</span>
                                                     <span class="cart-empty-wine__price">${price}\u00a0€</span>
                                                 </a>
                                             </div>`;
