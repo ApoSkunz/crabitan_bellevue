@@ -810,6 +810,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 <a href="/admin/commandes">Commandes</a>
                 <a href="/admin/factures">Factures</a>
                 <a href="/admin/statistiques">Statistiques CA</a>
+                <a href="/admin/paniers">Paniers</a>
+                <a href="/admin/avis">Avis</a>
 
                 <span class="account-panel__section-label">Clients</span>
                 <a href="/admin/comptes">Comptes</a>
