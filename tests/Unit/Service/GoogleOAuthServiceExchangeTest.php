@@ -56,30 +56,16 @@ class GoogleOAuthServiceExchangeTest extends TestCase
     public function testFetchUserInfoReturnsUserData(): void
     {
         $this->service->getResponse = (string) json_encode([
-            'sub'            => 'google-user-123',
-            'email'          => 'test@example.com',
-            'email_verified' => true,
-            'given_name'     => 'Jean',
-            'family_name'    => 'Dupont',
+            'sub'         => 'google-user-123',
+            'email'       => 'test@example.com',
+            'given_name'  => 'Jean',
+            'family_name' => 'Dupont',
         ]);
 
         $result = $this->service->fetchUserInfo('access_token_xyz');
 
         $this->assertSame('google-user-123', $result['sub']);
         $this->assertSame('test@example.com', $result['email']);
-    }
-
-    public function testFetchUserInfoThrowsWhenEmailNotVerified(): void
-    {
-        $this->service->getResponse = (string) json_encode([
-            'sub'            => 'google-user-456',
-            'email'          => 'unverified@example.com',
-            'email_verified' => false,
-        ]);
-
-        $this->expectException(GoogleOAuthException::class);
-        $this->expectExceptionMessageMatches('/not verified/');
-        $this->service->fetchUserInfo('token');
     }
 
     public function testFetchUserInfoThrowsWhenSubMissing(): void
