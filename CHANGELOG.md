@@ -2,6 +2,13 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+## [1.31.1](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.31.0...v1.31.1) (2026-06-13)
+
+
+### Bug Fixes
+
+* **payment:** use APP_URL for PBX_REPONDRE to avoid www redirect ([9c20735](https://github.com/ApoSkunz/crabitan_bellevue/commit/9c20735a61f85e2b416f3818f44a76453115c266))
+
 # [1.31.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.30.0...v1.31.0) (2026-06-13)
 
 
