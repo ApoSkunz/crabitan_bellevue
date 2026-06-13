@@ -28,7 +28,25 @@ class SecurityHeaderMiddleware
 
         $uri = $_SERVER['REQUEST_URI'] ?? '/';
 
-        $csp = implode('; ', [
+        // X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy
+        // et HSTS sont gérés statiquement dans public/.htaccess
+        header('Content-Security-Policy: ' . self::buildCspString($nonce));
+
+        // X-Robots-Tag : noai sur les pages vins (catalogue)
+        if (self::isWinePath($uri)) {
+            header('X-Robots-Tag: noai, noimageai');
+        }
+    }
+
+    /**
+     * Construit la valeur de l'en-tête Content-Security-Policy.
+     *
+     * @param string $nonce Nonce CSP à injecter dans script-src
+     * @return string Valeur complète de la directive CSP
+     */
+    public static function buildCspString(string $nonce): string
+    {
+        return implode('; ', [
             "default-src 'self'",
             "script-src 'self' 'nonce-{$nonce}'",
             "style-src 'self'",
@@ -40,16 +58,8 @@ class SecurityHeaderMiddleware
             "frame-ancestors 'none'",
             "base-uri 'self'",
             "object-src 'none'",
+            'upgrade-insecure-requests',
         ]);
-
-        // X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy
-        // et HSTS sont gérés statiquement dans public/.htaccess
-        header("Content-Security-Policy: {$csp}");
-
-        // X-Robots-Tag : noai sur les pages vins (catalogue)
-        if (self::isWinePath($uri)) {
-            header('X-Robots-Tag: noai, noimageai');
-        }
     }
 
     /**
