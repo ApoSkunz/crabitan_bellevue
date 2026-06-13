@@ -52,6 +52,8 @@ $statusLabels = [
     'cancelled'        => 'Annulée',
     'refunded'         => 'Remboursée',
     'return_requested' => 'Retour en cours',
+    'refund_pending'   => 'Remboursement en attente',
+    'refund_refused'   => 'Remboursement refusé',
 ];
 ?>
 <?php if (!empty($ordersByStatus)) : ?>

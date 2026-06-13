@@ -1749,11 +1749,14 @@ INNER;
         $this->setMailType('order');
 
         $statusLabels = [
-            'processing' => 'En préparation',
-            'shipped'    => 'Expédiée',
-            'delivered'  => 'Livrée',
-            'cancelled'  => 'Annulée',
-            'refunded'   => 'Remboursée',
+            'processing'     => 'En préparation',
+            'shipped'        => 'Expédiée',
+            'delivered'      => 'Livrée',
+            'cancelled'      => 'Annulée',
+            'refunded'       => 'Remboursée',
+            'return_requested' => 'Retour en cours',
+            'refund_pending'   => 'Remboursement en attente',
+            'refund_refused'   => 'Remboursement refusé',
         ];
         $statusLabel = $statusLabels[$newStatus] ?? ucfirst($newStatus);
 
