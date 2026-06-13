@@ -1,4 +1,4 @@
-// @ts-check
+﻿// @ts-check
 import { test, expect, setVerifiedCookie } from './support/fixtures.js';
 
 // ============================================================
@@ -7,7 +7,7 @@ import { test, expect, setVerifiedCookie } from './support/fixtures.js';
 
 const CUSTOMER_EMAIL    = 'client.verifie@dev.local';
 const CUSTOMER_PASSWORD = 'Dev123456789!';
-const DEVICE_TOKEN      = 'device-uuid-sophie-macbook';
+const DEVICE_TOKEN      = 'b2c3d4e5b2c3d4e5b2c3d4e5b2c3d4e5b2c3d4e5b2c3d4e5b2c3d4e5b2c3d4e5';
 
 /**
  * Pose les cookies age_verified + device_token, puis connecte le client via le modal login.
