@@ -845,6 +845,16 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
             $ids
         );
 
+        // Anonymisation des avis (display_name = prénom + initiale = donnée personnelle, RGPD Art. 17)
+        $this->db->execute(
+            "UPDATE customer_reviews
+             SET display_name = 'Avis anonymisé',
+                 comment      = NULL,
+                 location     = NULL
+             WHERE account_id IN ({$placeholders})",
+            $ids
+        );
+
         return count($ids);
     }
 

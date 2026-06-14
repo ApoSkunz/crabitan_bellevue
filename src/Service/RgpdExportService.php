@@ -398,6 +398,34 @@ class RgpdExportService
             $h .= '<h2>Versions CGV acceptées (0)</h2><p class="muted">Aucune commande passée.</p>';
         }
 
+        $review = $export['review'] ?? null;
+        $h .= '<h2>Avis client</h2>';
+        if ($review !== null) {
+            $h .= '<table><tr><th>Note</th><th>Commentaire</th><th>Localisation</th><th>Date</th></tr>';
+            $h .= '<tr>'
+                . '<td>' . htmlspecialchars((string) ($review['rating'] ?? '—')) . '/5</td>'
+                . '<td>' . htmlspecialchars((string) ($review['comment'] ?? '—')) . '</td>'
+                . '<td>' . htmlspecialchars((string) ($review['location'] ?? '—')) . '</td>'
+                . '<td>' . htmlspecialchars((string) ($review['created_at'] ?? '—')) . '</td>'
+                . '</tr></table>';
+        } else {
+            $h .= '<p class="muted">Aucun avis publié.</p>';
+        }
+
+        /** @var array<int, array<string, mixed>> $wineRatings */
+        $wineRatings = is_array($export['wine_ratings'] ?? null) ? $export['wine_ratings'] : [];
+        $h .= $this->buildPdfTableSection(
+            'Notations vins',
+            $wineRatings,
+            '<tr><th>Vin</th><th>Note</th><th>Date</th></tr>',
+            static fn(array $r) => '<tr>'
+                . '<td>' . htmlspecialchars($r['wine'] ?? '—') . '</td>'
+                . '<td>' . htmlspecialchars((string) ($r['rating'] ?? '—')) . '/5</td>'
+                . '<td>' . htmlspecialchars((string) ($r['updated_at'] ?? '—')) . '</td>'
+                . '</tr>',
+            'Aucune notation.'
+        );
+
         $pdf->writeHTML($h, true, false, true, false, '');
 
         return (string) $pdf->Output('', 'S');

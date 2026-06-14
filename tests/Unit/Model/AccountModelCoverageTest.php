@@ -262,7 +262,7 @@ class AccountModelCoverageTest extends TestCase
     }
 
     /**
-     * purgeScheduledDeletions exécute 4 requêtes quand des comptes existent.
+     * purgeScheduledDeletions exécute 5 requêtes quand des comptes existent.
      */
     public function testPurgeScheduledDeletionsExecutesQueriesWhenAccountsExist(): void
     {
@@ -274,7 +274,7 @@ class AccountModelCoverageTest extends TestCase
         $model = new AccountModel($enc);
 
         $mock->method('fetchAll')->willReturn([['id' => 1], ['id' => 2]]);
-        $mock->expects($this->exactly(4))->method('execute');
+        $mock->expects($this->exactly(5))->method('execute');
 
         $result = $model->purgeScheduledDeletions();
         $this->assertSame(2, $result);
