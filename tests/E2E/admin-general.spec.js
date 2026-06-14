@@ -1,4 +1,4 @@
-// @ts-check
+﻿// @ts-check
 import { test, expect } from './support/fixtures.js';
 
 // ============================================================
@@ -7,7 +7,7 @@ import { test, expect } from './support/fixtures.js';
 
 const ADMIN_EMAIL    = 'admin@dev.local';
 const ADMIN_PASSWORD = 'Dev123456789!';
-const ADMIN_DEVICE   = 'device-uuid-admin-chrome';
+const ADMIN_DEVICE   = 'a1b2c3d4a1b2c3d4a1b2c3d4a1b2c3d4a1b2c3d4a1b2c3d4a1b2c3d4a1b2c3d4';
 
 // ============================================================
 // Helpers
@@ -66,7 +66,7 @@ test.describe('Accès admin — non connecté', () => {
         const domain = new URL(process.env.APP_URL || 'http://crabitan.local').hostname;
         await context.addCookies([
             { name: 'age_verified', value: '1',                         domain, path: '/', httpOnly: true,  sameSite: 'Lax' },
-            { name: 'device_token', value: 'device-uuid-sophie-macbook', domain, path: '/', httpOnly: false, sameSite: 'Lax' },
+            { name: 'device_token', value: 'b2c3d4e5b2c3d4e5b2c3d4e5b2c3d4e5b2c3d4e5b2c3d4e5b2c3d4e5b2c3d4e5', domain, path: '/', httpOnly: false, sameSite: 'Lax' },
         ]);
         await page.goto('/fr');
         await page.locator('#login-modal-trigger').click();

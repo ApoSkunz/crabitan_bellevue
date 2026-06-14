@@ -18,9 +18,10 @@ trait DeviceHelper
     private function resolveDeviceToken(): string
     {
         $token = $_COOKIE['device_token'] ?? null;
-        if ($token !== null) {
+        if ($token !== null && preg_match('/^[0-9a-f]{64}$/', $token)) {
             return $token;
         }
+        $token = null;
         $token = bin2hex(random_bytes(32));
         setcookie('device_token', $token, [
             'expires'  => time() + (90 * 24 * 3600),

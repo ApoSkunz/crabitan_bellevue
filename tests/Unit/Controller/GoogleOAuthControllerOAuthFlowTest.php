@@ -384,12 +384,13 @@ class GoogleOAuthControllerOAuthFlowTest extends TestCase
 
     public function testResolveDeviceTokenReturnsExistingCookieToken(): void
     {
-        $_COOKIE['device_token'] = 'existing-device-token';
+        $validToken = str_repeat('a1b2c3d4', 8); // 64 chars hexadécimaux valides
+        $_COOKIE['device_token'] = $validToken;
 
         $ctrl   = $this->makeController();
         $result = $this->callPrivate($ctrl, 'resolveDeviceToken');
 
-        $this->assertSame('existing-device-token', $result);
+        $this->assertSame($validToken, $result);
     }
 
     public function testResolveDeviceTokenGeneratesTokenWhenNoCookie(): void

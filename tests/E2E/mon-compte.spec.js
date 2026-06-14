@@ -1,4 +1,4 @@
-// @ts-check
+﻿// @ts-check
 import { test, expect, setVerifiedCookie } from './support/fixtures.js';
 
 // ============================================================
@@ -29,7 +29,7 @@ async function loginAsCustomer(page, context) {
         },
         {
             name: 'device_token',
-            value: 'device-uuid-sophie-macbook',
+            value: 'b2c3d4e5b2c3d4e5b2c3d4e5b2c3d4e5b2c3d4e5b2c3d4e5b2c3d4e5b2c3d4e5',
             domain: DOMAIN,
             path: '/',
             httpOnly: true,

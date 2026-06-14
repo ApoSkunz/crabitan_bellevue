@@ -1,9 +1,9 @@
-// @ts-check
+﻿// @ts-check
 import { test, expect } from './support/fixtures.js';
 
 const ADMIN_EMAIL    = 'admin@dev.local';
 const ADMIN_PASSWORD = 'Dev123456789!';
-const ADMIN_DEVICE   = 'device-uuid-admin-chrome';
+const ADMIN_DEVICE   = 'a1b2c3d4a1b2c3d4a1b2c3d4a1b2c3d4a1b2c3d4a1b2c3d4a1b2c3d4a1b2c3d4';
 
 /**
  * @param {import('@playwright/test').Page} page

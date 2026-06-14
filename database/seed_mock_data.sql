@@ -1,4 +1,4 @@
--- ============================================================
+﻿-- ============================================================
 -- Crabitan Bellevue — Seed mock data (CI + dev local)
 -- Fichier unique remplaçant :
 --   seed_wines_prod.sql
@@ -536,23 +536,24 @@ INSERT INTO `connections`
     (`user_id`, `token`, `device_token`, `ip_address`, `device_name`, `auth_method`, `status`, `last_used_at`, `created_at`, `expired_at`)
 VALUES
 -- Sophie — active (expired_at toujours dans le futur)
-(3, 'mock-jwt-sophie-active-001', 'device-uuid-sophie-macbook', '82.65.10.1', 'Chrome · macOS', 'password', 'active', NOW(), DATE_SUB(NOW(), INTERVAL 1 HOUR), DATE_ADD(NOW(), INTERVAL 30 DAY)),
+(3, 'mock-jwt-sophie-active-001', 'b2c3d4e5b2c3d4e5b2c3d4e5b2c3d4e5b2c3d4e5b2c3d4e5b2c3d4e5b2c3d4e5', '82.65.10.1', 'Chrome · macOS', 'password', 'active', NOW(), DATE_SUB(NOW(), INTERVAL 1 HOUR), DATE_ADD(NOW(), INTERVAL 30 DAY)),
 -- Sophie — expirée (historique) — expired_at futur pour ne pas être purgée lors des tests
-(3, 'mock-jwt-sophie-expired-001', 'device-uuid-sophie-macbook', '82.65.10.1', 'Chrome · macOS', 'password', 'expired', DATE_SUB(NOW(), INTERVAL 60 DAY), DATE_SUB(NOW(), INTERVAL 90 DAY), DATE_ADD(NOW(), INTERVAL 30 DAY)),
+(3, 'mock-jwt-sophie-expired-001', 'b2c3d4e5b2c3d4e5b2c3d4e5b2c3d4e5b2c3d4e5b2c3d4e5b2c3d4e5b2c3d4e5', '82.65.10.1', 'Chrome · macOS', 'password', 'expired', DATE_SUB(NOW(), INTERVAL 60 DAY), DATE_SUB(NOW(), INTERVAL 90 DAY), DATE_ADD(NOW(), INTERVAL 30 DAY)),
 -- Admin — active
-(2, 'mock-jwt-admin-active-001', 'device-uuid-admin-chrome', '10.0.0.1', 'Firefox · Windows', 'password', 'active', NOW(), DATE_SUB(NOW(), INTERVAL 1 HOUR), DATE_ADD(NOW(), INTERVAL 30 DAY)),
+(2, 'mock-jwt-admin-active-001', 'a1b2c3d4a1b2c3d4a1b2c3d4a1b2c3d4a1b2c3d4a1b2c3d4a1b2c3d4a1b2c3d4', '10.0.0.1', 'Firefox · Windows', 'password', 'active', NOW(), DATE_SUB(NOW(), INTERVAL 1 HOUR), DATE_ADD(NOW(), INTERVAL 30 DAY)),
 -- Société — expirée (status 'expired' au lieu de 'revoked' pour éviter la purge automatique lors des tests)
-(5, 'mock-jwt-societe-revoked-001', 'device-uuid-societe-ipad', '81.33.20.5', 'Safari · iOS', 'password', 'expired', DATE_SUB(NOW(), INTERVAL 30 DAY), DATE_SUB(NOW(), INTERVAL 35 DAY), DATE_ADD(NOW(), INTERVAL 30 DAY));
+(5, 'mock-jwt-societe-revoked-001', 'd4e5f600d4e5f600d4e5f600d4e5f600d4e5f600d4e5f600d4e5f600d4e5f600', '81.33.20.5', 'Safari · iOS', 'password', 'expired', DATE_SUB(NOW(), INTERVAL 30 DAY), DATE_SUB(NOW(), INTERVAL 35 DAY), DATE_ADD(NOW(), INTERVAL 30 DAY));
 
 -- ============================================================
 -- TRUSTED DEVICES
 -- ============================================================
 
 INSERT INTO `trusted_devices` (`user_id`, `device_token`, `device_name`, `confirmed_at`, `last_seen`, `expires_at`) VALUES
-(3, 'device-uuid-sophie-macbook',  'Chrome · macOS',    '2026-01-10 10:05:00', '2026-03-28 08:00:00', DATE_ADD('2026-03-28 08:00:00', INTERVAL 90 DAY)),
-(3, 'device-uuid-sophie-iphone',   'Safari · iOS',      '2026-02-01 11:00:00', '2026-03-20 14:00:00', DATE_ADD('2026-03-20 14:00:00', INTERVAL 90 DAY)),
-(2, 'device-uuid-admin-chrome',    'Firefox · Windows', '2026-01-01 08:05:00', '2026-03-28 07:30:00', DATE_ADD('2026-03-28 07:30:00', INTERVAL 90 DAY)),
-(5, 'device-uuid-societe-ipad',    'Safari · iOS',      '2026-01-15 14:05:00', '2026-03-01 10:00:00', DATE_ADD('2026-03-01 10:00:00', INTERVAL 90 DAY));
+(3, 'b2c3d4e5b2c3d4e5b2c3d4e5b2c3d4e5b2c3d4e5b2c3d4e5b2c3d4e5b2c3d4e5',  'Chrome · macOS',    '2026-01-10 10:05:00', '2026-03-28 08:00:00', DATE_ADD('2026-03-28 08:00:00', INTERVAL 90 DAY)),
+(3, 'c3d4e5f6c3d4e5f6c3d4e5f6c3d4e5f6c3d4e5f6c3d4e5f6c3d4e5f6c3d4e5f6',   'Safari · iOS',      '2026-02-01 11:00:00', '2026-03-20 14:00:00', DATE_ADD('2026-03-20 14:00:00', INTERVAL 90 DAY)),
+(1, 'a1b2c3d4a1b2c3d4a1b2c3d4a1b2c3d4a1b2c3d4a1b2c3d4a1b2c3d4a1b2c3d4',    'Firefox · Windows', '2026-01-01 08:05:00', '2026-03-28 07:30:00', DATE_ADD('2026-03-28 07:30:00', INTERVAL 90 DAY)),
+(2, 'a1b2c3d4a1b2c3d4a1b2c3d4a1b2c3d4a1b2c3d4a1b2c3d4a1b2c3d4a1b2c3d4',    'Firefox · Windows', '2026-01-01 08:05:00', '2026-03-28 07:30:00', DATE_ADD('2026-03-28 07:30:00', INTERVAL 90 DAY)),
+(5, 'd4e5f600d4e5f600d4e5f600d4e5f600d4e5f600d4e5f600d4e5f600d4e5f600',    'Safari · iOS',      '2026-01-15 14:05:00', '2026-03-01 10:00:00', DATE_ADD('2026-03-01 10:00:00', INTERVAL 90 DAY));
 
 -- ============================================================
 -- PASSWORD RESET TOKENS (quelques-uns pour les tests)

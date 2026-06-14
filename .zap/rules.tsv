@@ -21,3 +21,13 @@
 # Cookie auth_token attendu sur un site avec authentification JWT.
 # Pas de fuite de session — cookie HttpOnly + Secure + SameSite=Lax.
 10112	IGNORE	.
+
+# Mozilla CDN — faux positifs hors scope
+# Le runner CI (Firefox) contacte content-signature-2.cdn.mozilla.net pour la
+# validation OCSP/chaîne de certs. ZAP capture ce trafic tiers et remonte des
+# alertes sur un domaine qu'on ne contrôle pas. À ignorer exhaustivement.
+90004	IGNORE	cdn\.mozilla\.net
+10036	IGNORE	cdn\.mozilla\.net
+10035	IGNORE	cdn\.mozilla\.net
+10021	IGNORE	cdn\.mozilla\.net
+10050	IGNORE	cdn\.mozilla\.net

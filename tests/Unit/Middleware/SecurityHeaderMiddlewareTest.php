@@ -100,4 +100,37 @@ class SecurityHeaderMiddlewareTest extends TestCase
         $this->assertTrue(SecurityHeaderMiddleware::isWinePath('/fr/vins?color=red&page=2'));
         $this->assertFalse(SecurityHeaderMiddleware::isWinePath('/fr/contact?ref=vins'));
     }
+
+    // ── buildCspString() ─────────────────────────────────────────────
+
+    /**
+     * La CSP doit contenir upgrade-insecure-requests (VULN-004).
+     */
+    public function testBuildCspStringContainsUpgradeInsecureRequests(): void
+    {
+        $csp = SecurityHeaderMiddleware::buildCspString('test-nonce');
+
+        $this->assertStringContainsString('upgrade-insecure-requests', $csp);
+    }
+
+    /**
+     * La CSP doit contenir le nonce fourni dans script-src.
+     */
+    public function testBuildCspStringContainsNonce(): void
+    {
+        $nonce = 'abc123nonce';
+        $csp   = SecurityHeaderMiddleware::buildCspString($nonce);
+
+        $this->assertStringContainsString("'nonce-{$nonce}'", $csp);
+    }
+
+    /**
+     * La CSP doit bloquer les objets embarqués (object-src none).
+     */
+    public function testBuildCspStringBlocksObjects(): void
+    {
+        $csp = SecurityHeaderMiddleware::buildCspString('x');
+
+        $this->assertStringContainsString("object-src 'none'", $csp);
+    }
 }

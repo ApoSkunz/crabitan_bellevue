@@ -18,7 +18,7 @@ class LogApiController extends Controller
 {
     private const MAX_ATTEMPTS    = 10;
     private const WINDOW_SECONDS  = 60;
-    private const MAX_DAILY       = 500;   // VULN-003 : budget quotidien par IP
+    private const MAX_DAILY       = 200;   // VULN-003 : budget quotidien par IP
     private const WINDOW_DAILY    = 86400;
     private const RETENTION_DAYS  = 30;
     private const LOG_DIR_NAME    = 'storage/logs';

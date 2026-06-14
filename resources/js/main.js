@@ -1891,30 +1891,62 @@ function initCartPage() {
                     li.className = 'cart-guest__item';
                     li.dataset.wineId = item.id;
 
-                    const imgHtml = image
-                        ? `<img src="${image}" alt="${name}" class="cart-guest__img" width="48" height="48" loading="lazy">`
-                        : '';
-                    const vintageHtml = vintage > 0
-                        ? ` <span class="cart-table__vintage">${vintage}</span>`
-                        : '';
-                    const cuveeHtml = isCuvee
-                        ? `<span class="cart-table__cuvee">${cuveeLabelText}</span>`
-                        : '';
+                    if (image) {
+                        const img = document.createElement('img');
+                        img.src   = image;
+                        img.alt   = name;
+                        img.className = 'cart-guest__img';
+                        img.width = 48;
+                        img.height = 48;
+                        img.loading = 'lazy';
+                        li.appendChild(img);
+                    }
 
-                    li.innerHTML = `
-                        ${imgHtml}
-                        <div class="cart-guest__info">
-                            <p class="cart-guest__name">${name}${vintageHtml}</p>
-                            ${cuveeHtml}
-                            <p class="cart-guest__qty">${qtyLabel}\u00a0: ${item.qty || 1}</p>
-                            <p class="cart-guest__price-note">${priceNote}</p>
-                        </div>
-                        <button type="button" class="btn-retirer cart-guest__remove" aria-label="${removeLabel} — ${name}">
-                            <svg class="btn-retirer__icon" aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
-                            </svg>
-                            <span class="btn-retirer__text">${removeLabel}</span>
-                        </button>`;
+                    const info = document.createElement('div');
+                    info.className = 'cart-guest__info';
+
+                    const nameP = document.createElement('p');
+                    nameP.className = 'cart-guest__name';
+                    nameP.textContent = name;
+                    if (vintage > 0) {
+                        const vintageSpan = document.createElement('span');
+                        vintageSpan.className = 'cart-table__vintage';
+                        vintageSpan.textContent = ` ${vintage}`;
+                        nameP.appendChild(vintageSpan);
+                    }
+                    info.appendChild(nameP);
+
+                    if (isCuvee) {
+                        const cuveeSpan = document.createElement('span');
+                        cuveeSpan.className = 'cart-table__cuvee';
+                        cuveeSpan.textContent = cuveeLabelText;
+                        info.appendChild(cuveeSpan);
+                    }
+
+                    const qtyP = document.createElement('p');
+                    qtyP.className = 'cart-guest__qty';
+                    qtyP.textContent = `${qtyLabel}\u00a0: ${item.qty || 1}`;
+                    info.appendChild(qtyP);
+
+                    const priceNoteP = document.createElement('p');
+                    priceNoteP.className = 'cart-guest__price-note';
+                    priceNoteP.textContent = priceNote;
+                    info.appendChild(priceNoteP);
+
+                    li.appendChild(info);
+
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'btn-retirer cart-guest__remove';
+                    btn.setAttribute('aria-label', `${removeLabel} — ${name}`);
+                    // SVG entièrement statique — aucune donnée API
+                    btn.innerHTML = '<svg class="btn-retirer__icon" aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>';
+                    const btnText = document.createElement('span');
+                    btnText.className = 'btn-retirer__text';
+                    btnText.textContent = removeLabel;
+                    btn.appendChild(btnText);
+
+                    li.appendChild(btn);
                     ul.appendChild(li);
                 });
 
@@ -2317,30 +2349,62 @@ function initCartPage() {
                             if (section) {
                                 const lang     = section.dataset.lang || (globalThis.__navLang || 'fr');
                                 const isEnSec  = section.dataset.isEn === '1';
-                                let wineHtml   = '';
+                                const emptyState = document.createElement('div');
+                                emptyState.className = 'cart-empty-state';
+
+                                const emptyP = document.createElement('p');
+                                emptyP.className = 'cart-empty';
+                                emptyP.textContent = isEnSec ? 'Your cart is empty' : 'Votre panier est vide';
+                                emptyState.appendChild(emptyP);
+
                                 try {
                                     const wine = JSON.parse(section.dataset.randomWine || 'null');
                                     if (wine) {
                                         const price = Number.parseFloat(wine.price || 0).toFixed(2).replace('.', ',');
-                                        wineHtml = `
-                                            <div class="cart-empty-wine">
-                                                <p class="cart-empty-wine__label">${isEnSec ? 'You might enjoy' : 'Vous pourriez apprécier'}</p>
-                                                <a href="/${lang}/vins/${wine.slug}" class="cart-empty-wine__card">
-                                                    <img src="/assets/images/wines/${wine.image_path}" alt="${wine.label_name}" class="cart-empty-wine__img" width="120" height="160" loading="lazy">
-                                                    <span class="cart-empty-wine__name">${wine.label_name}</span>
-                                                    <span class="cart-empty-wine__price">${price}\u00a0€</span>
-                                                </a>
-                                            </div>`;
+
+                                        const wineDiv = document.createElement('div');
+                                        wineDiv.className = 'cart-empty-wine';
+
+                                        const wineLabel = document.createElement('p');
+                                        wineLabel.className = 'cart-empty-wine__label';
+                                        wineLabel.textContent = isEnSec ? 'You might enjoy' : 'Vous pourriez apprécier';
+                                        wineDiv.appendChild(wineLabel);
+
+                                        const wineLink = document.createElement('a');
+                                        wineLink.href = `/${lang}/vins/${wine.slug}`;
+                                        wineLink.className = 'cart-empty-wine__card';
+
+                                        const wineImg = document.createElement('img');
+                                        wineImg.src = `/assets/images/wines/${wine.image_path}`;
+                                        wineImg.alt = wine.label_name;
+                                        wineImg.className = 'cart-empty-wine__img';
+                                        wineImg.width = 120;
+                                        wineImg.height = 160;
+                                        wineImg.loading = 'lazy';
+                                        wineLink.appendChild(wineImg);
+
+                                        const wineNameSpan = document.createElement('span');
+                                        wineNameSpan.className = 'cart-empty-wine__name';
+                                        wineNameSpan.textContent = wine.label_name;
+                                        wineLink.appendChild(wineNameSpan);
+
+                                        const winePriceSpan = document.createElement('span');
+                                        winePriceSpan.className = 'cart-empty-wine__price';
+                                        winePriceSpan.textContent = `${price}\u00a0€`;
+                                        wineLink.appendChild(winePriceSpan);
+
+                                        wineDiv.appendChild(wineLink);
+                                        emptyState.appendChild(wineDiv);
                                     }
                                 } catch { /* JSON invalide — on ignore */ }
-                                section.innerHTML = `
-                                    <div class="cart-empty-state">
-                                        <p class="cart-empty">${isEnSec ? 'Your cart is empty' : 'Votre panier est vide'}</p>
-                                        ${wineHtml}
-                                        <a href="/${lang}/vins" class="btn btn--gold">
-                                            ${isEnSec ? 'Browse our shop' : 'Voir notre boutique'}
-                                        </a>
-                                    </div>`;
+
+                                const browseLink = document.createElement('a');
+                                browseLink.href = `/${lang}/vins`;
+                                browseLink.className = 'btn btn--gold';
+                                browseLink.textContent = isEnSec ? 'Browse our shop' : 'Voir notre boutique';
+                                emptyState.appendChild(browseLink);
+
+                                section.replaceChildren(emptyState);
                             }
                         }
                     }, 260);

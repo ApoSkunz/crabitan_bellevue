@@ -1,9 +1,9 @@
 name: DAST — Full Scan (ISO prod)
 
 # Credentials seed (données mock — jamais en production) :
-#   super_admin : superadmin@dev.local  / Dev123456789!  / device_token: mock-jwt-admin-active-001
-#   admin       : admin@dev.local       / Dev123456789!  / device_token: mock-jwt-admin-active-001
-#   customer    : client.verifie@dev.local / Dev123456789! / device_token: mock-jwt-sophie-active-001
+#   super_admin : superadmin@dev.local  / Dev123456789!  / device_token: a1b2c3d4a1b2c3d4a1b2c3d4a1b2c3d4a1b2c3d4a1b2c3d4a1b2c3d4a1b2c3d4
+#   admin       : admin@dev.local       / Dev123456789!  / device_token: a1b2c3d4a1b2c3d4a1b2c3d4a1b2c3d4a1b2c3d4a1b2c3d4a1b2c3d4a1b2c3d4
+#   customer    : client.verifie@dev.local / Dev123456789! / device_token: b2c3d4e5b2c3d4e5b2c3d4e5b2c3d4e5b2c3d4e5b2c3d4e5b2c3d4e5b2c3d4e5
 
 on:
   push:
@@ -112,7 +112,7 @@ jobs:
           # Pré-seed cookie jar au format Netscape : age_verified + device_token persistent
           # à travers les redirects -L (--cookie "k=v" ne persiste pas après redirect)
           printf 'localhost\tFALSE\t/\tFALSE\t2147483647\tage_verified\t1\n' > /tmp/cookies-customer.txt
-          printf 'localhost\tFALSE\t/\tFALSE\t2147483647\tdevice_token\tmock-jwt-sophie-active-001\n' >> /tmp/cookies-customer.txt
+          printf 'localhost\tFALSE\t/\tFALSE\t2147483647\tdevice_token\tb2c3d4e5b2c3d4e5b2c3d4e5b2c3d4e5b2c3d4e5b2c3d4e5b2c3d4e5b2c3d4e5\n' >> /tmp/cookies-customer.txt
 
           # CSRF token sur /fr/connexion (page dédiée login), pas sur la home
           curl -s \
@@ -288,7 +288,7 @@ jobs:
 
           # Pré-seed cookie jar au format Netscape : age_verified + device_token persistent
           printf 'localhost\tFALSE\t/\tFALSE\t2147483647\tage_verified\t1\n' > /tmp/cookies-admin.txt
-          printf 'localhost\tFALSE\t/\tFALSE\t2147483647\tdevice_token\tmock-jwt-admin-active-001\n' >> /tmp/cookies-admin.txt
+          printf 'localhost\tFALSE\t/\tFALSE\t2147483647\tdevice_token\ta1b2c3d4a1b2c3d4a1b2c3d4a1b2c3d4a1b2c3d4a1b2c3d4a1b2c3d4a1b2c3d4\n' >> /tmp/cookies-admin.txt
 
           # CSRF token sur /fr/connexion (page dédiée login), pas sur la home
           curl -s \
