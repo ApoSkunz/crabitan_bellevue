@@ -2,6 +2,28 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [1.32.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.31.2...v1.32.0) (2026-06-14)
+
+
+### Bug Fixes
+
+* **admin:** exclude cancelled/refunded orders from counts in dashboard and accounts list ([f25c883](https://github.com/ApoSkunz/crabitan_bellevue/commit/f25c8832dbd4f22789ad76f751a194eeabcf767f))
+* **assets:** rename logo crabitna→crabitan (typo) in files and all refs ([a8e4fcc](https://github.com/ApoSkunz/crabitan_bellevue/commit/a8e4fcc6ae2cfe6c24ea508a174c69a7912a61aa))
+* **intro:** fix post-age-gate animation logo distortion on 3:2 image ([4e89171](https://github.com/ApoSkunz/crabitan_bellevue/commit/4e89171df33882b8dfa598015a6f43016ff70b6a))
+* **logo:** update all references to restored logo + fix HTML 3:2 ratio hints ([1fbb8b6](https://github.com/ApoSkunz/crabitan_bellevue/commit/1fbb8b60e01bf5e90929a3790dac764887129918))
+* **rgpd:** anonymise customer_reviews on account deletion + add review/ratings to PDF export ([268f492](https://github.com/ApoSkunz/crabitan_bellevue/commit/268f492078150c9634c1d88849765fdf988efc48))
+* **security:** VULN-003 filter GLOBALS and _* keys before extract() in Response ([c5ccf04](https://github.com/ApoSkunz/crabitan_bellevue/commit/c5ccf041e8bf08dc6f34bc3bc44dd141299e6fa4))
+* **security:** VULN-005 accept Authorization Bearer header for cron token auth ([f6bc6e5](https://github.com/ApoSkunz/crabitan_bellevue/commit/f6bc6e5cc17f8fa65c2ce7d33121548a331519ae))
+* **security:** VULN-006 rotate CSRF token after use in 4 controllers ([1333a00](https://github.com/ApoSkunz/crabitan_bellevue/commit/1333a00595aa09478c4e75954846d5cc56c17a04))
+* **security:** VULN-007 add iss/aud claims to JWT and validate on decode ([675d12e](https://github.com/ApoSkunz/crabitan_bellevue/commit/675d12e72300efe2c91b5e11f4fe1477ec1e3853))
+* **sonar:** resolve 10 code smells (S2699, S1192x4, S107, S3358, S7924x2, S4666) ([38276ce](https://github.com/ApoSkunz/crabitan_bellevue/commit/38276ced411f232815be877ec3a42e4c1fe9bfe4)), closes [#5e4a38](https://github.com/ApoSkunz/crabitan_bellevue/issues/5e4a38) [#5e4a38](https://github.com/ApoSkunz/crabitan_bellevue/issues/5e4a38)
+* **test:** move APP_URL assignment before Jwt::generate() in TI reset password test ([bc6c3dd](https://github.com/ApoSkunz/crabitan_bellevue/commit/bc6c3ddc2a3bd5ed172a147e2bbdea751c0d6dfd))
+
+
+### Features
+
+* **logo:** add restored logo assets (PNG + WebP, 3072x2048) ([a4bde04](https://github.com/ApoSkunz/crabitan_bellevue/commit/a4bde043eee7282f6ffbb971bb76c52806c4e6a7))
+
 ## [1.31.2](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.31.1...v1.31.2) (2026-06-14)
 
 
