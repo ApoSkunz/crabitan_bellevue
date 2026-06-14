@@ -49,9 +49,9 @@ $exitUrl = (!empty($httpReferer) && !str_starts_with($httpReferer, $siteOrigin))
             <div class="age-gate__card">
                 <div class="age-gate__logo">
                     <img
-                        src="/assets/images/logo/crabitan-bellevue-logo.png"
+                        src="/assets/images/logo/crabitan-bellevue-logo-restored.png"
                         alt="<?= htmlspecialchars(APP_NAME) ?>"
-                        width="130"
+                        width="195"
                         height="130"
                     >
                     <p class="age-gate__logo-text">Château<br>Crabitan&#160;Bellevue</p>

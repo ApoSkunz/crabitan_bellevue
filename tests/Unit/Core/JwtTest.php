@@ -79,4 +79,33 @@ class JwtTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         Jwt::decode('only.twoparts');
     }
+
+    public function testGenerateHasIssAndAud(): void
+    {
+        $token   = Jwt::generate(1, 'customer');
+        $decoded = Jwt::decode($token);
+
+        $this->assertArrayHasKey('iss', $decoded);
+        $this->assertArrayHasKey('aud', $decoded);
+        $this->assertSame('web', $decoded['aud']);
+    }
+
+    public function testDecodeThrowsOnInvalidIssuer(): void
+    {
+        $_ENV['APP_URL'] = 'https://other.example.com';
+        $token = Jwt::generate(1, 'customer');
+
+        $_ENV['APP_URL'] = 'https://crabitan.local';
+        $this->expectException(JwtException::class);
+        $this->expectExceptionMessage('Émetteur JWT invalide');
+        Jwt::decode($token);
+    }
+
+    public function testDecodeThrowsOnInvalidAudience(): void
+    {
+        $token  = Jwt::encode(['sub' => 1, 'aud' => 'mobile', 'iat' => time()]);
+        $this->expectException(JwtException::class);
+        $this->expectExceptionMessage('Audience JWT invalide');
+        Jwt::decode($token);
+    }
 }

@@ -1273,9 +1273,9 @@ function initPageIntro() {
     overlay.setAttribute('aria-hidden', 'true');
 
     const img = document.createElement('img');
-    img.src       = '/assets/images/logo/crabitan-bellevue-logo.png';
+    img.src       = '/assets/images/logo/crabitan-bellevue-logo-restored.png';
     img.alt       = '';
-    img.width     = 180;
+    img.width     = 270;
     img.height    = 180;
     img.className = 'page-intro__logo';
     overlay.appendChild(img);

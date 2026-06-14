@@ -845,6 +845,16 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
             $ids
         );
 
+        // Anonymisation des avis (display_name = prénom + initiale = donnée personnelle, RGPD Art. 17)
+        $this->db->execute(
+            "UPDATE customer_reviews
+             SET display_name = 'Avis anonymisé',
+                 comment      = NULL,
+                 location     = NULL
+             WHERE account_id IN ({$placeholders})",
+            $ids
+        );
+
         return count($ids);
     }
 
@@ -1171,7 +1181,7 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
                     ai.lastname, ai.firstname, ai.civility,
                     ac.company_name, ac.siret,
                     (a.password IS NOT NULL) AS has_password,
-                    (SELECT COUNT(*) FROM orders o WHERE o.user_id = a.id) AS order_count
+                    (SELECT COUNT(*) FROM orders o WHERE o.user_id = a.id AND o.status NOT IN ('cancelled', 'refunded')) AS order_count
              FROM {$this->table} a
              LEFT JOIN account_individuals ai ON ai.account_id = a.id
              LEFT JOIN account_companies   ac ON ac.account_id = a.id
@@ -1195,9 +1205,9 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
         $join = fn(string $w): string => $w === '' ? 'WHERE' : ' AND';
 
         if ($hasOrdered === '1') {
-            $where .= $join($where) . ' (SELECT COUNT(*) FROM orders o WHERE o.user_id = a.id) > 0';
+            $where .= $join($where) . ' (SELECT COUNT(*) FROM orders o WHERE o.user_id = a.id AND o.status NOT IN (\'cancelled\', \'refunded\')) > 0';
         } elseif ($hasOrdered === '0') {
-            $where .= $join($where) . ' (SELECT COUNT(*) FROM orders o WHERE o.user_id = a.id) = 0';
+            $where .= $join($where) . ' (SELECT COUNT(*) FROM orders o WHERE o.user_id = a.id AND o.status NOT IN (\'cancelled\', \'refunded\')) = 0';
         }
 
         if ($activity === 'active') {

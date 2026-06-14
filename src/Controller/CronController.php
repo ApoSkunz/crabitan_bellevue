@@ -98,7 +98,12 @@ class CronController extends Controller // NOSONAR — php:S1448 : 24 méthodes 
     private function verifyToken(): void
     {
         $expected = $_ENV['CRON_SECRET_TOKEN'] ?? '';
-        $provided = $_GET['token'] ?? '';
+        // Préférer Authorization: Bearer (n'apparaît pas dans les logs Apache)
+        // Fallback sur GET ?token= pour IONOS mutualisé qui ne supporte pas les headers custom
+        $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
+        $provided   = str_starts_with($authHeader, 'Bearer ')
+            ? substr($authHeader, 7)
+            : ($_GET['token'] ?? '');
 
         if ($expected === '' || !hash_equals($expected, $provided)) {
             http_response_code(404);

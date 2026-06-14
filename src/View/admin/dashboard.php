@@ -7,7 +7,9 @@ foreach (['pending', 'paid', 'processing'] as $s) {
     $paidCount    += $ordersByStatus[$s] ?? 0;
 }
 $pendingCount = $ordersByStatus['pending'] ?? 0;
-$totalOrders  = array_sum($ordersByStatus);
+$totalOrders  = array_sum($ordersByStatus)
+    - ($ordersByStatus['cancelled'] ?? 0)
+    - ($ordersByStatus['refunded']  ?? 0);
 ?>
 
 <?php if ($flash) : ?>

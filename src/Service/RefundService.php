@@ -15,6 +15,9 @@ use Model\OrderModel;
  */
 class RefundService
 {
+    private const PURGED_EMAIL_SUFFIX = '@purged.invalid';
+    private const LOG_CONTEXT         = '[RefundService]';
+
     private OrderModel $orders;
     private GaeApiInterface $gae;
     private MailService $mailer;
@@ -135,7 +138,7 @@ class RefundService
     private function notifyOwnerRefundPending(array $order): void
     {
         $clientEmail = (string) ($order['email'] ?? '');
-        if ($clientEmail === '' || str_ends_with($clientEmail, '@purged.invalid')) {
+        if ($clientEmail === '' || str_ends_with($clientEmail, self::PURGED_EMAIL_SUFFIX)) {
             return;
         }
 
@@ -146,7 +149,7 @@ class RefundService
         try {
             $this->mailer->sendRefundRequestedToOwner($order, $clientName, $clientEmail);
         } catch (\Throwable $e) {
-            \Core\ErrorLogger::warning($e, '[RefundService]');
+            \Core\ErrorLogger::warning($e, self::LOG_CONTEXT);
         }
     }
 
@@ -166,7 +169,7 @@ class RefundService
         }
 
         $clientEmail = (string) ($order['email'] ?? '');
-        if ($clientEmail === '' || str_ends_with($clientEmail, '@purged.invalid')) {
+        if ($clientEmail === '' || str_ends_with($clientEmail, self::PURGED_EMAIL_SUFFIX)) {
             return;
         }
 
@@ -180,9 +183,9 @@ class RefundService
 
         try {
             // phpcs:ignore Generic.Files.LineLength
-            $this->mailer->sendOrderStatusEmailToOwner($ownerEmail, $orderRef, 'refunded', $clientName, $clientEmail, $total, $appUrl, $orderId);
+            $this->mailer->sendOrderStatusEmailToOwner($ownerEmail, $orderRef, 'refunded', $clientName, $clientEmail, $total, ['appUrl' => $appUrl, 'orderId' => $orderId]);
         } catch (\Throwable $e) {
-            \Core\ErrorLogger::warning($e, '[RefundService]');
+            \Core\ErrorLogger::warning($e, self::LOG_CONTEXT);
         }
     }
 
@@ -198,7 +201,7 @@ class RefundService
     private function sendRefundInitiatedEmail(array $order, string $newStatus): void
     {
         $clientEmail = (string) ($order['email'] ?? '');
-        if ($clientEmail === '' || str_ends_with($clientEmail, '@purged.invalid')) {
+        if ($clientEmail === '' || str_ends_with($clientEmail, self::PURGED_EMAIL_SUFFIX)) {
             return;
         }
 
@@ -218,7 +221,7 @@ class RefundService
                 $this->mailer->sendRefundPendingEmail($clientEmail, $clientName, $orderRef, $lang, $appUrl);
             }
         } catch (\Throwable $e) {
-            \Core\ErrorLogger::warning($e, '[RefundService]');
+            \Core\ErrorLogger::warning($e, self::LOG_CONTEXT);
         }
     }
 }

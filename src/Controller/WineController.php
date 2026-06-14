@@ -295,7 +295,7 @@ class WineController extends Controller
         $nutrition = (new \Model\WineNutritionModel())->findByWineId((int) $wine['id']) ?: [];
 
         $l      = fn(array $arr): string => $arr[$lang] ?? ($arr['fr'] ?? '');
-        $logoPath = ROOT_PATH . '/public/assets/images/logo/crabitan-bellevue-logo.png';
+        $logoPath = ROOT_PATH . '/public/assets/images/logo/crabitan-bellevue-logo-restored.png';
         $imgPath  = ROOT_PATH . '/public/assets/images/wines/' . ($wine['image_path'] ?? '');
 
         $pdf = $this->buildPdf($logoPath, $lang);

@@ -16,6 +16,7 @@ function hasError(array $errors, string $key): bool
 }
 }
 $errClass = ' is-error';
+$uHidden  = ' u-hidden';
 ?>
 
 <?php if (!empty($errors)) : ?>
@@ -42,7 +43,7 @@ $errClass = ' is-error';
                     <input type="text" id="title_fr" name="title_fr"
                            class="admin-field__input<?= hasError($errors, 'title_fr') ? $errClass : '' ?>"
                            value="<?= htmlspecialchars($titleData['fr'] ?? '') ?>">
-                    <span class="admin-field__error<?= hasError($errors, 'title_fr') ? '' : ' u-hidden' ?>"
+                    <span class="admin-field__error<?= hasError($errors, 'title_fr') ? '' : $uHidden ?>"
                           id="err-title_fr">
                         <?= hasError($errors, 'title_fr') ? htmlspecialchars($errors['title_fr']) : 'Ce champ est obligatoire.' ?>
                     </span>
@@ -74,7 +75,7 @@ $errClass = ' is-error';
                     <textarea id="text_content_fr" name="text_content_fr"
                               class="admin-field__textarea<?= hasError($errors, 'text_content_fr') ? $errClass : '' ?>"
                               rows="8"><?= htmlspecialchars($contentData['fr'] ?? '') ?></textarea>
-                    <span class="admin-field__error<?= hasError($errors, 'text_content_fr') ? '' : ' u-hidden' ?>"
+                    <span class="admin-field__error<?= hasError($errors, 'text_content_fr') ? '' : $uHidden ?>"
                           id="err-text_content_fr">
                         <?= hasError($errors, 'text_content_fr') ? htmlspecialchars($errors['text_content_fr']) : 'Ce champ est obligatoire.' ?>
                     </span>
@@ -111,7 +112,7 @@ $errClass = ' is-error';
                 <input type="file" id="image" name="image"
                        accept="image/jpeg,image/png,image/webp"
                        class="admin-field__input<?= hasError($errors, 'image') ? $errClass : '' ?>">
-                <span class="admin-field__error<?= hasError($errors, 'image') ? '' : ' u-hidden' ?>"
+                <span class="admin-field__error<?= hasError($errors, 'image') ? '' : $uHidden ?>"
                       id="err-image">
                     <?= hasError($errors, 'image') ? htmlspecialchars($errors['image']) : '' ?>
                 </span>

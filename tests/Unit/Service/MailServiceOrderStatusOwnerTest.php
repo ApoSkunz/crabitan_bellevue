@@ -54,8 +54,7 @@ class MailServiceOrderStatusOwnerTest extends TestCase
             'Sophie Dupont',
             'sophie@example.com',
             99.90,
-            'https://crabitanbellevue.fr',
-            1
+            ['appUrl' => 'https://crabitanbellevue.fr', 'orderId' => 1]
         );
 
         $this->addToAssertionCount(1);
@@ -93,8 +92,7 @@ class MailServiceOrderStatusOwnerTest extends TestCase
             'Marc Laurent',
             'marc@example.com',
             55.00,
-            '',
-            0
+            ['appUrl' => '', 'orderId' => 0]
         );
 
         $this->addToAssertionCount(1);

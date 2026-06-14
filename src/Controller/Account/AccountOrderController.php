@@ -427,7 +427,7 @@ class AccountOrderController extends AbstractAccountController
             $ownerEmail = (string) ($_ENV['CONTACT_OWNER_EMAIL'] ?? '');
             if ($ownerEmail !== '') {
                 // phpcs:ignore Generic.Files.LineLength
-                $mailer->sendOrderStatusEmailToOwner($ownerEmail, $orderRef, $status, $clientName, $clientEmail, (float) ($order['price'] ?? 0), $appUrl, $orderId);
+                $mailer->sendOrderStatusEmailToOwner($ownerEmail, $orderRef, $status, $clientName, $clientEmail, (float) ($order['price'] ?? 0), ['appUrl' => $appUrl, 'orderId' => $orderId]);
             }
         } catch (\Throwable $e) {
             \Core\ErrorLogger::warning($e);

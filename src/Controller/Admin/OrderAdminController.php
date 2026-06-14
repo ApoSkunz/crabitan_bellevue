@@ -295,8 +295,7 @@ class OrderAdminController extends AdminController
                         $clientName,
                         $clientEmail,
                         (float) ($order['price'] ?? 0),
-                        $appUrl,
-                        $id
+                        ['appUrl' => $appUrl, 'orderId' => $id]
                     );
                 } catch (\Throwable $e) {
                     \Core\ErrorLogger::warning($e);

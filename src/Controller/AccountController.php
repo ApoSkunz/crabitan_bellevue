@@ -328,7 +328,7 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
                         $ownerEmail  = (string) ($_ENV['CONTACT_OWNER_EMAIL'] ?? '');
                         if ($ownerEmail !== '') {
                             // phpcs:ignore Generic.Files.LineLength
-                            $mailer->sendOrderStatusEmailToOwner($ownerEmail, $orderRef, 'refunded', $clientName, $clientEmail, (float) ($order['price'] ?? 0), $appUrl, $id);
+                            $mailer->sendOrderStatusEmailToOwner($ownerEmail, $orderRef, 'refunded', $clientName, $clientEmail, (float) ($order['price'] ?? 0), ['appUrl' => $appUrl, 'orderId' => $id]);
                         }
                     }
                 } catch (\Throwable $e) {
@@ -377,7 +377,7 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
                     $ownerEmail = (string) ($_ENV['CONTACT_OWNER_EMAIL'] ?? '');
                     if ($ownerEmail !== '') {
                         // phpcs:ignore Generic.Files.LineLength
-                        $mailer->sendOrderStatusEmailToOwner($ownerEmail, $orderRef, 'cancelled', $clientName, $clientEmail, (float) ($order['price'] ?? 0), $appUrl, $id);
+                        $mailer->sendOrderStatusEmailToOwner($ownerEmail, $orderRef, 'cancelled', $clientName, $clientEmail, (float) ($order['price'] ?? 0), ['appUrl' => $appUrl, 'orderId' => $id]);
                     }
                 }
             } catch (\Throwable $e) {
@@ -2018,6 +2018,10 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
     private function verifyCsrf(): bool
     {
         $token = $this->request->post('csrf_token', '');
-        return isset($_SESSION['csrf']) && hash_equals($_SESSION['csrf'], $token);
+        $valid = isset($_SESSION['csrf']) && hash_equals($_SESSION['csrf'], $token);
+        if ($valid) {
+            $_SESSION['csrf'] = bin2hex(random_bytes(32)); // VULN-006 : rotation après usage
+        }
+        return $valid;
     }
 }

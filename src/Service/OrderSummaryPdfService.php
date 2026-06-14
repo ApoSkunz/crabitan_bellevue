@@ -44,7 +44,7 @@ class OrderSummaryPdfService
         $pdf->setPrintFooter(false);
         $pdf->AddPage();
 
-        $logoPath = ROOT_PATH . '/public/assets/images/logo/crabitan-bellevue-logo.png';
+        $logoPath = ROOT_PATH . '/public/assets/images/logo/crabitan-bellevue-logo-restored.png';
         $html     = $this->buildHtml($data, is_file($logoPath) ? $logoPath : null);
         $pdf->writeHTML($html, true, false, true, false, '');
 

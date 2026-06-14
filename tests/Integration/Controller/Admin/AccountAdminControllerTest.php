@@ -204,12 +204,12 @@ class AccountAdminControllerTest extends AdminIntegrationTestCase
 
     public function testResetPasswordSendsLinkAndRedirects(): void
     {
+        $_ENV['APP_URL']       = 'https://crabitan.test'; // doit précéder Jwt::generate() — iss du token doit matcher au decode
         $superAdminId          = $this->insertAdminAccount('super_admin', 'superadmin5@test.local');
         $token                 = Jwt::generate($superAdminId, 'super_admin');
         $_COOKIE['auth_token'] = $token;
         $this->insertConnection($superAdminId, $token);
         $_POST['csrf_token']   = self::CSRF_TOKEN;
-        $_ENV['APP_URL']       = 'https://crabitan.test';
 
         $customerId = (int) self::$db->insert(
             "INSERT INTO accounts (email, password, account_type, role, lang, email_verified_at)
