@@ -66,6 +66,17 @@ class Jwt
             throw new \Core\Exception\JwtException('Token JWT expiré');
         }
 
+        // VULN-007 : valider iss et aud si présents (tokens générés après ce fix)
+        if (isset($data['iss'])) {
+            $issuer = rtrim($_ENV['APP_URL'] ?? 'crabitan-bellevue', '/');
+            if ($data['iss'] !== $issuer) {
+                throw new \Core\Exception\JwtException('Émetteur JWT invalide');
+            }
+        }
+        if (isset($data['aud']) && $data['aud'] !== 'web') {
+            throw new \Core\Exception\JwtException('Audience JWT invalide');
+        }
+
         return $data;
     }
 
@@ -81,7 +92,11 @@ class Jwt
     {
         $expiry = $ttl > 0 ? $ttl : (int) ($_ENV['JWT_EXPIRY'] ?? 7200);
 
+        $issuer = rtrim($_ENV['APP_URL'] ?? 'crabitan-bellevue', '/');
+
         return self::encode([
+            'iss'  => $issuer,
+            'aud'  => 'web',
             'sub'  => $userId,
             'role' => $role,
             'iat'  => time(),
