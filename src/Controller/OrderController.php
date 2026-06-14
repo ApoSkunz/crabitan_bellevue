@@ -834,7 +834,11 @@ class OrderController extends Controller // NOSONAR — php:S1448 : MVC cohéren
     private function verifyCsrf(): bool
     {
         $token = $this->request->post('csrf_token', '');
-        return isset($_SESSION['csrf']) && hash_equals($_SESSION['csrf'], $token);
+        $valid = isset($_SESSION['csrf']) && hash_equals($_SESSION['csrf'], $token);
+        if ($valid) {
+            $_SESSION['csrf'] = bin2hex(random_bytes(32)); // VULN-006 : rotation après usage
+        }
+        return $valid;
     }
 
     /**
