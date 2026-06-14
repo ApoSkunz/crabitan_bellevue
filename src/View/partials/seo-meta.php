@@ -16,7 +16,7 @@ $hreflangEn = $appUrl . '/en/' . $seoSlug;
 if (isset($seoOgTitle)) {
     $ogTitle       = $seoOgTitle;
     $ogDescription = $metaDescription ?? '';
-    $ogImage       = $appUrl . ($seoOgImage ?? '/assets/images/logo/crabitna-bellevue-logo-restored.png');
+    $ogImage       = $appUrl . ($seoOgImage ?? '/assets/images/logo/crabitan-bellevue-logo-restored.png');
     $ogUrl         = $canonical;
 }
 

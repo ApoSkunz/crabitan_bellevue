@@ -628,7 +628,7 @@ class WineControllerTest extends IntegrationTestCase
             require_once ROOT_PATH . '/vendor/tecnickcom/tcpdf/tcpdf.php';
         }
 
-        $srcPng = ROOT_PATH . '/public/assets/images/logo/crabitna-bellevue-logo-restored.png';
+        $srcPng = ROOT_PATH . '/public/assets/images/logo/crabitan-bellevue-logo-restored.png';
         if (!is_file($srcPng)) {
             $this->markTestSkipped('Logo PNG introuvable, test ignoré.');
         }
@@ -649,7 +649,7 @@ class WineControllerTest extends IntegrationTestCase
             require_once ROOT_PATH . '/vendor/tecnickcom/tcpdf/tcpdf.php';
         }
 
-        $srcPng = ROOT_PATH . '/public/assets/images/logo/crabitna-bellevue-logo-restored.png';
+        $srcPng = ROOT_PATH . '/public/assets/images/logo/crabitan-bellevue-logo-restored.png';
         if (!is_file($srcPng)) {
             $this->markTestSkipped('Logo PNG introuvable.');
         }
@@ -692,7 +692,7 @@ class WineControllerTest extends IntegrationTestCase
             require_once ROOT_PATH . '/vendor/tecnickcom/tcpdf/tcpdf.php';
         }
 
-        $srcPng = ROOT_PATH . '/public/assets/images/logo/crabitna-bellevue-logo-restored.png';
+        $srcPng = ROOT_PATH . '/public/assets/images/logo/crabitan-bellevue-logo-restored.png';
         if (!is_file($srcPng)) {
             $this->markTestSkipped('Logo PNG introuvable, test ignoré.');
         }

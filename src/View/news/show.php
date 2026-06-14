@@ -19,7 +19,7 @@ $ogTitle         = $newsTitle . ' — ' . APP_NAME;
 $ogDescription   = $metaDescription;
 $ogImage         = $newsImage !== ''
     ? $appUrl . '/assets/images/news/' . $newsImage
-    : $appUrl . '/assets/images/logo/crabitna-bellevue-logo-restored.png';
+    : $appUrl . '/assets/images/logo/crabitan-bellevue-logo-restored.png';
 $ogUrl           = $canonical;
 $jsonLd          = json_encode([
     '@context'      => 'https://schema.org',
@@ -32,7 +32,7 @@ $jsonLd          = json_encode([
     'publisher'     => [
         '@type' => 'Organization',
         'name'  => 'Château Crabitan Bellevue',
-        'logo'  => ['@type' => 'ImageObject', 'url' => $appUrl . '/assets/images/logo/crabitna-bellevue-logo-restored.png'],
+        'logo'  => ['@type' => 'ImageObject', 'url' => $appUrl . '/assets/images/logo/crabitan-bellevue-logo-restored.png'],
     ],
     'description'   => $metaDescription,
 ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG);

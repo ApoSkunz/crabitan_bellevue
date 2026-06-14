@@ -21,7 +21,7 @@ $jsonLd      = json_encode([
             '@type' => 'Organization',
             'name'  => $brandName,
             'url'   => $appUrl,
-            'logo'  => $appUrl . '/assets/images/logo/crabitna-bellevue-logo-restored.png',
+            'logo'  => $appUrl . '/assets/images/logo/crabitan-bellevue-logo-restored.png',
         ],
         [
             '@type'       => ['Winery', 'LocalBusiness'],

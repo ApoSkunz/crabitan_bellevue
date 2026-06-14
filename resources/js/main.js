@@ -1273,7 +1273,7 @@ function initPageIntro() {
     overlay.setAttribute('aria-hidden', 'true');
 
     const img = document.createElement('img');
-    img.src       = '/assets/images/logo/crabitna-bellevue-logo-restored.png';
+    img.src       = '/assets/images/logo/crabitan-bellevue-logo-restored.png';
     img.alt       = '';
     img.width     = 270;
     img.height    = 180;

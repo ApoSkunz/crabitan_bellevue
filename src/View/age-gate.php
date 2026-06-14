@@ -43,7 +43,7 @@
         <span></span><span></span><span></span><span></span>
         <div class="age-gate__card">
             <div class="age-gate__logo">
-                <img src="/assets/images/logo/crabitna-bellevue-logo-restored.png" alt="<?= htmlspecialchars(APP_NAME) ?>" width="195" height="130">
+                <img src="/assets/images/logo/crabitan-bellevue-logo-restored.png" alt="<?= htmlspecialchars(APP_NAME) ?>" width="195" height="130">
                 <p class="age-gate__logo-text">Château<br>Crabitan&#160;Bellevue</p>
             </div>
 

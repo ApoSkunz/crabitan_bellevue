@@ -114,7 +114,7 @@ $backLbl = $lang === 'en' ? '← Back to previous page' : '← Retour à la page
         <div class="error-page__inner">
             <a href="<?= htmlspecialchars($homeUrl) ?>" class="error-page__logo"
                aria-label="<?= htmlspecialchars($appName) ?>">
-                <img src="/assets/images/logo/crabitna-bellevue-logo-restored.png" alt="" width="72" height="48">
+                <img src="/assets/images/logo/crabitan-bellevue-logo-restored.png" alt="" width="72" height="48">
             </a>
 
             <p class="error-page__code"><?= $statusCode ?></p>
