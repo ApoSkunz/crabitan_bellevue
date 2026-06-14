@@ -2,6 +2,25 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+## [1.31.2](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.31.1...v1.31.2) (2026-06-14)
+
+
+### Bug Fixes
+
+* **dast:** ignorer alertes Mozilla CDN + corriger device_token login DAST ([fbaed55](https://github.com/ApoSkunz/crabitan_bellevue/commit/fbaed5585934bfa22d10816a870b00fc692fb4ef))
+* **e2e:** ajouter trusted_device super_admin (user_id=1) dans le seed ([676e48c](https://github.com/ApoSkunz/crabitan_bellevue/commit/676e48c88fb77233c5c8b4ab440ba6d10137f15c))
+* **e2e:** mettre à jour device_token seed+specs au format hex 64 (VULN-002) ([ae56ef3](https://github.com/ApoSkunz/crabitan_bellevue/commit/ae56ef38c9ecd688b74c123de23f645333faf5da))
+* **e2e:** remplacer page.evaluate+fetch par page.request.post (CSP upgrade-insecure-requests) ([d19c825](https://github.com/ApoSkunz/crabitan_bellevue/commit/d19c8257356706651acd4264de1cc52e51a9b64b))
+* **security:** retrait ?? '0.0.0.0' MfaController + revert email_verified Google ([952fa42](https://github.com/ApoSkunz/crabitan_bellevue/commit/952fa42b5f8c6bee94785de5434f2182926cd886))
+* **security:** retrait opérateur null-coalescing REMOTE_ADDR MfaController ([efdf187](https://github.com/ApoSkunz/crabitan_bellevue/commit/efdf187cd68eb54fc2ccf2ea545fa999cf690342))
+* **security:** VULN-002 — valider format cookie device_token avant usage ([f4b6484](https://github.com/ApoSkunz/crabitan_bellevue/commit/f4b64840fba4235e15218be8df3357f141095f49))
+* **security:** VULN-003 — abaisser quota quotidien LogApiController à 200/IP ([39c3026](https://github.com/ApoSkunz/crabitan_bellevue/commit/39c302644185d582ab8ef0b2d2c76d74487f851c))
+* **security:** VULN-004 — ajouter upgrade-insecure-requests à la CSP ([d3167a6](https://github.com/ApoSkunz/crabitan_bellevue/commit/d3167a60499e4646d187fa3e55353750b9c6e72c))
+* **security:** VULN-005 — échapper données API dans innerHTML (DOM XSS) ([410272c](https://github.com/ApoSkunz/crabitan_bellevue/commit/410272cf9201d1ae9bb27b5983d2161cfaccb0cf))
+* **security:** VULN-005 — remplacer innerHTML par DOM API (textContent/setAttribute) ([00a9a4a](https://github.com/ApoSkunz/crabitan_bellevue/commit/00a9a4afd41f482eafc945bc0bcee5c09f5d4cc1))
+* **security:** VULN-010 — vérifier email_verified dans fetchUserInfo Google ([098efe4](https://github.com/ApoSkunz/crabitan_bellevue/commit/098efe4bb7226009a291bec7113e1f13247325f2))
+* **security:** VULN-011 — rate limiter 30 req/min/IP sur MfaController::poll ([0a23fbd](https://github.com/ApoSkunz/crabitan_bellevue/commit/0a23fbd7d63dc289fa9228287d24ecbeeec94a5c))
+
 ## [1.31.1](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.31.0...v1.31.1) (2026-06-13)
 
 
