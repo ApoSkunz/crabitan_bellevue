@@ -22,7 +22,7 @@ $jsonLd = json_encode([
     'publisher'     => [
         '@type' => 'Organization',
         'name'  => APP_NAME,
-        'logo'  => ['@type' => 'ImageObject', 'url' => APP_BASE_URL . '/assets/images/logo/crabitan-bellevue-logo.png'],
+        'logo'  => ['@type' => 'ImageObject', 'url' => APP_BASE_URL . '/assets/images/logo/crabitna-bellevue-logo-restored.png'],
     ],
     'image'         => APP_BASE_URL . $articleImage,
     'about'         => ['@type' => 'Thing', 'name' => $articleAbout],
