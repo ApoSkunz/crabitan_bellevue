@@ -23,7 +23,7 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
     private const BTN_STYLE_SECONDARY   = 'font-family:Georgia,serif;font-size:13px;letter-spacing:1px;';
     private const MAIL_SUBJECT_SEC_FR   = 'Sécurité du compte';
     private const MAIL_SUBJECT_SEC_EN   = 'Account security';
-    private const LOGO_PATH   = '/assets/images/logo/crabitan-bellevue-logo.png';
+    private const LOGO_PATH   = '/assets/images/logo/crabitna-bellevue-logo-restored.png';
     private const URL_PRIVACY        = '/fr/politique-de-confidentialite';
     private const URL_LEGAL          = '/fr/mentions-legales';
     private const PATH_ADMIN_ORDERS  = '/admin/commandes/';
@@ -31,6 +31,7 @@ class MailService // NOSONAR php:S1448 — seams de testabilité (newOrderFormMo
     private const URL_CGV        = '/fr/conditions-generales-de-vente';
     private const DATE_FORMAT_FR        = 'd/m/Y à H:i';
     private const DATE_FORMAT_DATE      = 'd/m/Y';
+    private const STATUS_REFUND_REFUSED  = 'Remboursement refusé';
     private const PAYMENT_LABEL_CHEQUE  = 'Chèque';
     private const WINE_IMAGE_PATH       = '/assets/images/wines/';
     private const COL_UNIT_EN           = 'Unit price';
@@ -1727,13 +1728,12 @@ INNER;
      * Notifie le propriétaire qu'un statut de commande a changé.
      *
      * @param string $ownerEmail Email destinataire propriétaire
-     * @param string $orderRef   Référence de la commande
-     * @param string $newStatus  Nouveau statut (clé anglaise)
-     * @param string $clientName Nom ou email du client
-     * @param string $clientEmail Email du client
-     * @param float  $total      Montant total de la commande (€)
-     * @param string $appUrl     URL racine de l'application
-     * @param int    $orderId    Identifiant commande (pour lien admin)
+     * @param string               $orderRef   Référence de la commande
+     * @param string               $newStatus  Nouveau statut (clé anglaise)
+     * @param string               $clientName Nom ou email du client
+     * @param string               $clientEmail Email du client
+     * @param float                $total      Montant total de la commande (€)
+     * @param array<string, mixed> $context    Contexte optionnel : ['appUrl' => string, 'orderId' => int]
      * @return void
      */
     public function sendOrderStatusEmailToOwner(
@@ -1743,9 +1743,10 @@ INNER;
         string $clientName,
         string $clientEmail,
         float $total,
-        string $appUrl = '',
-        int $orderId = 0
+        array $context = []
     ): void {
+        $appUrl  = (string) ($context['appUrl']  ?? '');
+        $orderId = (int)    ($context['orderId'] ?? 0);
         $this->setMailType('order');
 
         $statusLabels = [
@@ -1756,7 +1757,7 @@ INNER;
             'refunded'       => 'Remboursée',
             'return_requested' => 'Retour en cours',
             'refund_pending'   => 'Remboursement en attente',
-            'refund_refused'   => 'Remboursement refusé',
+            'refund_refused'   => self::STATUS_REFUND_REFUSED,
         ];
         $statusLabel = $statusLabels[$newStatus] ?? ucfirst($newStatus);
 
@@ -1867,7 +1868,7 @@ INNER;
             'cancelled'      => 'Commande annulée',
             'refunded'       => 'Commande remboursée',
             'paid'           => 'Paiement reçu',
-            'refund_refused' => 'Remboursement refusé',
+            'refund_refused' => self::STATUS_REFUND_REFUSED,
         ];
         $messages = [
             'processing' => "Votre commande <strong>{$safeRef}</strong> est actuellement en cours de préparation."
@@ -2248,7 +2249,7 @@ INNER;
             'processing'      => 'En préparation',
             'shipped'         => 'Expédiée',
             'return_requested' => 'Retour demandé',
-            'refund_refused'  => 'Remboursement refusé',
+            'refund_refused'  => self::STATUS_REFUND_REFUSED,
         ];
         $paymentLabels = [
             'card'     => 'CB',

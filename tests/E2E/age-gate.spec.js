@@ -160,6 +160,7 @@ test.describe('Age Gate — comportements', () => {
             page.waitForURL(/google\.com/, { timeout: 5000 }),
             page.locator('.age-overlay__btn-exit--outline').click(),
         ]);
+        expect(page.url()).toContain('google.com');
     });
 
     test('cliquer Quitter → aucun cookie age_verified posé', async ({ page, context }) => {

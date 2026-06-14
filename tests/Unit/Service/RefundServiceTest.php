@@ -169,7 +169,6 @@ class RefundServiceTest extends TestCase
                 'Jean Dupont',
                 'client@example.com',
                 $this->anything(),
-                $this->anything(),
                 $this->anything()
             );
 

@@ -75,12 +75,15 @@ $typeLabelsFr = [
                         if ($danger) {
                             $textColorClass = 'u-text-error';
                             $barColor       = '#c0392b';
+                            $fillModifier   = 'danger';
                         } elseif ($warn) {
                             $textColorClass = 'u-text-amber';
                             $barColor       = '#d97706';
+                            $fillModifier   = 'warn';
                         } else {
                             $textColorClass = '';
                             $barColor       = '#2d7a2d';
+                            $fillModifier   = 'ok';
                         }
                     ?>
                         <tr>
@@ -89,7 +92,7 @@ $typeLabelsFr = [
                             <td data-label="Dernière heure" class="u-text-right admin-rate-cell">
                                 <span class="u-font-semibold u-nowrap <?= $textColorClass ?>"><?= $lastHour ?> / 500</span>
                                 <div class="admin-rate-bar-track">
-                                    <div class="admin-rate-bar-fill admin-rate-bar-fill--<?= $danger ? 'danger' : ($warn ? 'warn' : 'ok') ?>" data-pct="<?= $pct ?>"></div>
+                                    <div class="admin-rate-bar-fill admin-rate-bar-fill--<?= $fillModifier ?>" data-pct="<?= $pct ?>"></div>
                                 </div>
                             </td>
                             <td data-label="Succès" class="u-text-right u-text-green"><?= (int) $row['success_count'] ?></td>

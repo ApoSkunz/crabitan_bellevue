@@ -328,7 +328,7 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
                         $ownerEmail  = (string) ($_ENV['CONTACT_OWNER_EMAIL'] ?? '');
                         if ($ownerEmail !== '') {
                             // phpcs:ignore Generic.Files.LineLength
-                            $mailer->sendOrderStatusEmailToOwner($ownerEmail, $orderRef, 'refunded', $clientName, $clientEmail, (float) ($order['price'] ?? 0), $appUrl, $id);
+                            $mailer->sendOrderStatusEmailToOwner($ownerEmail, $orderRef, 'refunded', $clientName, $clientEmail, (float) ($order['price'] ?? 0), ['appUrl' => $appUrl, 'orderId' => $id]);
                         }
                     }
                 } catch (\Throwable $e) {
@@ -377,7 +377,7 @@ class AccountController extends Controller // NOSONAR — php:S1448 : découpage
                     $ownerEmail = (string) ($_ENV['CONTACT_OWNER_EMAIL'] ?? '');
                     if ($ownerEmail !== '') {
                         // phpcs:ignore Generic.Files.LineLength
-                        $mailer->sendOrderStatusEmailToOwner($ownerEmail, $orderRef, 'cancelled', $clientName, $clientEmail, (float) ($order['price'] ?? 0), $appUrl, $id);
+                        $mailer->sendOrderStatusEmailToOwner($ownerEmail, $orderRef, 'cancelled', $clientName, $clientEmail, (float) ($order['price'] ?? 0), ['appUrl' => $appUrl, 'orderId' => $id]);
                     }
                 }
             } catch (\Throwable $e) {
