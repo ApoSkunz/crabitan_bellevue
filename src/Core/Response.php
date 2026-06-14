@@ -74,7 +74,9 @@ class Response
         $errorView = defined('SRC_PATH') ? SRC_PATH . '/View/errors/error.php' : null;
         if ($errorView !== null && file_exists($errorView)) {
             $statusCode = $status; // NOSONAR — exposed to included error view via PHP scope (php:S1481)
-            extract($data, EXTR_SKIP);
+            // VULN-003 : filtrer GLOBALS et clés superglobales avant extract pour éviter la pollution de portée
+            $filtered = array_filter($data, static fn($k) => $k !== 'GLOBALS' && !str_starts_with($k, '_'), ARRAY_FILTER_USE_KEY);
+            extract($filtered, EXTR_SKIP);
             include_once $errorView;
         } else {
             echo $message ?: $status;
@@ -99,7 +101,9 @@ class Response
             $fallback = defined('CURRENT_LANG') ? CURRENT_LANG : $default;
             $data['navLang'] = $data['lang'] ?? $fallback;
         }
-        extract($data, EXTR_SKIP);
+        // VULN-003 : filtrer GLOBALS et clés superglobales avant extract pour éviter la pollution de portée
+        $filtered = array_filter($data, static fn($k) => $k !== 'GLOBALS' && !str_starts_with($k, '_'), ARRAY_FILTER_USE_KEY);
+        extract($filtered, EXTR_SKIP);
         require SRC_PATH . '/View/' . $template . '.php'; // NOSONAR — require_once bloquerait le re-rendu en tests
     }
 
