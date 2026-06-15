@@ -54,7 +54,6 @@ $exitUrl = (!empty($httpReferer) && !str_starts_with($httpReferer, $siteOrigin))
                         width="195"
                         height="130"
                     >
-                    <p class="age-gate__logo-text">Château<br>Crabitan&#160;Bellevue</p>
                 </div>
 
                 <p id="age-overlay-title" class="age-gate__intro"><?= htmlspecialchars(__('age_gate.intro')) ?></p>
