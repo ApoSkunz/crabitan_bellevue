@@ -6,8 +6,10 @@
 
 .age-gate-page {
     background-color: var(--color-bg);
+    min-height: 100vh; // fallback iOS < 15.4
     min-height: 100dvh;
-    overflow-x: hidden; // WCAG 1.4.4 — overflow-x uniquement : empêche scroll horizontal parasite sans bloquer scroll vertical à fort zoom
+    overflow-x: clip; // WCAG 1.4.4 — clip (vs hidden) préserve position:fixed sur iOS Safari
+    -webkit-font-smoothing: antialiased;
 }
 
 .age-gate {
@@ -179,8 +181,8 @@
 // Sélecteur de langue — coin supérieur gauche de la page (symétrique au theme-toggle)
 .age-gate__lang {
     position: fixed;
-    top: 1rem;
-    left: 1.25rem;
+    top: calc(1rem + env(safe-area-inset-top, 0px));
+    left: calc(1.25rem + env(safe-area-inset-left, 0px));
     display: flex;
     align-items: center;
     gap: 0;
@@ -195,6 +197,9 @@
         color: var(--color-text);
         text-decoration: none;
         padding: 0.3em 0.6em;
+        min-height: 2.75rem; // 44px touch target — Apple HIG
+        display: flex;
+        align-items: center;
         transition: color 200ms ease, background-color 200ms ease;
 
         &.active {
@@ -301,8 +306,9 @@
 
     .age-gate {
         // Mobile : legal-footer redevient statique → plus besoin de réserver 150px en bas
-        padding: 3rem 1rem 0.5rem; // top: dégager FR/EN + theme-toggle (fixed top:1rem ~35px)
-        gap: 0.75rem;
+        // safe-area-inset-top : dégager Dynamic Island / encoche Apple
+        padding: calc(2.5rem + env(safe-area-inset-top, 0px)) 1rem 0.5rem;
+        gap: 0.5rem;
         justify-content: center;
     }
 
@@ -314,7 +320,7 @@
     // les boutons ENTRER / QUITTER de la carte
     .age-gate__legal-footer {
         position: static;
-        margin: 0.5rem auto 0.5rem;
+        margin: 0.5rem auto calc(0.5rem + env(safe-area-inset-bottom, 0px));
         padding: 0 1rem;
         flex-wrap: wrap;
         text-align: center;
@@ -327,14 +333,14 @@
 
     .age-gate__subquote {
         font-size: clamp(0.85rem, 3.5vw, 1rem);
-        margin-bottom: 1rem;
+        margin-bottom: 0; // gap flex suffisant
     }
 
     .age-gate__logo {
-        margin-bottom: 0.75rem;
+        margin-bottom: 0.5rem;
 
         img {
-            max-height: 65px;
+            max-height: 55px;
         }
     }
 
@@ -344,7 +350,11 @@
 
     .age-gate__intro {
         font-size: 0.8rem;
-        margin-bottom: 0.75rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .age-gate__declare {
+        margin-bottom: 0.75rem; // global = 1.5rem, trop haut sur petits écrans
     }
 
     .age-gate__choice {
@@ -423,8 +433,8 @@
 
 .age-gate__topbar {
     position: fixed;
-    top: 1rem;
-    right: 1.25rem;
+    top: calc(1rem + env(safe-area-inset-top, 0px));
+    right: calc(1.25rem + env(safe-area-inset-right, 0px));
     z-index: 100;
 }
 
@@ -515,7 +525,7 @@ body:has(.age-overlay) {
 // Micro-footer légal — liens politique de confidentialité et mentions légales
 .age-gate__legal-footer {
     position: fixed;
-    bottom: 1rem;
+    bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
     left: 0;
     right: 0;
     display: flex;
