@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="refresh" content="30">
     <meta name="robots" content="noindex, nofollow">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>Maintenance — Château Crabitan Bellevue</title>
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -35,7 +35,7 @@
             --shadow:      0 12px 48px rgba(0, 0, 0, 0.5);
         }
 
-        html, body { height: 100%; }
+        html, body { min-height: 100dvh; }
 
         body {
             background: var(--bg);
@@ -44,10 +44,13 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 2rem;
+            padding: calc(2rem + env(safe-area-inset-top, 0px))
+                     calc(2rem + env(safe-area-inset-right, 0px))
+                     calc(2rem + env(safe-area-inset-bottom, 0px))
+                     calc(2rem + env(safe-area-inset-left, 0px));
             transition: background-color 0.25s, color 0.25s;
             position: relative;
-            overflow: hidden;
+            overflow-x: clip; /* clip sans BFC — préserve position:fixed du theme-toggle */
         }
 
         body::before,
@@ -67,8 +70,8 @@
 
         .theme-toggle {
             position: fixed;
-            top: 1.25rem;
-            right: 1.25rem;
+            top: calc(1.25rem + env(safe-area-inset-top, 0px));
+            right: calc(1.25rem + env(safe-area-inset-right, 0px));
             background: var(--surface);
             border: 1px solid var(--border-gold);
             border-radius: 50%;
