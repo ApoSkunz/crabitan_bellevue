@@ -2,6 +2,17 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+## [1.32.2](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.32.1...v1.32.2) (2026-06-15)
+
+
+### Bug Fixes
+
+* **config:** add ASSET_VERSION constant for CSS cache-busting ([6ddf4ff](https://github.com/ApoSkunz/crabitan_bellevue/commit/6ddf4fff442807299dc093b919c7ff5f362ab66a))
+* **config:** drop useless defined() guard on ASSET_VERSION ([043c97e](https://github.com/ApoSkunz/crabitan_bellevue/commit/043c97e576630263faf85d808078f42f96865a6c))
+* **responsive:** age-gate iPhone SE — reduce height standalone page ([26d22d8](https://github.com/ApoSkunz/crabitan_bellevue/commit/26d22d8abcc9cc50beef0da3ff2f6405e3a4661b))
+* **responsive:** age-gate Safari iOS — padding-top + BFC overflow fix ([1803c16](https://github.com/ApoSkunz/crabitan_bellevue/commit/1803c1639af774602ccd63d11db68472400b6968))
+* **responsive:** revert cache-busting refs (ASSET_VERSION removed) ([7454bed](https://github.com/ApoSkunz/crabitan_bellevue/commit/7454bedf4f12c66ff1e76554ae01d09c2d39cbfa))
+
 ## [1.32.1](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.32.0...v1.32.1) (2026-06-15)
 
 
