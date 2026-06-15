@@ -328,20 +328,19 @@
     }
 
     .age-gate__subquote {
-        font-size: clamp(0.85rem, 3.5vw, 1rem);
-        margin-bottom: 0; // gap flex suffisant
+        display: none; // standalone only — too tall for iPhone SE (overlay n'a pas de subquote)
     }
 
     .age-gate__logo {
         margin-bottom: 0.5rem;
 
         img {
-            max-height: 55px;
+            max-height: 45px;
         }
     }
 
     .age-gate__card {
-        padding: 1.25rem 1.25rem;
+        padding: 1rem 1.25rem;
     }
 
     .age-gate__intro {
