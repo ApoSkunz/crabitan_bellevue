@@ -2,6 +2,13 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+## [1.32.1](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.32.0...v1.32.1) (2026-06-15)
+
+
+### Bug Fixes
+
+* **responsive:** age-gate Apple mobile — safe areas + compact spacing ([47c434d](https://github.com/ApoSkunz/crabitan_bellevue/commit/47c434d19eb7d84632e1f2ce383ff82f1e050a76))
+
 # [1.32.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.31.2...v1.32.0) (2026-06-14)
 
 
