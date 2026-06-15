@@ -42,10 +42,10 @@ RewriteRule ^(.*)$ index.php [L,QSA]
 # ---- Cache navigateur ----
 <IfModule mod_expires.c>
     ExpiresActive On
-    # JS / CSS — 1 semaine (noms de fichiers sans hash de contenu)
-    ExpiresByType text/css               "access plus 1 week"
-    ExpiresByType application/javascript "access plus 1 week"
-    ExpiresByType text/javascript        "access plus 1 week"
+    # JS / CSS — 1 heure : pas de hash de contenu, on limite le risque de cache stale
+    ExpiresByType text/css               "access plus 1 hour"
+    ExpiresByType application/javascript "access plus 1 hour"
+    ExpiresByType text/javascript        "access plus 1 hour"
     # Images
     ExpiresByType image/png              "access plus 6 months"
     ExpiresByType image/jpeg             "access plus 6 months"
