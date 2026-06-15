@@ -48,7 +48,7 @@
 <?php endif; ?>
     <link rel="preload" as="font" href="/assets/fonts/Cinzel-Regular.otf" type="font/otf" crossorigin>
     <link rel="preload" as="font" href="/assets/fonts/CaviarDreams.woff" type="font/woff" crossorigin>
-    <link rel="stylesheet" href="/assets/css/main.css">
+    <link rel="stylesheet" href="/assets/css/main.css?v=<?= ASSET_VERSION ?>">
     <script nonce="<?= htmlspecialchars(defined('CSP_NONCE') ? CSP_NONCE : '') ?>">window.__appDebug = <?= (defined('APP_ENV') && APP_ENV === 'development') ? 'true' : 'false' ?>;</script>
 
 <?php if (isset($_COOKIE['auth_token'])) : ?>
