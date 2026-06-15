@@ -479,11 +479,20 @@ body:has(.age-overlay) {
     background: var(--color-bg);
     overflow-y: auto;
 
-    // lang, topbar et legal-footer sont en position:fixed — on remonte leur z-index
-    // pour qu'ils restent visibles au-dessus de l'overlay
+    // position:absolute dans l'overlay = même résultat visuel que fixed (overlay couvre
+    // tout le viewport), SANS le bug iOS Safari : position:fixed inside overflow:auto
+    // crée un BFC qui désynchronise les éléments fixes sur Safari iOS.
     .age-gate__lang,
-    .age-gate__topbar,
+    .age-gate__topbar {
+        position: absolute;
+        z-index: 9001;
+    }
+
     .age-gate__legal-footer {
+        position: absolute;
+        bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+        left: 0;
+        right: 0;
         z-index: 9001;
     }
 }
