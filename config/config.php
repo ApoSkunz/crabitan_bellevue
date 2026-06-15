@@ -13,7 +13,6 @@ defined('APP_ENV')  || define('APP_ENV', $_ENV['APP_ENV']   ?? 'production');
 defined('APP_URL')      || define('APP_URL', $_ENV['APP_URL'] ?? 'https://crabitanbellevue.fr');
 defined('APP_BASE_URL') || define('APP_BASE_URL', rtrim(APP_URL, '/'));
 defined('APP_NAME') || define('APP_NAME', $_ENV['APP_NAME'] ?? 'Château Crabitan Bellevue');
-define('ASSET_VERSION', '1.32.1');
 
 // Affichage des erreurs selon environnement
 if (APP_ENV === 'development') {

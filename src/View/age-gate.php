@@ -6,7 +6,7 @@
     <title><?= htmlspecialchars(APP_NAME) ?></title>
     <meta name="robots" content="noindex, nofollow">
     <link rel="icon" href="/assets/images/logo/favicon.svg" type="image/svg+xml">
-    <link rel="stylesheet" href="/assets/css/main.css?v=<?= ASSET_VERSION ?>">
+    <link rel="stylesheet" href="/assets/css/main.css">
 </head>
 <body class="age-gate-page">
 
