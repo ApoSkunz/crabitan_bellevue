@@ -219,8 +219,8 @@
     margin-bottom: 2rem;
 
     img {
-        margin: 0 auto;
-        max-height: 160px;
+        margin: 0 auto 0.75rem;
+        max-height: 130px;
         width: auto;
     }
 }
@@ -300,10 +300,14 @@
 }
 
 @media (max-width: 575px) {
+    .age-gate-page {
+        overflow: auto;
+    }
+
     .age-gate {
-        // 4.5rem > lang/topbar bottom (1rem top + 2.75rem height = 3.75rem) + 0.75rem buffer
+        // Mobile : legal-footer redevient statique → plus besoin de réserver 150px en bas
         // safe-area-inset-top : dégager Dynamic Island / encoche Apple
-        padding: calc(4.5rem + env(safe-area-inset-top, 0px)) 1rem 0.5rem;
+        padding: calc(2.5rem + env(safe-area-inset-top, 0px)) 1rem 0.5rem;
         gap: 0.5rem;
         justify-content: center;
     }
@@ -328,19 +332,20 @@
     }
 
     .age-gate__subquote {
-        display: none; // standalone only — too tall for iPhone SE (overlay n'a pas de subquote)
+        font-size: clamp(0.85rem, 3.5vw, 1rem);
+        margin-bottom: 0; // gap flex suffisant
     }
 
     .age-gate__logo {
         margin-bottom: 0.5rem;
 
         img {
-            max-height: 70px;
+            max-height: 55px;
         }
     }
 
     .age-gate__card {
-        padding: 1rem 1.25rem;
+        padding: 1.25rem 1.25rem;
     }
 
     .age-gate__intro {
@@ -479,20 +484,41 @@ body:has(.age-overlay) {
     background: var(--color-bg);
     overflow-y: auto;
 
-    // position:absolute dans l'overlay = même résultat visuel que fixed (overlay couvre
-    // tout le viewport), SANS le bug iOS Safari : position:fixed inside overflow:auto
-    // crée un BFC qui désynchronise les éléments fixes sur Safari iOS.
-    .age-gate__lang,
-    .age-gate__topbar {
-        position: absolute;
+    // Flex column : lang + footer dans le flux naturel (flex children).
+    // Aucun enfant n'utilise position:fixed — élimine le bug iOS Safari BFC
+    // (position:fixed inside overflow:auto désynchronise les éléments sur Safari).
+    display: flex;
+    flex-direction: column;
+
+    // lang FR/EN : dans le flux, prend sa place en haut — absorbe safe-area (Dynamic Island)
+    .age-gate__lang {
+        flex-shrink: 0;
+        position: static; // annule position:fixed global
+        padding: calc(env(safe-area-inset-top, 0px) + 0.5rem) calc(env(safe-area-inset-left, 0px) + 1.25rem) 0.5rem;
         z-index: 9001;
     }
 
-    .age-gate__legal-footer {
+    // toggle ☽ : position:absolute dans un conteneur fixed = identique à fixed visuellement,
+    // sans le BFC iOS (seuls les enfants position:fixed créent le BFC, pas absolute)
+    .age-gate__topbar {
         position: absolute;
-        bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
-        left: 0;
-        right: 0;
+        top: calc(1rem + env(safe-area-inset-top, 0px));
+        right: calc(1.25rem + env(safe-area-inset-right, 0px));
+        z-index: 9001;
+    }
+
+    // Contenu : flex:1 = espace restant entre lang et footer ; align-items/justify-content
+    // restent actifs (depuis les règles .age-gate globales) pour centrer la carte
+    .age-gate {
+        flex: 1;
+        padding-top: 0.5rem; // lang dans le flux = inutile de réserver 2.5rem
+    }
+
+    // footer légal : dans le flux en bas, absorbe safe-area bas (home indicator)
+    .age-gate__legal-footer {
+        flex-shrink: 0;
+        position: static; // annule position:fixed global
+        padding: 0.5rem 1rem calc(0.75rem + env(safe-area-inset-bottom, 0px));
         z-index: 9001;
     }
 }
