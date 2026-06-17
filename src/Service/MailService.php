@@ -3284,13 +3284,41 @@ INNER;
     }
 
     /**
-     * Notifie le client que son compte a été restauré par un administrateur à sa demande.
+     * Initialise le type inactivité, le canal SMTP sécurité et retourne nom/date HTML-échappés.
      *
-     * @param string $to   Email du compte restauré
-     * @param string $name Nom affiché du client
-     * @param string $lang Langue du compte (fr|en)
-     * @return void
+     * @param string $name Prénom ou raison sociale
+     * @return array{0: string, 1: string} [$safeName, $safeDate]
      */
+    private function prepareInactivityMail(string $name): array
+    {
+        $this->setMailType('cron_inactivity');
+        $this->applySmtpConfig(MailChannel::SECURITY);
+        return [
+            htmlspecialchars($name, ENT_QUOTES),
+            htmlspecialchars(date(self::DATE_FORMAT_FR), ENT_QUOTES),
+        ];
+    }
+
+    /**
+     * Retourne le paragraphe HTML de contact en pied de notification admin.
+     *
+     * @param string $lang Langue ('fr' ou 'en')
+     * @return string
+     */
+    private function contactAlertFooter(string $lang): string
+    {
+        $email = htmlspecialchars($_ENV['CONTACT_OWNER_EMAIL'] ?? '', ENT_QUOTES);
+        $link  = "<a href=\"mailto:{$email}\" style=\"color:#c9a84c;\">{$email}</a>";
+        if ($lang === 'fr') {
+            return '<p style="font-size:12px;color:#8a7a60;margin-top:16px;">'
+                . "Si vous n'êtes pas à l'origine de cette demande, contactez-nous immédiatement à {$link}."
+                . '</p>';
+        }
+        return '<p style="font-size:12px;color:#8a7a60;margin-top:16px;">'
+            . "If you did not request this, please contact us immediately at {$link}."
+            . '</p>';
+    }
+
     /**
      * Notifie l'utilisateur que la suppression programmée de son compte a été annulée par un admin.
      *
@@ -3301,32 +3329,21 @@ INNER;
      */
     public function sendAccountDeletionCancelled(string $to, string $name, string $lang): void
     {
-        $this->setMailType('cron_inactivity');
-        $this->applySmtpConfig(MailChannel::SECURITY);
-        $safeName = htmlspecialchars($name, ENT_QUOTES);
-        $safeDate = htmlspecialchars(date(self::DATE_FORMAT_FR), ENT_QUOTES);
+        [$safeName, $safeDate] = $this->prepareInactivityMail($name);
 
         if ($lang === 'fr') {
             $subject = 'Suppression de compte annulée — Crabitan Bellevue';
             $message = "Suite à votre demande, la suppression programmée de votre compte a été "
                 . "<strong>annulée le {$safeDate}</strong>.<br><br>"
                 . "Votre compte reste actif. Aucune action supplémentaire n'est requise de votre part.<br><br>"
-                . '<p style="font-size:12px;color:#8a7a60;margin-top:16px;">'
-                . 'Si vous n\'êtes pas à l\'origine de cette demande, contactez-nous immédiatement '
-                . 'à <a href="mailto:' . htmlspecialchars($_ENV['CONTACT_OWNER_EMAIL'] ?? '', ENT_QUOTES) . '" '
-                . 'style="color:#c9a84c;">' . htmlspecialchars($_ENV['CONTACT_OWNER_EMAIL'] ?? '', ENT_QUOTES) . '</a>.'
-                . '</p>';
+                . $this->contactAlertFooter('fr');
             $body = $this->emailSimpleLayout('Suppression annulée', "Bonjour {$safeName},", $message, 'fr');
         } else {
             $subject = 'Account deletion cancelled — Crabitan Bellevue';
             $message = "Following your request, the scheduled deletion of your account has been "
                 . "<strong>cancelled on {$safeDate}</strong>.<br><br>"
                 . "Your account remains active. No further action is required on your part.<br><br>"
-                . '<p style="font-size:12px;color:#8a7a60;margin-top:16px;">'
-                . 'If you did not request this, please contact us immediately at '
-                . '<a href="mailto:' . htmlspecialchars($_ENV['CONTACT_OWNER_EMAIL'] ?? '', ENT_QUOTES) . '" '
-                . 'style="color:#c9a84c;">' . htmlspecialchars($_ENV['CONTACT_OWNER_EMAIL'] ?? '', ENT_QUOTES) . '</a>.'
-                . '</p>';
+                . $this->contactAlertFooter('en');
             $body = $this->emailSimpleLayout('Deletion cancelled', "Hello {$safeName},", $message, 'en');
         }
 
@@ -3343,10 +3360,7 @@ INNER;
      */
     public function sendAccountRestoredByAdmin(string $to, string $name, string $lang): void
     {
-        $this->setMailType('cron_inactivity');
-        $this->applySmtpConfig(MailChannel::SECURITY);
-        $safeName = htmlspecialchars($name, ENT_QUOTES);
-        $safeDate = htmlspecialchars(date(self::DATE_FORMAT_FR), ENT_QUOTES);
+        [$safeName, $safeDate] = $this->prepareInactivityMail($name);
 
         if ($lang === 'fr') {
             $subject = 'Annulation de la suppression de votre compte — Crabitan Bellevue';
@@ -3354,22 +3368,14 @@ INNER;
                 . "<strong>l'annulation de la suppression de votre compte</strong> le {$safeDate}.<br><br>"
                 . "Votre compte est à nouveau actif. Vous pouvez vous connecter dès maintenant "
                 . "avec vos identifiants habituels.<br><br>"
-                . '<p style="font-size:12px;color:#8a7a60;margin-top:16px;">'
-                . 'Si vous n\'êtes pas à l\'origine de cette demande, contactez-nous immédiatement '
-                . 'à <a href="mailto:' . htmlspecialchars($_ENV['CONTACT_OWNER_EMAIL'] ?? '', ENT_QUOTES) . '" '
-                . 'style="color:#c9a84c;">' . htmlspecialchars($_ENV['CONTACT_OWNER_EMAIL'] ?? '', ENT_QUOTES) . '</a>.'
-                . '</p>';
+                . $this->contactAlertFooter('fr');
             $body = $this->emailSimpleLayout('Compte restauré', "Bonjour {$safeName},", $message, 'fr');
         } else {
             $subject = 'Your account deletion has been cancelled — Crabitan Bellevue';
             $message = "Following your request and in accordance with GDPR, we have "
                 . "<strong>cancelled the deletion of your account</strong> on {$safeDate}.<br><br>"
                 . "Your account is active again. You can sign in now with your usual credentials.<br><br>"
-                . '<p style="font-size:12px;color:#8a7a60;margin-top:16px;">'
-                . 'If you did not request this, please contact us immediately at '
-                . '<a href="mailto:' . htmlspecialchars($_ENV['CONTACT_OWNER_EMAIL'] ?? '', ENT_QUOTES) . '" '
-                . 'style="color:#c9a84c;">' . htmlspecialchars($_ENV['CONTACT_OWNER_EMAIL'] ?? '', ENT_QUOTES) . '</a>.'
-                . '</p>';
+                . $this->contactAlertFooter('en');
             $body = $this->emailSimpleLayout('Account restored', "Hello {$safeName},", $message, 'en');
         }
 

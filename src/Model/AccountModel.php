@@ -1214,7 +1214,7 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
         int $offset,
         \ValueObject\AccountAdminFilters $filters
     ): array {
-        [$where, $params] = $this->buildAdminFilters($filters->role, $filters->search, $filters->type, $filters->activity);
+        [$where, $params] = $this->buildAdminFilters($filters->role, $filters->search, $filters->type);
         $where            = $this->applyAdminFlagFilters($where, $filters->hasOrdered, $filters->activity);
 
         $params[] = $limit;
@@ -1287,7 +1287,7 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
      */
     public function countForAdmin(\ValueObject\AccountAdminFilters $filters): int
     {
-        [$where, $params] = $this->buildAdminFilters($filters->role, $filters->search, $filters->type, $filters->activity);
+        [$where, $params] = $this->buildAdminFilters($filters->role, $filters->search, $filters->type);
         $where            = $this->applyAdminFlagFilters($where, $filters->hasOrdered, $filters->activity);
 
         $row = $this->db->fetchOne(
@@ -1662,7 +1662,7 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
         ];
     }
 
-    private function buildAdminFilters(?string $role, ?string $search, ?string $type = null, ?string $activity = null): array
+    private function buildAdminFilters(?string $role, ?string $search, ?string $type = null): array
     {
         // Sans filtre activity → tous les comptes (supprimés et anonymisés inclus)
         $conds  = [];
