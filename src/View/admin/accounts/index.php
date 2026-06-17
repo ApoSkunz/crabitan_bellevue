@@ -235,7 +235,7 @@ function accountUrl( // NOSONAR — php:S107 : params nécessaires pour reconstr
                                           data-admin-confirm="Annuler la suppression du compte <?= htmlspecialchars($account['email']) ?> ? (<?= $daysLeft ?> j restants avant anonymisation)">
                                         <input type="hidden" name="csrf_token"
                                                value="<?= htmlspecialchars($_SESSION['csrf'] ?? '') ?>">
-                                        <button type="submit" class="admin-btn admin-btn--verify admin-btn--sm">
+                                        <button type="submit" class="admin-btn admin-btn--danger admin-btn--sm">
                                             Annuler suppression
                                         </button>
                                     </form>
@@ -246,7 +246,7 @@ function accountUrl( // NOSONAR — php:S107 : params nécessaires pour reconstr
                                           data-admin-confirm="Restaurer le compte <?= htmlspecialchars($account['email']) ?> ? (<?= $daysRestore ?> j avant anonymisation définitive)">
                                         <input type="hidden" name="csrf_token"
                                                value="<?= htmlspecialchars($_SESSION['csrf'] ?? '') ?>">
-                                        <button type="submit" class="admin-btn admin-btn--reset admin-btn--sm">
+                                        <button type="submit" class="admin-btn admin-btn--danger admin-btn--sm">
                                             Restaurer
                                         </button>
                                     </form>
