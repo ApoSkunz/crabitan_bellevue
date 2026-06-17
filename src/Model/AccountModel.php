@@ -1650,7 +1650,7 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
             $params[] = $like;
         }
 
-        $where = 'WHERE ' . implode(' AND ', $conds);
+        $where = empty($conds) ? '' : 'WHERE ' . implode(' AND ', $conds);
         return [$where, $params];
     }
 
