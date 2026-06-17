@@ -214,44 +214,44 @@ function accountUrl( // NOSONAR — php:S107 : params nécessaires pour reconstr
                             $daysRestore  = $canRestore
                                 ? max(0, (int) ceil((strtotime((string) $scheduledAt) - time()) / 86400))
                                 : 0;
-                            if ($isDeleted) {
-                                echo '<span class="u-text-error">Supprimé</span>';
-                            } elseif ($isWarning) {
-                                echo '<span class="u-text-warning" title="Alerte envoyée le ' . htmlspecialchars(date('d/m/Y', strtotime((string) $account['inactivity_warning_sent_at']))) . '">⚠ Alerte</span>';
-                            } else {
-                                $lastConn = $account['last_connection'] ?? null;
-                                $isActive = $lastConn !== null && strtotime((string) $lastConn) >= strtotime('-3 years');
-                                echo $isActive
-                                    ? '<span class="u-text-green">Actif</span>'
-                                    : '<span class="u-text-soft">Inactif</span>';
-                            }
-                            if ($canCancel) :
                             ?>
-                                <br>
-                                <form method="POST"
-                                      action="/admin/comptes/<?= (int) $account['id'] ?>/annuler-suppression"
-                                      class="u-inline-block"
-                                      data-admin-confirm="Annuler la suppression du compte <?= htmlspecialchars($account['email']) ?> ? (<?= $daysLeft ?> j restants avant anonymisation)">
-                                    <input type="hidden" name="csrf_token"
-                                           value="<?= htmlspecialchars($_SESSION['csrf'] ?? '') ?>">
-                                    <button type="submit" class="admin-btn admin-btn--verify admin-btn--sm u-mt-4">
-                                        Annuler suppression
-                                    </button>
-                                </form>
-                            <?php endif; ?>
-                            <?php if ($canRestore) : ?>
-                                <br>
-                                <form method="POST"
-                                      action="/admin/comptes/<?= (int) $account['id'] ?>/restaurer"
-                                      class="u-inline-block"
-                                      data-admin-confirm="Restaurer le compte <?= htmlspecialchars($account['email']) ?> ? (<?= $daysRestore ?> j avant anonymisation définitive)">
-                                    <input type="hidden" name="csrf_token"
-                                           value="<?= htmlspecialchars($_SESSION['csrf'] ?? '') ?>">
-                                    <button type="submit" class="admin-btn admin-btn--reset admin-btn--sm u-mt-4">
-                                        Restaurer
-                                    </button>
-                                </form>
-                            <?php endif; ?>
+                            <div class="u-flex-col u-items-start u-gap-2">
+                                <?php
+                                if ($isDeleted) {
+                                    echo '<span class="u-text-error">Supprimé</span>';
+                                } elseif ($isWarning) {
+                                    echo '<span class="u-text-warning" title="Alerte envoyée le ' . htmlspecialchars(date('d/m/Y', strtotime((string) $account['inactivity_warning_sent_at']))) . '">⚠ Alerte</span>';
+                                } else {
+                                    $lastConn = $account['last_connection'] ?? null;
+                                    $isActive = $lastConn !== null && strtotime((string) $lastConn) >= strtotime('-3 years');
+                                    echo $isActive
+                                        ? '<span class="u-text-green">Actif</span>'
+                                        : '<span class="u-text-soft">Inactif</span>';
+                                }
+                                ?>
+                                <?php if ($canCancel) : ?>
+                                    <form method="POST"
+                                          action="/admin/comptes/<?= (int) $account['id'] ?>/annuler-suppression"
+                                          data-admin-confirm="Annuler la suppression du compte <?= htmlspecialchars($account['email']) ?> ? (<?= $daysLeft ?> j restants avant anonymisation)">
+                                        <input type="hidden" name="csrf_token"
+                                               value="<?= htmlspecialchars($_SESSION['csrf'] ?? '') ?>">
+                                        <button type="submit" class="admin-btn admin-btn--verify admin-btn--sm">
+                                            Annuler suppression
+                                        </button>
+                                    </form>
+                                <?php endif; ?>
+                                <?php if ($canRestore) : ?>
+                                    <form method="POST"
+                                          action="/admin/comptes/<?= (int) $account['id'] ?>/restaurer"
+                                          data-admin-confirm="Restaurer le compte <?= htmlspecialchars($account['email']) ?> ? (<?= $daysRestore ?> j avant anonymisation définitive)">
+                                        <input type="hidden" name="csrf_token"
+                                               value="<?= htmlspecialchars($_SESSION['csrf'] ?? '') ?>">
+                                        <button type="submit" class="admin-btn admin-btn--reset admin-btn--sm">
+                                            Restaurer
+                                        </button>
+                                    </form>
+                                <?php endif; ?>
+                            </div>
                         </td>
                         <td class="u-nowrap">
                             <?php
