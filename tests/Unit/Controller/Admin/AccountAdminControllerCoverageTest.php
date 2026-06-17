@@ -340,6 +340,192 @@ class AccountAdminControllerCoverageTest extends TestCase
         $this->assertNotEmpty($ctrl->flashes['success'] ?? []);
     }
 
+    // ================================================================
+    // cancelDeletion — CSRF invalide → flash error + redirect
+    // ================================================================
+
+    /**
+     * cancelDeletion() flash une erreur et redirige si le CSRF est invalide.
+     */
+    public function testCancelDeletionFlashesErrorOnInvalidCsrf(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+
+        $ctrl            = new TestableAccountAdminController(new \Core\Request());
+        $ctrl->csrfValid = false;
+
+        $caught = null;
+        try {
+            $ctrl->cancelDeletion(['id' => '1']);
+        } catch (HttpException $e) {
+            $caught = $e;
+        }
+
+        $this->assertNotNull($caught);
+        $this->assertSame(302, $caught->status);
+        $errors = $ctrl->flashes['error'] ?? [];
+        $this->assertNotEmpty($errors);
+        $this->assertStringContainsString('CSRF', $errors[0]);
+    }
+
+    // ================================================================
+    // cancelDeletion — compte non annulable → flash error + redirect
+    // ================================================================
+
+    /**
+     * cancelDeletion() flash une erreur quand findCancellableById retourne false.
+     */
+    public function testCancelDeletionFlashesErrorForNonCancellable(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+
+        $dbMock = $this->createStub(\Core\Database::class);
+        $dbMock->method('fetchOne')->willReturn(false);
+        $this->dbInstanceProp->setValue(null, $dbMock); // NOSONAR — test unitaire
+
+        $ctrl = new TestableAccountAdminController(new \Core\Request());
+
+        $caught = null;
+        try {
+            $ctrl->cancelDeletion(['id' => '999']);
+        } catch (HttpException $e) {
+            $caught = $e;
+        }
+
+        $this->assertNotNull($caught);
+        $this->assertSame(302, $caught->status);
+        $errors = $ctrl->flashes['error'] ?? [];
+        $this->assertNotEmpty($errors);
+        $this->assertStringContainsString('introuvable', $errors[0]);
+    }
+
+    // ================================================================
+    // cancelDeletion — succès nominal → mail envoyé + flash success
+    // ================================================================
+
+    /**
+     * cancelDeletion() envoie le mail et flash un succès pour un compte en alerte.
+     */
+    public function testCancelDeletionFlashesSuccessAndSendsMail(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+
+        $ctrl = $this->makeControllerWithAccount([
+            'id'                         => 42,
+            'email'                      => 'warning@test.com',
+            'lang'                       => 'fr',
+            'account_type'               => 'individual',
+            'firstname'                  => 'Marie',
+            'lastname'                   => 'Dupont',
+            'company_name'               => null,
+            'inactivity_warning_sent_at' => date('Y-m-d H:i:s', strtotime('-10 days')),
+            'deleted_at'                 => null,
+            'scheduled_deletion_at'      => date('Y-m-d H:i:s', strtotime('+20 days')),
+        ]);
+
+        $mailMock = $this->createMock(MailService::class);
+        $mailMock->expects($this->once())
+            ->method('sendAccountDeletionCancelled')
+            ->with('warning@test.com', 'Marie Dupont', 'fr');
+        $ctrl->mailMock = $mailMock;
+
+        $caught = null;
+        try {
+            $ctrl->cancelDeletion(['id' => '42']);
+        } catch (HttpException $e) {
+            $caught = $e;
+        }
+
+        $this->assertNotNull($caught);
+        $this->assertSame(302, $caught->status);
+        $success = $ctrl->flashes['success'] ?? [];
+        $this->assertNotEmpty($success);
+        $this->assertStringContainsString('#42', $success[0]);
+    }
+
+    // ================================================================
+    // cancelDeletion — mail throws → absorbé, flash success quand même
+    // ================================================================
+
+    /**
+     * cancelDeletion() absorbe l'exception SMTP et flash quand même un succès.
+     */
+    public function testCancelDeletionAbsorbsMailException(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+
+        $ctrl = $this->makeControllerWithAccount([
+            'id'                         => 43,
+            'email'                      => 'fail.warning@test.com',
+            'lang'                       => 'en',
+            'account_type'               => 'company',
+            'firstname'                  => null,
+            'lastname'                   => null,
+            'company_name'               => 'ACME Corp',
+            'inactivity_warning_sent_at' => date('Y-m-d H:i:s', strtotime('-5 days')),
+            'deleted_at'                 => null,
+            'scheduled_deletion_at'      => date('Y-m-d H:i:s', strtotime('+25 days')),
+        ]);
+
+        $mailMock = $this->createMock(MailService::class);
+        $mailMock->method('sendAccountDeletionCancelled')
+            ->willThrowException(new \RuntimeException('SMTP down'));
+        $ctrl->mailMock = $mailMock;
+
+        $caught = null;
+        try {
+            $ctrl->cancelDeletion(['id' => '43']);
+        } catch (HttpException $e) {
+            $caught = $e;
+        }
+
+        $this->assertNotNull($caught);
+        $this->assertSame(302, $caught->status);
+        $this->assertNotEmpty($ctrl->flashes['success'] ?? []);
+        $this->assertEmpty($ctrl->flashes['error'] ?? []);
+    }
+
+    // ================================================================
+    // cancelDeletion — company account → displayName = company_name
+    // ================================================================
+
+    /**
+     * cancelDeletion() utilise company_name comme displayName pour les comptes société.
+     */
+    public function testCancelDeletionUsesCompanyNameForCompanyAccount(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+
+        $ctrl = $this->makeControllerWithAccount([
+            'id'                         => 44,
+            'email'                      => 'corp.warning@test.com',
+            'lang'                       => 'fr',
+            'account_type'               => 'company',
+            'firstname'                  => null,
+            'lastname'                   => null,
+            'company_name'               => 'Vignobles SARL',
+            'inactivity_warning_sent_at' => date('Y-m-d H:i:s', strtotime('-7 days')),
+            'deleted_at'                 => null,
+            'scheduled_deletion_at'      => date('Y-m-d H:i:s', strtotime('+23 days')),
+        ]);
+
+        $mailMock = $this->createMock(MailService::class);
+        $mailMock->expects($this->once())
+            ->method('sendAccountDeletionCancelled')
+            ->with('corp.warning@test.com', 'Vignobles SARL', 'fr');
+        $ctrl->mailMock = $mailMock;
+
+        $caught = null;
+        try {
+            $ctrl->cancelDeletion(['id' => '44']);
+        } catch (HttpException $e) {
+            $caught = $e;
+        }
+
+        $this->assertNotNull($caught);
+        $this->assertSame(302, $caught->status);
+    }
+
     /**
      * newMailService() seam — invoqué via ReflectionMethod sur la vraie classe.
      * Couvre L180-182.
