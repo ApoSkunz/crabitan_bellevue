@@ -133,7 +133,8 @@ test.describe('Admin comptes — annuler suppression', () => {
                 body: form,
                 redirect: 'manual',
             });
-            return res.status;
+            // redirect:'manual' → opaque redirect (status 0, type opaqueredirect) = 302 côté serveur
+            return res.type === 'opaqueredirect' ? 302 : res.status;
         });
 
         // Doit retourner 302 (redirect vers /admin/comptes avec flash error)
