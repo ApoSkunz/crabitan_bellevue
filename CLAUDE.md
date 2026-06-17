@@ -364,7 +364,7 @@ Ces règles ne souffrent **aucune exception** :
 | Interdit | Raison |
 |---|---|
 | `--no-verify` | Contourne les hooks de qualité |
-| `git push --force` sur `main` (par Claude) | Écrase l'historique partagé — Alexandre peut l'exécuter lui-même si nécessaire |
+| `git push --force` sur `main` | Jamais exécuté par Claude — Alexandre uniquement, si nécessaire |
 | Amender un commit déjà pushé | Réécrit l'historique distant |
 | `git add .` en bloc | Risque d'inclure `.env`, fichiers sensibles ou binaires |
 | Merger sans revue Red/Blue Team si faille détectée | Introduit une vulnérabilité en production |
@@ -447,7 +447,25 @@ Ne jamais ignorer un besoin en supposant qu'il sera tracé plus tard.
 
 ### Audits finaux
 
-Les 4 audits (BDD, GL, QA, Cyber) ont été réalisés et sont en maintenance continue. Pas de séquençage imposé — relancer un audit à la demande (nouvel EPIC, refactoring majeur, avant une release significative). Fichiers cibles dans `private-docs/audits/` (voir section dédiée ci-dessous).
+Tous les audits sont en maintenance continue. Pas de séquençage imposé — relancer à la demande (nouvel EPIC, refactoring majeur, avant une release significative).
+
+Fichiers dans `private-docs/audits/` :
+
+| Catégorie | Fichier |
+|---|---|
+| Cybersécurité | `Cyber/audit-cyber.md` |
+| CI/CD | `CI-CD/audit-cicd.md` |
+| Base de données | `DB/audit-bdd.md` |
+| Génie logiciel | `GL/audit-gl.md` |
+| QA / Tests | `QA/audit-qa.md` |
+| Marketing | `Marketing/audit-marketing.md` |
+| Fonctionnalités / Backlog | `Backlog/audit-fonctionnalites.md` |
+| UX / UI | `UX/audit-ux.md` |
+| Légal / Juridique | `LGH/audit-lgh.md` |
+| RGPD Résilience | `RGPD-Juridique/audit-rgpd-juridique.md` |
+| Vulnérabilités | `Vuln/audit-vuln.md` |
+
+Voir **Audits — formalisme et organisation** ci-dessous pour les règles de mise à jour.
 
 ---
 
