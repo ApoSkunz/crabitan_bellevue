@@ -336,6 +336,7 @@ $maxYear = (int) date('Y');
                            placeholder="ex : 336">
                     <?php $kcalDisplay = !empty($wn['energy_kj']) ? (string) (int) round((int) $wn['energy_kj'] / 4.184) . ' kcal' : ''; ?>
                     <input type="text" id="energy_kcal_hint" readonly
+                           aria-label="Énergie en kcal (calculée automatiquement)"
                            class="admin-field__input admin-field__input--readonly u-mt-2"
                            value="<?= htmlspecialchars($kcalDisplay) ?>"
                            placeholder="kcal calculé automatiquement">

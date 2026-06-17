@@ -86,6 +86,7 @@ function accountUrl( // NOSONAR — php:S107 : params nécessaires pour reconstr
     </select>
 
     <input type="text" name="search" class="admin-filters__input"
+           aria-label="Rechercher un compte"
            placeholder="Email, nom, prénom…"
            value="<?= htmlspecialchars($search) ?>">
 

@@ -206,7 +206,8 @@ $categories = [
                                 inputmode="numeric"
                                 maxlength="1"
                                 pattern="[0-9]"
-                                <?= $i === 0 ? 'id="ff-otp-digit-0"' : '' ?>
+                                id="ff-otp-digit-<?= $i ?>"
+                                aria-label="Chiffre <?= ($i + 1) ?>"
                                 autocomplete="<?= $i === 0 ? 'one-time-code' : 'off' ?>"
                                 <?= $i === 0 ? 'autofocus' : '' ?>
                                 class="admin-ff-otp-digit"
@@ -413,6 +414,7 @@ $categories = [
                                             <input
                                                 type="number"
                                                 name="<?= htmlspecialchars($key) ?>"
+                                                aria-label="<?= htmlspecialchars($label) ?>"
                                                 value="<?= htmlspecialchars($value) ?>"
                                                 class="ff-input"
                                                 step="1"
@@ -422,6 +424,7 @@ $categories = [
                                             <input
                                                 type="number"
                                                 name="<?= htmlspecialchars($key) ?>"
+                                                aria-label="<?= htmlspecialchars($label) ?>"
                                                 value="<?= htmlspecialchars($value) ?>"
                                                 class="ff-input"
                                                 step="0.01"

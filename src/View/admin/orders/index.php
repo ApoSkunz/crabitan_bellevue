@@ -87,7 +87,9 @@ function buildPaginationUrl(
             <option value="<?= htmlspecialchars($val) ?>" <?= ($payment ?? '') === $val ? 'selected' : '' ?>><?= htmlspecialchars($label) ?></option>
         <?php endforeach; ?>
     </select>
-    <input type="text" name="search" class="admin-filters__input" placeholder="Email ou référence…"
+    <input type="text" name="search" class="admin-filters__input"
+           aria-label="Rechercher une commande"
+           placeholder="Email ou référence…"
            value="<?= htmlspecialchars($search) ?>">
     <select name="per_page" class="admin-filters__select" aria-label="Lignes par page">
         <?php foreach ([10, 25, 50] as $n) : ?>

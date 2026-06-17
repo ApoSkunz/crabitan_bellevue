@@ -129,6 +129,7 @@ function pricingLabel(mixed $raw, string $lang): string
                             <td>
                                 <input type="number"
                                        name="min_qty_<?= (int) $rule['id'] ?>"
+                                       aria-label="Quantité minimale"
                                        min="0" step="1"
                                        value="<?= (int) $rule['min_quantity'] ?>">
                             </td>
@@ -136,6 +137,7 @@ function pricingLabel(mixed $raw, string $lang): string
                                 <?php if ($rule['max_quantity'] !== null) : ?>
                                     <input type="number"
                                            name="max_qty_<?= (int) $rule['id'] ?>"
+                                           aria-label="Quantité maximale"
                                            min="1" step="1"
                                            value="<?= (int) $rule['max_quantity'] ?>">
                                 <?php else : ?>
@@ -146,17 +148,20 @@ function pricingLabel(mixed $raw, string $lang): string
                             <td>
                                 <input type="number"
                                        name="delivery_<?= (int) $rule['id'] ?>"
+                                       aria-label="Prix de livraison"
                                        min="0" step="0.01"
                                        value="<?= htmlspecialchars(number_format((float) $rule['delivery_price'], 2, '.', '')) ?>">
                             </td>
                             <td>
                                 <input type="text"
                                        name="label_fr_<?= (int) $rule['id'] ?>"
+                                       aria-label="Libellé FR"
                                        value="<?= htmlspecialchars(pricingLabel($rule['label'], 'fr')) ?>">
                             </td>
                             <td>
                                 <input type="text"
                                        name="label_en_<?= (int) $rule['id'] ?>"
+                                       aria-label="Libellé EN"
                                        value="<?= htmlspecialchars(pricingLabel($rule['label'], 'en')) ?>">
                             </td>
                             <td class="text-center">
@@ -164,6 +169,7 @@ function pricingLabel(mixed $raw, string $lang): string
                                        name="active_<?= (int) $rule['id'] ?>" value="0">
                                 <input type="checkbox"
                                        name="active_<?= (int) $rule['id'] ?>" value="1"
+                                       aria-label="Actif"
                                        <?= $rule['active'] ? 'checked' : '' ?>
                                        class="admin-pricing-checkbox">
                             </td>
