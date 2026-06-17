@@ -81,6 +81,7 @@ function accountUrl( // NOSONAR — php:S107 : params nécessaires pour reconstr
         <option value="">Toute activité</option>
         <option value="active"   <?= ($activity ?? '') === 'active'   ? 'selected' : '' ?>>Actif</option>
         <option value="inactive" <?= ($activity ?? '') === 'inactive' ? 'selected' : '' ?>>Inactif (+3 ans)</option>
+        <option value="warning"  <?= ($activity ?? '') === 'warning'  ? 'selected' : '' ?>>⚠ Alerte suppression</option>
         <option value="deleted"  <?= ($activity ?? '') === 'deleted'  ? 'selected' : '' ?>>Supprimé</option>
     </select>
 
@@ -201,6 +202,8 @@ function accountUrl( // NOSONAR — php:S107 : params nécessaires pour reconstr
                             <?php
                             if (!empty($account['deleted_at'])) {
                                 echo '<span class="u-text-error">Supprimé</span>';
+                            } elseif (!empty($account['inactivity_warning_sent_at'])) {
+                                echo '<span class="u-text-warning" title="Alerte envoyée le ' . htmlspecialchars(date('d/m/Y', strtotime((string) $account['inactivity_warning_sent_at']))) . '">⚠ Alerte</span>';
                             } else {
                                 $lastConn = $account['last_connection'] ?? null;
                                 $isActive = $lastConn !== null && strtotime((string) $lastConn) >= strtotime('-3 years');

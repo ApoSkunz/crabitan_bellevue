@@ -1159,7 +1159,7 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
         int $offset,
         \ValueObject\AccountAdminFilters $filters
     ): array {
-        [$where, $params] = $this->buildAdminFilters($filters->role, $filters->search, $filters->type);
+        [$where, $params] = $this->buildAdminFilters($filters->role, $filters->search, $filters->type, $filters->activity);
         $where            = $this->applyAdminFlagFilters($where, $filters->hasOrdered, $filters->activity);
 
         $params[] = $limit;
@@ -1177,7 +1177,7 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
         return $this->db->fetchAll(
             "SELECT a.id, a.email, a.account_type, a.role, a.lang, a.newsletter,
                     a.email_verified_at, a.has_connected, a.created_at, a.deleted_at,
-                    a.is_blocked, a.last_login_at AS last_connection,
+                    a.is_blocked, a.last_login_at AS last_connection, a.inactivity_warning_sent_at,
                     ai.lastname, ai.firstname, ai.civility,
                     ac.company_name, ac.siret,
                     (a.password IS NOT NULL) AS has_password,
@@ -1197,7 +1197,7 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
      *
      * @param string      $where      Clause WHERE courante (peut être vide)
      * @param string|null $hasOrdered '1' = a commandé, '0' = jamais, null = tous
-     * @param string|null $activity   'active', 'inactive', 'deleted' ou null
+     * @param string|null $activity   'active', 'inactive', 'warning', 'deleted' ou null
      * @return string Clause WHERE enrichie
      */
     private function applyAdminFlagFilters(string $where, ?string $hasOrdered, ?string $activity): string
@@ -1210,11 +1210,13 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
             $where .= $join($where) . ' (SELECT COUNT(*) FROM orders o WHERE o.user_id = a.id AND o.status NOT IN (\'cancelled\', \'refunded\')) = 0';
         }
 
+        // deleted_at IS NULL déjà posé par buildAdminFilters sauf pour 'deleted'
         if ($activity === 'active') {
-            $where .= $join($where) . ' a.deleted_at IS NULL AND a.last_login_at >= DATE_SUB(NOW(), INTERVAL 3 YEAR)';
+            $where .= $join($where) . ' a.last_login_at >= DATE_SUB(NOW(), INTERVAL 3 YEAR)';
         } elseif ($activity === 'inactive') {
-            $where .= $join($where)
-                . ' a.deleted_at IS NULL AND (a.last_login_at IS NULL OR a.last_login_at < DATE_SUB(NOW(), INTERVAL 3 YEAR))';
+            $where .= $join($where) . ' (a.last_login_at IS NULL OR a.last_login_at < DATE_SUB(NOW(), INTERVAL 3 YEAR))';
+        } elseif ($activity === 'warning') {
+            $where .= $join($where) . ' a.inactivity_warning_sent_at IS NOT NULL';
         } elseif ($activity === 'deleted') {
             $where .= $join($where) . ' a.deleted_at IS NOT NULL';
         }
@@ -1230,7 +1232,7 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
      */
     public function countForAdmin(\ValueObject\AccountAdminFilters $filters): int
     {
-        [$where, $params] = $this->buildAdminFilters($filters->role, $filters->search, $filters->type);
+        [$where, $params] = $this->buildAdminFilters($filters->role, $filters->search, $filters->type, $filters->activity);
         $where            = $this->applyAdminFlagFilters($where, $filters->hasOrdered, $filters->activity);
 
         $row = $this->db->fetchOne(
@@ -1605,9 +1607,10 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
         ];
     }
 
-    private function buildAdminFilters(?string $role, ?string $search, ?string $type = null): array
+    private function buildAdminFilters(?string $role, ?string $search, ?string $type = null, ?string $activity = null): array
     {
-        $conds  = ['a.deleted_at IS NULL'];
+        // Exclut les supprimés par défaut — sauf si on filtre explicitement sur 'deleted'
+        $conds  = $activity === 'deleted' ? [] : ['a.deleted_at IS NULL'];
         $params = [];
 
         $validRoles = ['customer', 'admin', 'super_admin'];

@@ -50,7 +50,7 @@ class AccountAdminController extends AdminController
         $hasOrdered    = in_array($hasOrderedReq, ['0', '1'], true) ? $hasOrderedReq : null;
 
         $activityReq = $this->request->get('activity');
-        $activity    = in_array($activityReq, ['active', 'inactive', 'deleted'], true) ? $activityReq : null;
+        $activity    = in_array($activityReq, ['active', 'inactive', 'warning', 'deleted'], true) ? $activityReq : null;
 
         $filters = new AccountAdminFilters(
             role: $role,
