@@ -33,7 +33,7 @@
     "semantic-release": "^25.0.3",
     "sharp": "^0.34.5",
     "vite": "^6.0.0",
-    "vite-plugin-istanbul": "^6.0.2"
+    "vite-plugin-istanbul": "^9.0.1"
   },
   "dependencies": {
     "chart.js": "^4.5.1",
