@@ -187,16 +187,16 @@ class AccountAdminController extends AdminController
     }
 
     // ----------------------------------------------------------------
-    // POST /admin/comptes/{id}/restaurer  (admin + super_admin)
+    // POST /admin/comptes/{id}/annuler-suppression  (admin + super_admin)
     // ----------------------------------------------------------------
 
     /**
-     * Restaure un compte soft-deleted à la demande du client (fenêtre J+30 uniquement).
+     * Annule la suppression programmée d'un compte en alerte inactivité (avant soft-delete).
      *
      * @param array<string, mixed> $params Paramètres de route (id)
      * @return void
      */
-    public function restore(array $params): void
+    public function cancelDeletion(array $params): void
     {
         $adminUser = $this->requireAdmin();
 
@@ -207,16 +207,10 @@ class AccountAdminController extends AdminController
 
         $id      = (int) $params['id'];
         $account = new AccountModel();
-        $row     = $account->findDeletedById($id);
+        $row     = $account->findCancellableById($id);
 
         if (!$row) {
-            $this->flash('error', "Compte #{$id} introuvable ou non supprimé.");
-            Response::redirect(self::REDIRECT_ACCOUNTS);
-        }
-
-        $scheduledAt = $row['scheduled_deletion_at'] ?? null;
-        if ($scheduledAt === null || strtotime((string) $scheduledAt) <= time()) {
-            $this->flash('error', "Compte #{$id} déjà anonymisé — restauration impossible.");
+            $this->flash('error', "Compte #{$id} introuvable ou non en alerte inactivité.");
             Response::redirect(self::REDIRECT_ACCOUNTS);
         }
 
@@ -224,7 +218,7 @@ class AccountAdminController extends AdminController
 
         AuditLogger::log(
             $adminUser['id'],
-            'account.admin_restore',
+            'account.admin_cancel_deletion',
             'account',
             $id,
             ['email' => $row['email'] ?? ''],
@@ -238,12 +232,12 @@ class AccountAdminController extends AdminController
 
         try {
             $mail = $this->newMailService();
-            $mail->sendAccountRestoredByAdmin($row['email'], $displayName ?: 'Client', $lang);
+            $mail->sendAccountDeletionCancelled($row['email'], $displayName ?: 'Client', $lang);
         } catch (\Throwable $e) {
             \Core\ErrorLogger::warning($e);
         }
 
-        $this->flash('success', "Compte #{$id} ({$row['email']}) restauré — email de confirmation envoyé.");
+        $this->flash('success', "Suppression annulée pour compte #{$id} ({$row['email']}).");
         Response::redirect(self::REDIRECT_ACCOUNTS);
     }
 

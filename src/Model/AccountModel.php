@@ -97,6 +97,22 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
     }
 
     /**
+     * Retourne un compte en alerte inactivité annulable (warning envoyé, non encore soft-deleted).
+     * Les comptes soft-deleted (suppression à la demande explicite) ne sont pas annulables par admin.
+     *
+     * @param int $id Identifiant du compte
+     * @return array<string, mixed>|false
+     */
+    public function findCancellableById(int $id): array|false
+    {
+        $row = $this->db->fetchOne(
+            $this->withProfile() . " WHERE a.id = ? AND a.deleted_at IS NULL AND a.inactivity_warning_sent_at IS NOT NULL",
+            [$id]
+        );
+        return is_array($row) ? $this->decryptRow($row) : $row;
+    }
+
+    /**
      * Déchiffre les colonnes sensibles d'un compte retourné par la BDD.
      *
      * @param array<string, mixed> $row Ligne brute issue d'un SELECT
@@ -1236,13 +1252,12 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
             $where .= $join($where) . ' (SELECT COUNT(*) FROM orders o WHERE o.user_id = a.id AND o.status NOT IN (\'cancelled\', \'refunded\')) = 0';
         }
 
-        // deleted_at IS NULL déjà posé par buildAdminFilters sauf pour 'deleted'
         if ($activity === 'active') {
-            $where .= $join($where) . ' a.last_login_at >= DATE_SUB(NOW(), INTERVAL 3 YEAR)';
+            $where .= $join($where) . ' a.deleted_at IS NULL AND a.last_login_at >= DATE_SUB(NOW(), INTERVAL 3 YEAR)';
         } elseif ($activity === 'inactive') {
-            $where .= $join($where) . ' (a.last_login_at IS NULL OR a.last_login_at < DATE_SUB(NOW(), INTERVAL 3 YEAR))';
+            $where .= $join($where) . ' a.deleted_at IS NULL AND (a.last_login_at IS NULL OR a.last_login_at < DATE_SUB(NOW(), INTERVAL 3 YEAR))';
         } elseif ($activity === 'warning') {
-            $where .= $join($where) . ' a.inactivity_warning_sent_at IS NOT NULL';
+            $where .= $join($where) . ' a.deleted_at IS NULL AND a.inactivity_warning_sent_at IS NOT NULL';
         } elseif ($activity === 'deleted') {
             $where .= $join($where) . ' a.deleted_at IS NOT NULL';
         }
@@ -1635,8 +1650,8 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
 
     private function buildAdminFilters(?string $role, ?string $search, ?string $type = null, ?string $activity = null): array
     {
-        // Exclut les supprimés par défaut — sauf si on filtre explicitement sur 'deleted'
-        $conds  = $activity === 'deleted' ? [] : ['a.deleted_at IS NULL'];
+        // Sans filtre activity → tous les comptes (supprimés et anonymisés inclus)
+        $conds  = [];
         $params = [];
 
         $validRoles = ['customer', 'admin', 'super_admin'];

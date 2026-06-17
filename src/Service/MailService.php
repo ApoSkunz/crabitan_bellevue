@@ -3291,6 +3291,56 @@ INNER;
      * @param string $lang Langue du compte (fr|en)
      * @return void
      */
+    /**
+     * Notifie l'utilisateur que la suppression programmée de son compte a été annulée par un admin.
+     *
+     * @param string $to   Adresse email du destinataire
+     * @param string $name Prénom ou raison sociale
+     * @param string $lang Langue du compte ('fr' ou 'en')
+     * @return void
+     */
+    public function sendAccountDeletionCancelled(string $to, string $name, string $lang): void
+    {
+        $this->setMailType('cron_inactivity');
+        $this->applySmtpConfig(MailChannel::SECURITY);
+        $safeName = htmlspecialchars($name, ENT_QUOTES);
+        $safeDate = htmlspecialchars(date(self::DATE_FORMAT_FR), ENT_QUOTES);
+
+        if ($lang === 'fr') {
+            $subject = 'Suppression de compte annulée — Crabitan Bellevue';
+            $message = "Suite à votre demande, la suppression programmée de votre compte a été "
+                . "<strong>annulée le {$safeDate}</strong>.<br><br>"
+                . "Votre compte reste actif. Aucune action supplémentaire n'est requise de votre part.<br><br>"
+                . '<p style="font-size:12px;color:#8a7a60;margin-top:16px;">'
+                . 'Si vous n\'êtes pas à l\'origine de cette demande, contactez-nous immédiatement '
+                . 'à <a href="mailto:' . htmlspecialchars($_ENV['CONTACT_OWNER_EMAIL'] ?? '', ENT_QUOTES) . '" '
+                . 'style="color:#c9a84c;">' . htmlspecialchars($_ENV['CONTACT_OWNER_EMAIL'] ?? '', ENT_QUOTES) . '</a>.'
+                . '</p>';
+            $body = $this->emailSimpleLayout('Suppression annulée', "Bonjour {$safeName},", $message, 'fr');
+        } else {
+            $subject = 'Account deletion cancelled — Crabitan Bellevue';
+            $message = "Following your request, the scheduled deletion of your account has been "
+                . "<strong>cancelled on {$safeDate}</strong>.<br><br>"
+                . "Your account remains active. No further action is required on your part.<br><br>"
+                . '<p style="font-size:12px;color:#8a7a60;margin-top:16px;">'
+                . 'If you did not request this, please contact us immediately at '
+                . '<a href="mailto:' . htmlspecialchars($_ENV['CONTACT_OWNER_EMAIL'] ?? '', ENT_QUOTES) . '" '
+                . 'style="color:#c9a84c;">' . htmlspecialchars($_ENV['CONTACT_OWNER_EMAIL'] ?? '', ENT_QUOTES) . '</a>.'
+                . '</p>';
+            $body = $this->emailSimpleLayout('Deletion cancelled', "Hello {$safeName},", $message, 'en');
+        }
+
+        $this->send($to, $name, $subject, $body);
+    }
+
+    /**
+     * Notifie l'utilisateur que son compte soft-deleted a été restauré par un admin.
+     *
+     * @param string $to   Adresse email du destinataire
+     * @param string $name Prénom ou raison sociale
+     * @param string $lang Langue du compte ('fr' ou 'en')
+     * @return void
+     */
     public function sendAccountRestoredByAdmin(string $to, string $name, string $lang): void
     {
         $this->setMailType('cron_inactivity');

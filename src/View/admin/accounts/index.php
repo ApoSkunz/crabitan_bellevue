@@ -200,9 +200,16 @@ function accountUrl( // NOSONAR — php:S107 : params nécessaires pour reconstr
                         </td>
                         <td class="col-hide-tablet u-text-9" data-label="Activité">
                             <?php
-                            if (!empty($account['deleted_at'])) {
+                            $scheduledAt  = $account['scheduled_deletion_at'] ?? null;
+                            $isDeleted    = !empty($account['deleted_at']);
+                            $isWarning    = !$isDeleted && !empty($account['inactivity_warning_sent_at']);
+                            $canCancel    = $isWarning && $scheduledAt !== null && strtotime((string) $scheduledAt) > time();
+                            $daysLeft     = ($canCancel && $scheduledAt !== null)
+                                ? (int) ceil((strtotime((string) $scheduledAt) - time()) / 86400)
+                                : 0;
+                            if ($isDeleted) {
                                 echo '<span class="u-text-error">Supprimé</span>';
-                            } elseif (!empty($account['inactivity_warning_sent_at'])) {
+                            } elseif ($isWarning) {
                                 echo '<span class="u-text-warning" title="Alerte envoyée le ' . htmlspecialchars(date('d/m/Y', strtotime((string) $account['inactivity_warning_sent_at']))) . '">⚠ Alerte</span>';
                             } else {
                                 $lastConn = $account['last_connection'] ?? null;
@@ -211,28 +218,24 @@ function accountUrl( // NOSONAR — php:S107 : params nécessaires pour reconstr
                                     ? '<span class="u-text-green">Actif</span>'
                                     : '<span class="u-text-soft">Inactif</span>';
                             }
+                            if ($canCancel) :
                             ?>
+                                <br>
+                                <form method="POST"
+                                      action="/admin/comptes/<?= (int) $account['id'] ?>/annuler-suppression"
+                                      class="u-inline-block"
+                                      data-admin-confirm="Annuler la suppression du compte <?= htmlspecialchars($account['email']) ?> ? (<?= $daysLeft ?> j restants avant anonymisation)">
+                                    <input type="hidden" name="csrf_token"
+                                           value="<?= htmlspecialchars($_SESSION['csrf'] ?? '') ?>">
+                                    <button type="submit" class="admin-btn admin-btn--verify admin-btn--sm u-mt-4">
+                                        Annuler suppression
+                                    </button>
+                                </form>
+                            <?php endif; ?>
                         </td>
                         <td class="u-nowrap">
                             <?php
-                            $scheduledAt = $account['scheduled_deletion_at'] ?? null;
-                            $canRestore  = !empty($account['deleted_at'])
-                                && $scheduledAt !== null
-                                && strtotime((string) $scheduledAt) > time();
-                            if ($canRestore) :
-                                $daysLeft = (int) ceil((strtotime((string) $scheduledAt) - time()) / 86400);
-                            ?>
-                                <form method="POST"
-                                      action="/admin/comptes/<?= (int) $account['id'] ?>/restaurer"
-                                      class="u-inline-block"
-                                      data-admin-confirm="Restaurer le compte <?= htmlspecialchars($account['email']) ?> ? (<?= $daysLeft ?> j restants avant anonymisation)">
-                                    <input type="hidden" name="csrf_token"
-                                           value="<?= htmlspecialchars($_SESSION['csrf'] ?? '') ?>">
-                                    <button type="submit" class="admin-btn admin-btn--verify admin-btn--sm">
-                                        Restaurer
-                                    </button>
-                                </form>
-                            <?php elseif (!$verified) : ?>
+                            if (!$verified) : ?>
                                 <form method="POST"
                                       action="/admin/comptes/<?= (int) $account['id'] ?>/verifier"
                                       class="u-inline-block"
