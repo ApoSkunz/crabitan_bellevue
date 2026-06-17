@@ -743,7 +743,8 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
             "UPDATE {$this->table}
              SET deleted_at = NULL,
                  scheduled_deletion_at = NULL,
-                 reactivation_token = NULL
+                 reactivation_token = NULL,
+                 inactivity_warning_sent_at = NULL
              WHERE id = ?",
             [$id]
         );

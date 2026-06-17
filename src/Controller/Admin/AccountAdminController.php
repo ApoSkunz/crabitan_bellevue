@@ -231,7 +231,19 @@ class AccountAdminController extends AdminController
             AuditLogger::getIp()
         );
 
-        $this->flash('success', "Compte #{$id} ({$row['email']}) restauré avec succès.");
+        $lang        = $row['lang'] ?? 'fr';
+        $displayName = $row['account_type'] === 'company'
+            ? ($row['company_name'] ?? 'Client')
+            : trim(($row['firstname'] ?? '') . ' ' . ($row['lastname'] ?? ''));
+
+        try {
+            $mail = $this->newMailService();
+            $mail->sendAccountRestoredByAdmin($row['email'], $displayName ?: 'Client', $lang);
+        } catch (\Throwable $e) {
+            \Core\ErrorLogger::warning($e);
+        }
+
+        $this->flash('success', "Compte #{$id} ({$row['email']}) restauré — email de confirmation envoyé.");
         Response::redirect(self::REDIRECT_ACCOUNTS);
     }
 
