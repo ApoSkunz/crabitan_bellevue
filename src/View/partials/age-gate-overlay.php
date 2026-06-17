@@ -18,27 +18,29 @@ $exitUrl = (!empty($httpReferer) && !str_starts_with($httpReferer, $siteOrigin))
 ?>
 <div class="age-overlay" id="age-overlay" role="dialog" aria-modal="true" aria-labelledby="age-overlay-title">
 
-    <nav class="age-gate__lang" aria-label="Langue / Language">
-        <?php foreach (['fr', 'en'] as $l) : ?>
-        <a
-            href="<?= htmlspecialchars($langUri($l, $currentUri)) ?>"
-            lang="<?= htmlspecialchars($l) ?>"
-            class="<?= $l === $overlayLang ? 'active' : '' ?>"
-            <?= $l === $overlayLang ? 'aria-current="true"' : '' ?>
-        ><?= strtoupper($l) ?></a>
-        <?php endforeach; ?>
-    </nav>
+    <div class="age-overlay__header">
+        <nav class="age-gate__lang" aria-label="Langue / Language">
+            <?php foreach (['fr', 'en'] as $l) : ?>
+            <a
+                href="<?= htmlspecialchars($langUri($l, $currentUri)) ?>"
+                lang="<?= htmlspecialchars($l) ?>"
+                class="<?= $l === $overlayLang ? 'active' : '' ?>"
+                <?= $l === $overlayLang ? 'aria-current="true"' : '' ?>
+            ><?= strtoupper($l) ?></a>
+            <?php endforeach; ?>
+        </nav>
 
-    <div class="age-gate__topbar">
-        <button
-            id="theme-toggle"
-            class="theme-toggle"
-            type="button"
-            aria-label="<?= __('common.toggle_theme') ?>"
-        >
-            <span class="icon-sun" aria-hidden="true">&#9728;</span>
-            <span class="icon-moon" aria-hidden="true">&#9790;</span>
-        </button>
+        <div class="age-gate__topbar">
+            <button
+                id="theme-toggle"
+                class="theme-toggle"
+                type="button"
+                aria-label="<?= __('common.toggle_theme') ?>"
+            >
+                <span class="icon-sun" aria-hidden="true">&#9728;</span>
+                <span class="icon-moon" aria-hidden="true">&#9790;</span>
+            </button>
+        </div>
     </div>
 
     <main class="age-gate" role="main">
