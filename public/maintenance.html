@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="refresh" content="30">
     <meta name="robots" content="noindex, nofollow">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>Maintenance — Château Crabitan Bellevue</title>
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -35,7 +35,7 @@
             --shadow:      0 12px 48px rgba(0, 0, 0, 0.5);
         }
 
-        html, body { height: 100%; }
+        html, body { min-height: 100dvh; }
 
         body {
             background: var(--bg);
@@ -44,10 +44,15 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 2rem;
+            /* safe-area-inset-* : Dynamic Island iPhone 17, encoche, home indicator */
+            padding: calc(env(safe-area-inset-top, 0px) + 1.5rem)
+                     calc(env(safe-area-inset-right, 0px) + 1.5rem)
+                     calc(env(safe-area-inset-bottom, 0px) + 1.5rem)
+                     calc(env(safe-area-inset-left, 0px) + 1.5rem);
             transition: background-color 0.25s, color 0.25s;
             position: relative;
-            overflow: hidden;
+            /* clip sans BFC — préserve position:fixed du theme-toggle sur iOS Safari */
+            overflow-x: clip;
         }
 
         body::before,
@@ -67,8 +72,8 @@
 
         .theme-toggle {
             position: fixed;
-            top: 1.25rem;
-            right: 1.25rem;
+            top: calc(1.25rem + env(safe-area-inset-top, 0px));
+            right: calc(1.25rem + env(safe-area-inset-right, 0px));
             background: var(--surface);
             border: 1px solid var(--border-gold);
             border-radius: 50%;
@@ -283,8 +288,52 @@
         }
 
         @media (max-width: 480px) {
-            .card { padding: 2.5rem 1.5rem 2rem; }
-            .ornament { width: 60px; height: 60px; }
+            .card {
+                padding: 2rem 1.25rem 1.5rem;
+            }
+            .glass {
+                width: 70px;
+                height: 95px;
+                margin-bottom: 1rem;
+            }
+            .monogram {
+                font-size: 1.6rem;
+                margin-bottom: 0.15rem;
+            }
+            .subtitle {
+                font-size: 0.78rem;
+                margin-bottom: 1.25rem;
+            }
+            .divider {
+                margin-bottom: 1.25rem;
+            }
+            h1 {
+                font-size: 1.1rem;
+                margin-bottom: 0.75rem;
+            }
+            .message {
+                font-size: 0.9rem;
+                margin-bottom: 0.5rem;
+            }
+            .message-en {
+                font-size: 0.8rem;
+            }
+            .contact {
+                margin-top: 1.25rem;
+                padding: 0.75rem 1rem;
+                font-size: 0.82rem;
+            }
+            .brand {
+                margin-top: 1.5rem;
+                padding-top: 1rem;
+                font-size: 0.65rem;
+            }
+        }
+
+        /* iPhone SE (375×667) et très petits écrans */
+        @media (max-width: 375px) {
+            .glass { display: none; }
+            .card { padding: 1.5rem 1rem 1.25rem; }
         }
 
         @media (prefers-reduced-motion: reduce) {
