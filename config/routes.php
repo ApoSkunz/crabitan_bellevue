@@ -24,6 +24,7 @@ $router->get('/admin/comptes', 'Admin\AccountAdminController@index');
 $router->post('/admin/comptes/{id}/verifier', 'Admin\AccountAdminController@verify');
 $router->post('/admin/comptes/{id}/reset-password', 'Admin\AccountAdminController@resetPassword');
 $router->post('/admin/comptes/{id}/annuler-suppression', 'Admin\AccountAdminController@cancelDeletion');
+$router->post('/admin/comptes/{id}/restaurer', 'Admin\AccountAdminController@restore');
 $router->get('/admin/tarifs', 'Admin\PricingAdminController@index');
 $router->post('/admin/tarifs', 'Admin\PricingAdminController@update');
 $router->post('/admin/tarifs/click-collect', 'Admin\PricingAdminController@updateClickCollect');

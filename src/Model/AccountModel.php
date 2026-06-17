@@ -97,8 +97,22 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
     }
 
     /**
+     * Retourne un compte soft-deleted restaurable par l'admin (dans la fenêtre J+30 avant anonymisation).
+     *
+     * @param int $id Identifiant du compte
+     * @return array<string, mixed>|false
+     */
+    public function findRestorableById(int $id): array|false
+    {
+        $row = $this->db->fetchOne(
+            $this->withProfile() . " WHERE a.id = ? AND a.deleted_at IS NOT NULL AND a.scheduled_deletion_at > NOW()",
+            [$id]
+        );
+        return is_array($row) ? $this->decryptRow($row) : $row;
+    }
+
+    /**
      * Retourne un compte en alerte inactivité annulable (warning envoyé, non encore soft-deleted).
-     * Les comptes soft-deleted (suppression à la demande explicite) ne sont pas annulables par admin.
      *
      * @param int $id Identifiant du compte
      * @return array<string, mixed>|false

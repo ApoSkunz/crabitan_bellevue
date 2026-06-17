@@ -322,6 +322,57 @@ class AccountModelInactivityTest extends IntegrationTestCase
         $this->assertFalse($result);
     }
 
+    // ── findRestorableById ───────────────────────────────────────────────────
+
+    /**
+     * Retourne un compte soft-deleted dans la fenêtre J+30.
+     */
+    public function testFindRestorableByIdReturnsSoftDeletedInWindow(): void
+    {
+        $id = $this->insertCustomer('restorable.window@test.local');
+        self::$db->execute(
+            "UPDATE accounts SET deleted_at = NOW(),
+             scheduled_deletion_at = DATE_ADD(NOW(), INTERVAL 20 DAY)
+             WHERE id = ?",
+            [$id]
+        );
+
+        $row = $this->model->findRestorableById($id);
+
+        $this->assertIsArray($row);
+        $this->assertSame($id, (int) $row['id']);
+    }
+
+    /**
+     * Retourne false pour un compte soft-deleted dont scheduled_deletion_at est dépassé.
+     */
+    public function testFindRestorableByIdReturnsFalseForExpiredWindow(): void
+    {
+        $id = $this->insertCustomer('restorable.expired@test.local');
+        self::$db->execute(
+            "UPDATE accounts SET deleted_at = DATE_SUB(NOW(), INTERVAL 35 DAY),
+             scheduled_deletion_at = DATE_SUB(NOW(), INTERVAL 5 DAY)
+             WHERE id = ?",
+            [$id]
+        );
+
+        $result = $this->model->findRestorableById($id);
+
+        $this->assertFalse($result);
+    }
+
+    /**
+     * Retourne false pour un compte actif (non soft-deleted).
+     */
+    public function testFindRestorableByIdReturnsFalseForActiveAccount(): void
+    {
+        $id = $this->insertCustomer('restorable.active@test.local');
+
+        $result = $this->model->findRestorableById($id);
+
+        $this->assertFalse($result);
+    }
+
     // ── reactivate (cancelDeletion) ──────────────────────────────────────────
 
     /**

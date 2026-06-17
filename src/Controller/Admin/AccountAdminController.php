@@ -241,6 +241,61 @@ class AccountAdminController extends AdminController
         Response::redirect(self::REDIRECT_ACCOUNTS);
     }
 
+    // ----------------------------------------------------------------
+    // POST /admin/comptes/{id}/restaurer  (admin + super_admin)
+    // ----------------------------------------------------------------
+
+    /**
+     * Restaure un compte soft-deleted dans la fenêtre J+30 avant anonymisation.
+     *
+     * @param array<string, mixed> $params Paramètres de route (id)
+     * @return void
+     */
+    public function restore(array $params): void
+    {
+        $adminUser = $this->requireAdmin();
+
+        if (!$this->verifyCsrf()) {
+            $this->flash('error', 'Token CSRF invalide.');
+            Response::redirect(self::REDIRECT_ACCOUNTS);
+        }
+
+        $id      = (int) $params['id'];
+        $account = new AccountModel();
+        $row     = $account->findRestorableById($id);
+
+        if (!$row) {
+            $this->flash('error', "Compte #{$id} introuvable ou hors fenêtre de restauration (J+30).");
+            Response::redirect(self::REDIRECT_ACCOUNTS);
+        }
+
+        $account->reactivate($id);
+
+        AuditLogger::log(
+            $adminUser['id'],
+            'account.admin_restore',
+            'account',
+            $id,
+            ['email' => $row['email'] ?? ''],
+            AuditLogger::getIp()
+        );
+
+        $lang        = $row['lang'] ?? 'fr';
+        $displayName = $row['account_type'] === 'company'
+            ? ($row['company_name'] ?? 'Client')
+            : trim(($row['firstname'] ?? '') . ' ' . ($row['lastname'] ?? ''));
+
+        try {
+            $mail = $this->newMailService();
+            $mail->sendAccountRestoredByAdmin($row['email'], $displayName ?: 'Client', $lang);
+        } catch (\Throwable $e) {
+            \Core\ErrorLogger::warning($e);
+        }
+
+        $this->flash('success', "Compte #{$id} ({$row['email']}) restauré avec succès.");
+        Response::redirect(self::REDIRECT_ACCOUNTS);
+    }
+
     /**
      * Instancie MailService — seam de testabilité.
      *

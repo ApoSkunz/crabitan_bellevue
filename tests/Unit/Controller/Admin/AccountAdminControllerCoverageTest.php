@@ -526,6 +526,148 @@ class AccountAdminControllerCoverageTest extends TestCase
         $this->assertSame(302, $caught->status);
     }
 
+    // ================================================================
+    // restore — CSRF invalide → flash error + redirect
+    // ================================================================
+
+    /**
+     * restore() flash une erreur et redirige si le CSRF est invalide.
+     */
+    public function testRestoreFlashesErrorOnInvalidCsrf(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+
+        $ctrl            = new TestableAccountAdminController(new \Core\Request());
+        $ctrl->csrfValid = false;
+
+        $caught = null;
+        try {
+            $ctrl->restore(['id' => '1']);
+        } catch (HttpException $e) {
+            $caught = $e;
+        }
+
+        $this->assertNotNull($caught);
+        $this->assertSame(302, $caught->status);
+        $this->assertNotEmpty($ctrl->flashes['error'] ?? []);
+        $this->assertStringContainsString('CSRF', $ctrl->flashes['error'][0]);
+    }
+
+    // ================================================================
+    // restore — compte non restaurable → flash error + redirect
+    // ================================================================
+
+    /**
+     * restore() flash une erreur quand findRestorableById retourne false.
+     */
+    public function testRestoreFlashesErrorForNonRestorable(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+
+        $dbMock = $this->createStub(\Core\Database::class);
+        $dbMock->method('fetchOne')->willReturn(false);
+        $this->dbInstanceProp->setValue(null, $dbMock); // NOSONAR — test unitaire
+
+        $ctrl = new TestableAccountAdminController(new \Core\Request());
+
+        $caught = null;
+        try {
+            $ctrl->restore(['id' => '999']);
+        } catch (HttpException $e) {
+            $caught = $e;
+        }
+
+        $this->assertNotNull($caught);
+        $this->assertSame(302, $caught->status);
+        $errors = $ctrl->flashes['error'] ?? [];
+        $this->assertNotEmpty($errors);
+        $this->assertStringContainsString('introuvable', $errors[0]);
+    }
+
+    // ================================================================
+    // restore — succès nominal → mail envoyé + flash success
+    // ================================================================
+
+    /**
+     * restore() envoie sendAccountRestoredByAdmin et flash un succès.
+     */
+    public function testRestoreFlashesSuccessAndSendsMail(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+
+        $ctrl = $this->makeControllerWithAccount([
+            'id'                    => 50,
+            'email'                 => 'softdeleted@test.com',
+            'lang'                  => 'fr',
+            'account_type'          => 'individual',
+            'firstname'             => 'Paul',
+            'lastname'              => 'Martin',
+            'company_name'          => null,
+            'deleted_at'            => date('Y-m-d H:i:s', strtotime('-5 days')),
+            'scheduled_deletion_at' => date('Y-m-d H:i:s', strtotime('+25 days')),
+        ]);
+
+        $mailMock = $this->createMock(MailService::class);
+        $mailMock->expects($this->once())
+            ->method('sendAccountRestoredByAdmin')
+            ->with('softdeleted@test.com', 'Paul Martin', 'fr');
+        $ctrl->mailMock = $mailMock;
+
+        $caught = null;
+        try {
+            $ctrl->restore(['id' => '50']);
+        } catch (HttpException $e) {
+            $caught = $e;
+        }
+
+        $this->assertNotNull($caught);
+        $this->assertSame(302, $caught->status);
+        $success = $ctrl->flashes['success'] ?? [];
+        $this->assertNotEmpty($success);
+        $this->assertStringContainsString('#50', $success[0]);
+    }
+
+    // ================================================================
+    // restore — mail throws → absorbé, flash success quand même
+    // ================================================================
+
+    /**
+     * restore() absorbe l'exception SMTP et flash quand même un succès.
+     */
+    public function testRestoreAbsorbsMailException(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+
+        $ctrl = $this->makeControllerWithAccount([
+            'id'                    => 51,
+            'email'                 => 'restore.fail@test.com',
+            'lang'                  => 'en',
+            'account_type'          => 'company',
+            'firstname'             => null,
+            'lastname'              => null,
+            'company_name'          => 'Old Corp',
+            'deleted_at'            => date('Y-m-d H:i:s', strtotime('-3 days')),
+            'scheduled_deletion_at' => date('Y-m-d H:i:s', strtotime('+27 days')),
+        ]);
+
+        $mailMock = $this->createMock(MailService::class);
+        $mailMock->method('sendAccountRestoredByAdmin')
+            ->willThrowException(new \RuntimeException('SMTP down'));
+        $ctrl->mailMock = $mailMock;
+
+        $caught = null;
+        try {
+            $ctrl->restore(['id' => '51']);
+        } catch (HttpException $e) {
+            $caught = $e;
+        }
+
+        $this->assertNotNull($caught);
+        $this->assertSame(302, $caught->status);
+        $this->assertNotEmpty($ctrl->flashes['success'] ?? []);
+        $this->assertEmpty($ctrl->flashes['error'] ?? []);
+    }
+
     /**
      * newMailService() seam — invoqué via ReflectionMethod sur la vraie classe.
      * Couvre L180-182.

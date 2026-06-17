@@ -203,9 +203,16 @@ function accountUrl( // NOSONAR — php:S107 : params nécessaires pour reconstr
                             $scheduledAt  = $account['scheduled_deletion_at'] ?? null;
                             $isDeleted    = !empty($account['deleted_at']);
                             $isWarning    = !$isDeleted && !empty($account['inactivity_warning_sent_at']);
-                            $canCancel    = $isWarning && $scheduledAt !== null && strtotime((string) $scheduledAt) > time();
-                            $daysLeft     = ($canCancel && $scheduledAt !== null)
-                                ? (int) ceil((strtotime((string) $scheduledAt) - time()) / 86400)
+                            $warningDate  = $account['inactivity_warning_sent_at'] ?? null;
+                            // canCancel : alerte envoyée, pas encore soft-deleted (scheduled_deletion_at absent à ce stade)
+                            $canCancel    = $isWarning;
+                            $daysLeft     = ($canCancel && $warningDate !== null)
+                                ? max(0, (int) ceil((strtotime((string) $warningDate . ' +30 days') - time()) / 86400))
+                                : 0;
+                            // canRestore : soft-deleted dans la fenêtre J+30 avant anonymisation
+                            $canRestore   = $isDeleted && $scheduledAt !== null && strtotime((string) $scheduledAt) > time();
+                            $daysRestore  = $canRestore
+                                ? max(0, (int) ceil((strtotime((string) $scheduledAt) - time()) / 86400))
                                 : 0;
                             if ($isDeleted) {
                                 echo '<span class="u-text-error">Supprimé</span>';
@@ -229,6 +236,19 @@ function accountUrl( // NOSONAR — php:S107 : params nécessaires pour reconstr
                                            value="<?= htmlspecialchars($_SESSION['csrf'] ?? '') ?>">
                                     <button type="submit" class="admin-btn admin-btn--verify admin-btn--sm u-mt-4">
                                         Annuler suppression
+                                    </button>
+                                </form>
+                            <?php endif; ?>
+                            <?php if ($canRestore) : ?>
+                                <br>
+                                <form method="POST"
+                                      action="/admin/comptes/<?= (int) $account['id'] ?>/restaurer"
+                                      class="u-inline-block"
+                                      data-admin-confirm="Restaurer le compte <?= htmlspecialchars($account['email']) ?> ? (<?= $daysRestore ?> j avant anonymisation définitive)">
+                                    <input type="hidden" name="csrf_token"
+                                           value="<?= htmlspecialchars($_SESSION['csrf'] ?? '') ?>">
+                                    <button type="submit" class="admin-btn admin-btn--reset admin-btn--sm u-mt-4">
+                                        Restaurer
                                     </button>
                                 </form>
                             <?php endif; ?>
