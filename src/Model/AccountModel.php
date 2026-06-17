@@ -1191,12 +1191,12 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
         $params[] = $offset;
 
         $orderBy = match ($filters->sort) {
-            'created_at_asc'         => 'a.created_at ASC',
-            'last_connection_desc'   => 'a.last_login_at DESC',
-            'last_connection_asc'    => 'a.last_login_at ASC',
-            'order_count_desc'       => 'order_count DESC',
-            'order_count_asc'        => 'order_count ASC',
-            default                  => 'a.created_at DESC',
+            'created_at_asc'         => 'a.created_at ASC, a.id ASC',
+            'last_connection_desc'   => 'a.last_login_at DESC, a.id ASC',
+            'last_connection_asc'    => 'a.last_login_at ASC, a.id ASC',
+            'order_count_desc'       => 'order_count DESC, a.id ASC',
+            'order_count_asc'        => 'order_count ASC, a.id ASC',
+            default                  => 'a.id ASC',
         };
 
         return $this->db->fetchAll(
