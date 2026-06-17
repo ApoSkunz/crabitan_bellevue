@@ -214,7 +214,25 @@ function accountUrl( // NOSONAR — php:S107 : params nécessaires pour reconstr
                             ?>
                         </td>
                         <td class="u-nowrap">
-                            <?php if (!$verified) : ?>
+                            <?php
+                            $scheduledAt = $account['scheduled_deletion_at'] ?? null;
+                            $canRestore  = !empty($account['deleted_at'])
+                                && $scheduledAt !== null
+                                && strtotime((string) $scheduledAt) > time();
+                            if ($canRestore) :
+                                $daysLeft = (int) ceil((strtotime((string) $scheduledAt) - time()) / 86400);
+                            ?>
+                                <form method="POST"
+                                      action="/admin/comptes/<?= (int) $account['id'] ?>/restaurer"
+                                      class="u-inline-block"
+                                      data-admin-confirm="Restaurer le compte <?= htmlspecialchars($account['email']) ?> ? (<?= $daysLeft ?> j restants avant anonymisation)">
+                                    <input type="hidden" name="csrf_token"
+                                           value="<?= htmlspecialchars($_SESSION['csrf'] ?? '') ?>">
+                                    <button type="submit" class="admin-btn admin-btn--verify admin-btn--sm">
+                                        Restaurer
+                                    </button>
+                                </form>
+                            <?php elseif (!$verified) : ?>
                                 <form method="POST"
                                       action="/admin/comptes/<?= (int) $account['id'] ?>/verifier"
                                       class="u-inline-block"

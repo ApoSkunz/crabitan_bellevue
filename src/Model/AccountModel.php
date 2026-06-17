@@ -82,6 +82,21 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
     }
 
     /**
+     * Trouve un compte soft-deleted par son identifiant (pour restauration admin).
+     *
+     * @param int $id Identifiant du compte
+     * @return array<string, mixed>|false
+     */
+    public function findDeletedById(int $id): array|false
+    {
+        $row = $this->db->fetchOne(
+            $this->withProfile() . " WHERE a.id = ? AND a.deleted_at IS NOT NULL",
+            [$id]
+        );
+        return is_array($row) ? $this->decryptRow($row) : $row;
+    }
+
+    /**
      * Déchiffre les colonnes sensibles d'un compte retourné par la BDD.
      *
      * @param array<string, mixed> $row Ligne brute issue d'un SELECT
@@ -1177,7 +1192,8 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
         return $this->db->fetchAll(
             "SELECT a.id, a.email, a.account_type, a.role, a.lang, a.newsletter,
                     a.email_verified_at, a.has_connected, a.created_at, a.deleted_at,
-                    a.is_blocked, a.last_login_at AS last_connection, a.inactivity_warning_sent_at,
+                    a.is_blocked, a.last_login_at AS last_connection,
+                    a.inactivity_warning_sent_at, a.scheduled_deletion_at,
                     ai.lastname, ai.firstname, ai.civility,
                     ac.company_name, ac.siret,
                     (a.password IS NOT NULL) AS has_password,

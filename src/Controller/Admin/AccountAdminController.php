@@ -186,6 +186,55 @@ class AccountAdminController extends AdminController
         Response::redirect(self::REDIRECT_ACCOUNTS);
     }
 
+    // ----------------------------------------------------------------
+    // POST /admin/comptes/{id}/restaurer  (admin + super_admin)
+    // ----------------------------------------------------------------
+
+    /**
+     * Restaure un compte soft-deleted à la demande du client (fenêtre J+30 uniquement).
+     *
+     * @param array<string, mixed> $params Paramètres de route (id)
+     * @return void
+     */
+    public function restore(array $params): void
+    {
+        $adminUser = $this->requireAdmin();
+
+        if (!$this->verifyCsrf()) {
+            $this->flash('error', 'Token CSRF invalide.');
+            Response::redirect(self::REDIRECT_ACCOUNTS);
+        }
+
+        $id      = (int) $params['id'];
+        $account = new AccountModel();
+        $row     = $account->findDeletedById($id);
+
+        if (!$row) {
+            $this->flash('error', "Compte #{$id} introuvable ou non supprimé.");
+            Response::redirect(self::REDIRECT_ACCOUNTS);
+        }
+
+        $scheduledAt = $row['scheduled_deletion_at'] ?? null;
+        if ($scheduledAt === null || strtotime((string) $scheduledAt) <= time()) {
+            $this->flash('error', "Compte #{$id} déjà anonymisé — restauration impossible.");
+            Response::redirect(self::REDIRECT_ACCOUNTS);
+        }
+
+        $account->reactivate($id);
+
+        AuditLogger::log(
+            $adminUser['id'],
+            'account.admin_restore',
+            'account',
+            $id,
+            ['email' => $row['email'] ?? ''],
+            AuditLogger::getIp()
+        );
+
+        $this->flash('success', "Compte #{$id} ({$row['email']}) restauré avec succès.");
+        Response::redirect(self::REDIRECT_ACCOUNTS);
+    }
+
     /**
      * Instancie MailService — seam de testabilité.
      *
