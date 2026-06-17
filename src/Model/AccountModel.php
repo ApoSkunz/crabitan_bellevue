@@ -744,7 +744,8 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
              SET deleted_at = NULL,
                  scheduled_deletion_at = NULL,
                  reactivation_token = NULL,
-                 inactivity_warning_sent_at = NULL
+                 inactivity_warning_sent_at = NULL,
+                 manually_reactivated_at = NOW()
              WHERE id = ?",
             [$id]
         );
@@ -898,6 +899,10 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
              WHERE a.role = 'customer'
                AND a.deleted_at IS NULL
                AND a.inactivity_warning_sent_at IS NULL
+               AND (
+                   a.manually_reactivated_at IS NULL
+                   OR (a.last_login_at IS NOT NULL AND a.last_login_at >= a.manually_reactivated_at)
+               )
                AND NOT EXISTS (
                    SELECT 1 FROM orders o
                    WHERE o.user_id = a.id AND o.status IN ('pending', 'processing')
@@ -925,6 +930,10 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
                AND a.deleted_at IS NULL
                AND a.inactivity_warning_sent_at IS NOT NULL
                AND a.inactivity_warning_sent_at < DATE_SUB(NOW(), INTERVAL 30 DAY)
+               AND (
+                   a.manually_reactivated_at IS NULL
+                   OR (a.last_login_at IS NOT NULL AND a.last_login_at >= a.manually_reactivated_at)
+               )
                AND NOT EXISTS (
                    SELECT 1 FROM connections c
                    WHERE c.user_id = a.id AND c.created_at > a.inactivity_warning_sent_at
