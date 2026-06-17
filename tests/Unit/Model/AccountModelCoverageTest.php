@@ -1169,4 +1169,85 @@ class AccountModelCoverageTest extends TestCase
         $this->assertSame('garbled_enc_email', $result['email_change_new_email']);
         $this->assertSame('garbled_enc_ip', $result['majority_declared_ip']);
     }
+
+    // ----------------------------------------------------------------
+    // findDeletedById — retourne le compte / false
+    // ----------------------------------------------------------------
+
+    /**
+     * findDeletedById retourne le compte quand trouvé.
+     */
+    public function testFindDeletedByIdReturnsRowWhenFound(): void
+    {
+        $this->dbMock->method('fetchOne')->willReturn(['id' => 10, 'email' => 'del@test.local']);
+
+        $result = $this->model->findDeletedById(10);
+
+        $this->assertIsArray($result);
+        $this->assertSame(10, $result['id']);
+    }
+
+    /**
+     * findDeletedById retourne false quand aucun résultat.
+     */
+    public function testFindDeletedByIdReturnsFalseWhenNotFound(): void
+    {
+        $this->dbMock->method('fetchOne')->willReturn(false);
+
+        $this->assertFalse($this->model->findDeletedById(99));
+    }
+
+    // ----------------------------------------------------------------
+    // findRestorableById — retourne le compte / false
+    // ----------------------------------------------------------------
+
+    /**
+     * findRestorableById retourne le compte dans la fenêtre J+30.
+     */
+    public function testFindRestorableByIdReturnsRowWhenInWindow(): void
+    {
+        $this->dbMock->method('fetchOne')->willReturn(['id' => 20, 'email' => 'restore@test.local']);
+
+        $result = $this->model->findRestorableById(20);
+
+        $this->assertIsArray($result);
+        $this->assertSame(20, $result['id']);
+    }
+
+    /**
+     * findRestorableById retourne false hors fenêtre ou compte actif.
+     */
+    public function testFindRestorableByIdReturnsFalseWhenNotRestorable(): void
+    {
+        $this->dbMock->method('fetchOne')->willReturn(false);
+
+        $this->assertFalse($this->model->findRestorableById(99));
+    }
+
+    // ----------------------------------------------------------------
+    // findCancellableById — retourne le compte / false
+    // ----------------------------------------------------------------
+
+    /**
+     * findCancellableById retourne le compte en alerte inactivité.
+     */
+    public function testFindCancellableByIdReturnsRowWhenWarning(): void
+    {
+        $this->dbMock->method('fetchOne')->willReturn(['id' => 30, 'email' => 'cancel@test.local']);
+
+        $result = $this->model->findCancellableById(30);
+
+        $this->assertIsArray($result);
+        $this->assertSame(30, $result['id']);
+    }
+
+    /**
+     * findCancellableById retourne false pour un compte actif sans alerte.
+     */
+    public function testFindCancellableByIdReturnsFalseForActiveAccount(): void
+    {
+        $this->dbMock->method('fetchOne')->willReturn(false);
+
+        $this->assertFalse($this->model->findCancellableById(99));
+    }
 }
