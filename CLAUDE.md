@@ -2,9 +2,7 @@
 
 ## Style de communication
 
-**Plugin `/caveman` actif en mode `full` par défaut.**
-
-Appliquer les règles caveman full à chaque réponse. Voir le plugin pour la définition complète.
+Réponses concises et directes. Pas de fioritures ni de récapitulatifs inutiles. Technique précis.
 
 **Exceptions — réponses normales, structurées, avec contexte :**
 - Discussions backlog et rédaction d'US
@@ -197,6 +195,7 @@ Avant toute implémentation, **demander explicitement la validation d'Alexandre*
 **Exceptions** (pas de consultation requise) :
 - Corrections de sécurité identifiées sur du code existant (vecteur exploitable immédiatement)
 - Corrections de syntaxe / linter / tests cassés bloquant la CI
+- Corrections de bugs dont la cause racine est clairement identifiée (pas de périmètre ambigu)
 
 ### 1. Approche tests
 
@@ -242,12 +241,11 @@ vendor/bin/phpunit tests/Unit/
 
 # Tests intégration (nécessite BDD active)
 vendor/bin/phpunit tests/Integration/
-
-# Tests E2E (nécessite serveur XAMPP actif sur APP_URL)
-npx playwright test
 ```
 
 Rapporter ✅ ou les erreurs complètes. Si tout est vert, attendre le mot **"go push"**.
+
+> **E2E avant push** : non obligatoire (XAMPP requis, trop long en local). Les specs Playwright sont déclenchées séparément quand Alexandre dit **"mes tests sont OK"**.
 
 ### 4. Parallélisation des actions
 
@@ -326,6 +324,8 @@ Un seul fichier modifié peut faire l'objet d'un commit séparé si son changeme
 
 > `database/migrations/` est gitignored — seul `schema.sql` est versionné. Sans cette règle, les colonnes manquent en local et les TI échouent silencieusement.
 
+**Convention de nommage des migrations :** `db_crabitan_mig_NNN.sql` (séquentiel, ex. `db_crabitan_mig_007.sql`). Jamais de date dans le nom. À appliquer en local puis relancer `schema.sql` pour synchroniser.
+
 ---
 
 ## Scripts cron et utilitaires (`bin/`)
@@ -364,7 +364,7 @@ Ces règles ne souffrent **aucune exception** :
 | Interdit | Raison |
 |---|---|
 | `--no-verify` | Contourne les hooks de qualité |
-| `git push --force` sur `main` | Écrase l'historique partagé |
+| `git push --force` sur `main` (par Claude) | Écrase l'historique partagé — Alexandre peut l'exécuter lui-même si nécessaire |
 | Amender un commit déjà pushé | Réécrit l'historique distant |
 | `git add .` en bloc | Risque d'inclure `.env`, fichiers sensibles ou binaires |
 | Merger sans revue Red/Blue Team si faille détectée | Introduit une vulnérabilité en production |
@@ -447,16 +447,7 @@ Ne jamais ignorer un besoin en supposant qu'il sera tracé plus tard.
 
 ### Audits finaux
 
-Les 4 audits suivants sont à réaliser **en dernier**, après que tous les EPICs fonctionnels sont `✅ Claude`. Ils s'exécutent dans cet ordre :
-
-| Audit | Enabler | Expert | Fichier cible |
-|---|---|---|---|
-| BDD | `audit-bdd/` | Architecte BDD MySQL | `private-docs/audits/DB/audit-bdd.md` |
-| Génie Logiciel | `audit-genie-logiciel/` | Architecte Génie Logicielle | `private-docs/audits/GL/audit-gl.md` |
-| QA | `audit-qa/` | Expert QA | `private-docs/audits/QA/audit-qa.md` |
-| Cybersécurité | `audit-cyber/` | Expert Red Team → Blue Team | `private-docs/audits/Cyber/audit-cyber.md` |
-
-L'audit cyber reste le tout dernier — il valide l'ensemble avant déploiement.
+Les 4 audits (BDD, GL, QA, Cyber) ont été réalisés et sont en maintenance continue. Pas de séquençage imposé — relancer un audit à la demande (nouvel EPIC, refactoring majeur, avant une release significative). Fichiers cibles dans `private-docs/audits/` (voir section dédiée ci-dessous).
 
 ---
 
