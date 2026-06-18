@@ -2,6 +2,13 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+## [1.33.2](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.33.1...v1.33.2) (2026-06-18)
+
+
+### Bug Fixes
+
+* **admin:** conserver le filtre activity dans les liens de pagination comptes ([581ef42](https://github.com/ApoSkunz/crabitan_bellevue/commit/581ef428588a7daedc7332fdec67a8f624afcc85))
+
 ## [1.33.1](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.33.0...v1.33.1) (2026-06-18)
 
 
