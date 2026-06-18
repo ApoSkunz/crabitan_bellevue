@@ -546,11 +546,9 @@ body:has(.age-overlay) {
 }
 
 // Micro-footer légal — liens politique de confidentialité et mentions légales
+// position:fixed uniquement sur desktop (≥ 576px) — sur mobile, position:static dans le flux
+// (cascade fix : la règle position:fixed venant APRÈS le @media(max-width:575px) l'écrasait)
 .age-gate__legal-footer {
-    position: fixed;
-    bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
-    left: 0;
-    right: 0;
     display: flex;
     justify-content: center;
     gap: 0.75rem;
@@ -571,5 +569,14 @@ body:has(.age-overlay) {
     span {
         color: var(--color-text-muted);
         opacity: 0.4;
+    }
+}
+
+@media (min-width: 576px) {
+    .age-gate__legal-footer {
+        position: fixed;
+        bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+        left: 0;
+        right: 0;
     }
 }
