@@ -295,12 +295,21 @@
 }
 
 @media (max-width: 575px) {
+    // Flex column hauteur exacte du viewport — zéro scroll page, footer toujours visible
     .age-gate-page {
-        overflow: auto;
+        height: 100dvh;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        padding-bottom: env(safe-area-inset-bottom, 0px);
     }
 
     .age-gate {
-        // Mobile : legal-footer redevient statique → plus besoin de réserver 150px en bas
+        // Prend l'espace restant après footer ; scroll interne si carte trop haute (ex. iPhone SE)
+        flex: 1;
+        min-height: 0; // override base min-height:100dvh → ne pas dépasser 100dvh du parent
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
         padding: 3rem 1rem 0.5rem; // top: dégager FR/EN + theme-toggle (fixed top:1rem ~35px)
         gap: 0.75rem;
         justify-content: center;
@@ -310,11 +319,10 @@
         inset: 12px; // sort du mode "réserver le bas pour le banner" ; retour au cadre uniforme
     }
 
-    // Mobile : bascule le footer légal dans le flux pour ne plus chevaucher
-    // les boutons ENTRER / QUITTER de la carte
     .age-gate__legal-footer {
         position: static;
-        margin: 0.5rem auto 0.5rem;
+        flex-shrink: 0;
+        margin: 0.5rem auto;
         padding: 0 1rem;
         flex-wrap: wrap;
         text-align: center;
