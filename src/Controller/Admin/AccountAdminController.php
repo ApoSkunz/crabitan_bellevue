@@ -16,6 +16,7 @@ class AccountAdminController extends AdminController
     private const ALLOWED_PER_PAGE   = [10, 25, 50];
     private const DEFAULT_PER_PAGE   = 10;
     private const REDIRECT_ACCOUNTS  = '/admin/comptes';
+    private const ERR_CSRF           = 'Token CSRF invalide.';
 
     // ----------------------------------------------------------------
     // GET /admin/comptes
@@ -50,7 +51,7 @@ class AccountAdminController extends AdminController
         $hasOrdered    = in_array($hasOrderedReq, ['0', '1'], true) ? $hasOrderedReq : null;
 
         $activityReq = $this->request->get('activity');
-        $activity    = in_array($activityReq, ['active', 'inactive', 'deleted'], true) ? $activityReq : null;
+        $activity    = in_array($activityReq, ['active', 'inactive', 'warning', 'deleted'], true) ? $activityReq : null;
 
         $filters = new AccountAdminFilters(
             role: $role,
@@ -100,7 +101,7 @@ class AccountAdminController extends AdminController
         $adminUser = $this->requireSuperAdmin();
 
         if (!$this->verifyCsrf()) {
-            $this->flash('error', 'Token CSRF invalide.');
+            $this->flash('error', self::ERR_CSRF);
             Response::redirect(self::REDIRECT_ACCOUNTS);
         }
 
@@ -136,7 +137,7 @@ class AccountAdminController extends AdminController
         $adminUser = $this->requireSuperAdmin();
 
         if (!$this->verifyCsrf()) {
-            $this->flash('error', 'Token CSRF invalide.');
+            $this->flash('error', self::ERR_CSRF);
             Response::redirect(self::REDIRECT_ACCOUNTS);
         }
 
@@ -183,6 +184,130 @@ class AccountAdminController extends AdminController
         );
 
         $this->flash('success', "Lien de réinitialisation envoyé à {$row['email']}.");
+        Response::redirect(self::REDIRECT_ACCOUNTS);
+    }
+
+    // ----------------------------------------------------------------
+    // POST /admin/comptes/{id}/annuler-suppression  (admin + super_admin)
+    // ----------------------------------------------------------------
+
+    /**
+     * Annule la suppression programmée d'un compte en alerte inactivité (avant soft-delete).
+     *
+     * @param array<string, mixed> $params Paramètres de route (id)
+     * @return void
+     */
+    public function cancelDeletion(array $params): void
+    {
+        $adminUser = $this->requireAdmin();
+
+        if (!$this->verifyCsrf()) {
+            $this->flash('error', self::ERR_CSRF);
+            Response::redirect(self::REDIRECT_ACCOUNTS);
+        }
+
+        $id  = (int) $params['id'];
+        $row = (new AccountModel())->findCancellableById($id);
+
+        if (!$row) {
+            $this->flash('error', "Compte #{$id} introuvable ou non en alerte inactivité.");
+            Response::redirect(self::REDIRECT_ACCOUNTS);
+        }
+
+        $this->reactivateAndNotify(
+            $id,
+            $adminUser,
+            $row,
+            'account.admin_cancel_deletion',
+            "Suppression annulée pour compte #{$id} ({$row['email']}).",
+            true
+        );
+    }
+
+    // ----------------------------------------------------------------
+    // POST /admin/comptes/{id}/restaurer  (admin + super_admin)
+    // ----------------------------------------------------------------
+
+    /**
+     * Restaure un compte soft-deleted dans la fenêtre J+30 avant anonymisation.
+     *
+     * @param array<string, mixed> $params Paramètres de route (id)
+     * @return void
+     */
+    public function restore(array $params): void
+    {
+        $adminUser = $this->requireAdmin();
+
+        if (!$this->verifyCsrf()) {
+            $this->flash('error', self::ERR_CSRF);
+            Response::redirect(self::REDIRECT_ACCOUNTS);
+        }
+
+        $id  = (int) $params['id'];
+        $row = (new AccountModel())->findRestorableById($id);
+
+        if (!$row) {
+            $this->flash('error', "Compte #{$id} introuvable ou hors fenêtre de restauration (J+30).");
+            Response::redirect(self::REDIRECT_ACCOUNTS);
+        }
+
+        $this->reactivateAndNotify(
+            $id,
+            $adminUser,
+            $row,
+            'account.admin_restore',
+            "Compte #{$id} ({$row['email']}) restauré avec succès.",
+            false
+        );
+    }
+
+    /**
+     * Réactive un compte et envoie la notification email correspondante.
+     *
+     * @param int                  $id             Identifiant du compte
+     * @param array<string, mixed> $adminUser      Données de l'admin connecté
+     * @param array<string, mixed> $row            Données du compte cible
+     * @param string               $auditAction    Libellé d'action pour l'audit log
+     * @param string               $successMsg     Message flash succès
+     * @param bool                 $isCancellation true = annulation suppression, false = restauration
+     * @return void
+     */
+    private function reactivateAndNotify(
+        int $id,
+        array $adminUser,
+        array $row,
+        string $auditAction,
+        string $successMsg,
+        bool $isCancellation
+    ): void {
+        (new AccountModel())->reactivate($id);
+
+        AuditLogger::log(
+            $adminUser['id'],
+            $auditAction,
+            'account',
+            $id,
+            ['email' => $row['email'] ?? ''],
+            AuditLogger::getIp()
+        );
+
+        $lang        = $row['lang'] ?? 'fr';
+        $displayName = $row['account_type'] === 'company'
+            ? ($row['company_name'] ?? 'Client')
+            : trim(($row['firstname'] ?? '') . ' ' . ($row['lastname'] ?? ''));
+
+        try {
+            $mail = $this->newMailService();
+            if ($isCancellation) {
+                $mail->sendAccountDeletionCancelled($row['email'], $displayName ?: 'Client', $lang);
+            } else {
+                $mail->sendAccountRestoredByAdmin($row['email'], $displayName ?: 'Client', $lang);
+            }
+        } catch (\Throwable $e) {
+            \Core\ErrorLogger::warning($e);
+        }
+
+        $this->flash('success', $successMsg);
         Response::redirect(self::REDIRECT_ACCOUNTS);
     }
 

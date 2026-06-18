@@ -179,8 +179,8 @@
 // Sélecteur de langue — coin supérieur gauche de la page (symétrique au theme-toggle)
 .age-gate__lang {
     position: fixed;
-    top: 1rem;
-    left: 1.25rem;
+    top: calc(1rem + env(safe-area-inset-top, 0px));
+    left: calc(1.25rem + env(safe-area-inset-left, 0px));
     display: flex;
     align-items: center;
     gap: 0;
@@ -423,8 +423,8 @@
 
 .age-gate__topbar {
     position: fixed;
-    top: 1rem;
-    right: 1.25rem;
+    top: calc(1rem + env(safe-area-inset-top, 0px));
+    right: calc(1.25rem + env(safe-area-inset-right, 0px));
     z-index: 100;
 }
 
@@ -472,15 +472,48 @@ body:has(.age-overlay) {
     inset: 0;
     z-index: 9000;
     background: var(--color-bg);
-    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    // Dynamic Island (top) + home bar (bottom) — nécessite viewport-fit=cover
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    padding-left: env(safe-area-inset-left, 0px);
 
-    // lang, topbar et legal-footer sont en position:fixed — on remonte leur z-index
-    // pour qu'ils restent visibles au-dessus de l'overlay
+    // Enfants en flux naturel — zéro position:fixed dans un BFC iOS Safari
     .age-gate__lang,
-    .age-gate__topbar,
-    .age-gate__legal-footer {
-        z-index: 9001;
+    .age-gate__topbar {
+        position: static;
+        z-index: auto;
+        top: auto;
+        left: auto;
+        right: auto;
     }
+
+    .age-gate__legal-footer {
+        position: static;
+        z-index: auto;
+        bottom: auto;
+        padding: 0.5rem 0;
+    }
+
+    // Main occupe l'espace restant, scroll interne si contenu dépasse
+    .age-gate {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+}
+
+// Header overlay : lang (gauche) + theme-toggle (droite) en ligne — position:static dans flex-column
+.age-overlay__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1.25rem 0;
+    flex-shrink: 0;
 }
 
 .age-overlay__btn-exit {
@@ -515,7 +548,7 @@ body:has(.age-overlay) {
 // Micro-footer légal — liens politique de confidentialité et mentions légales
 .age-gate__legal-footer {
     position: fixed;
-    bottom: 1rem;
+    bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
     left: 0;
     right: 0;
     display: flex;

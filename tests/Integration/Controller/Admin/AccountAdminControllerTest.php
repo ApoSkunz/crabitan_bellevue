@@ -117,6 +117,177 @@ class AccountAdminControllerTest extends AdminIntegrationTestCase
     }
 
     // ----------------------------------------------------------------
+    // cancelDeletion — CSRF invalide
+    // ----------------------------------------------------------------
+
+    public function testCancelDeletionRedirectsOnInvalidCsrf(): void
+    {
+        $_POST['csrf_token'] = 'invalid-token';
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(302);
+
+        $this->makeController('POST')->cancelDeletion(['id' => '1']);
+    }
+
+    // ----------------------------------------------------------------
+    // cancelDeletion — compte sans alerte inactivité
+    // ----------------------------------------------------------------
+
+    public function testCancelDeletionRedirectsForNonCancellableAccount(): void
+    {
+        $_POST['csrf_token'] = self::CSRF_TOKEN;
+
+        $nonCancellableId = (int) self::$db->insert(
+            "INSERT INTO accounts (email, password, account_type, role, lang, email_verified_at)
+             VALUES ('active.no-warning@test.local', 'hash', 'individual', 'customer', 'fr', NOW())",
+            []
+        );
+        self::$db->insert(
+            "INSERT INTO account_individuals (account_id, lastname, firstname, civility)
+             VALUES (?, 'Actif', 'Compte', 'M')",
+            [$nonCancellableId]
+        );
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(302);
+
+        $this->makeController('POST')->cancelDeletion(['id' => (string) $nonCancellableId]);
+    }
+
+    // ----------------------------------------------------------------
+    // cancelDeletion — succès : compte en alerte → réactivé
+    // ----------------------------------------------------------------
+
+    public function testCancelDeletionSuccessReactivatesAccountAndRedirects(): void
+    {
+        $_POST['csrf_token'] = self::CSRF_TOKEN;
+
+        $warningId = (int) self::$db->insert(
+            "INSERT INTO accounts (email, password, account_type, role, lang, email_verified_at, inactivity_warning_sent_at)
+             VALUES ('cancel.warning@test.local', 'hash', 'individual', 'customer', 'fr', NOW(),
+                     DATE_SUB(NOW(), INTERVAL 10 DAY))",
+            []
+        );
+        self::$db->insert(
+            "INSERT INTO account_individuals (account_id, lastname, firstname, civility)
+             VALUES (?, 'Alerte', 'Compte', 'M')",
+            [$warningId]
+        );
+
+        $uri        = '/admin/comptes/' . $warningId . '/annuler-suppression';
+        $controller = new class ($this->makeRequest('POST', $uri)) extends \Controller\Admin\AccountAdminController {
+            protected function newMailService(): \Service\MailService
+            {
+                return new class extends \Service\MailService {
+                    public function sendAccountDeletionCancelled(string $to, string $name, string $lang): void
+                    {
+                        // mail stubbed — pas d'envoi SMTP réel
+                    }
+                };
+            }
+        };
+
+        $exception = null;
+        try {
+            $controller->cancelDeletion(['id' => (string) $warningId]);
+        } catch (HttpException $e) {
+            $exception = $e;
+        }
+
+        $this->assertNotNull($exception);
+        $this->assertSame(302, $exception->status);
+
+        $row = self::$db->fetchOne(
+            "SELECT inactivity_warning_sent_at, manually_reactivated_at FROM accounts WHERE id = ?",
+            [$warningId]
+        );
+        $this->assertNull($row['inactivity_warning_sent_at']);
+        $this->assertNotNull($row['manually_reactivated_at']);
+    }
+
+    // ----------------------------------------------------------------
+    // restore — CSRF invalide
+    // ----------------------------------------------------------------
+
+    public function testRestoreRedirectsOnInvalidCsrf(): void
+    {
+        $_POST['csrf_token'] = 'invalid';
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(302);
+
+        $this->makeController('POST')->restore(['id' => '1']);
+    }
+
+    // ----------------------------------------------------------------
+    // restore — compte hors fenêtre J+30
+    // ----------------------------------------------------------------
+
+    public function testRestoreRedirectsForNonRestorableAccount(): void
+    {
+        $_POST['csrf_token'] = self::CSRF_TOKEN;
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(302);
+
+        $this->makeController('POST')->restore(['id' => '999999']);
+    }
+
+    // ----------------------------------------------------------------
+    // restore — succès : compte soft-deleted dans J+30 → réactivé
+    // ----------------------------------------------------------------
+
+    public function testRestoreSuccessReactivatesSoftDeletedAccountAndRedirects(): void
+    {
+        $_POST['csrf_token'] = self::CSRF_TOKEN;
+
+        $softDeletedId = (int) self::$db->insert(
+            "INSERT INTO accounts (email, password, account_type, role, lang, email_verified_at,
+             deleted_at, scheduled_deletion_at, inactivity_warning_sent_at)
+             VALUES ('restore.softdeleted@test.local', 'hash', 'individual', 'customer', 'fr', NOW(),
+                     DATE_SUB(NOW(), INTERVAL 5 DAY), DATE_ADD(NOW(), INTERVAL 25 DAY),
+                     DATE_SUB(NOW(), INTERVAL 35 DAY))",
+            []
+        );
+        self::$db->insert(
+            "INSERT INTO account_individuals (account_id, lastname, firstname, civility)
+             VALUES (?, 'Restore', 'Compte', 'M')",
+            [$softDeletedId]
+        );
+
+        $uri        = '/admin/comptes/' . $softDeletedId . '/restaurer';
+        $controller = new class ($this->makeRequest('POST', $uri)) extends \Controller\Admin\AccountAdminController {
+            protected function newMailService(): \Service\MailService
+            {
+                return new class extends \Service\MailService {
+                    public function sendAccountRestoredByAdmin(string $to, string $name, string $lang): void
+                    {
+                        // mail stubbed
+                    }
+                };
+            }
+        };
+
+        $exception = null;
+        try {
+            $controller->restore(['id' => (string) $softDeletedId]);
+        } catch (HttpException $e) {
+            $exception = $e;
+        }
+
+        $this->assertNotNull($exception);
+        $this->assertSame(302, $exception->status);
+
+        $row = self::$db->fetchOne(
+            "SELECT deleted_at, manually_reactivated_at FROM accounts WHERE id = ?",
+            [$softDeletedId]
+        );
+        $this->assertNull($row['deleted_at']);
+        $this->assertNotNull($row['manually_reactivated_at']);
+    }
+
+    // ----------------------------------------------------------------
     // resetPassword — rôle insuffisant
     // ----------------------------------------------------------------
 

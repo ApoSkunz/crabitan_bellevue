@@ -225,7 +225,7 @@ $cartItems = json_decode($order['content'] ?? '[]', true) ?? [];
                           action="/admin/commandes/<?= (int) $order['id'] ?>/statut">
                         <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
                         <div class="admin-field u-mb-4">
-                            <label class="admin-field__label" for="status">Nouveau statut</label>
+                            <label class="admin-field__label" for="js-status-select">Nouveau statut</label>
                             <select id="js-status-select" name="status" class="admin-field__select">
                                 <?php foreach ($allStatuses as $s) :
                                     $rank     = $statusRank[$s] ?? 0;

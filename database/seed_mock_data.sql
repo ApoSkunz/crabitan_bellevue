@@ -252,7 +252,7 @@ VALUES
 (10, 'rgpd.inactif.delete@dev.local', '$2y$10$zvmI7JOSrZn00L4Hdg6LCOcPBuoWhDyiXN7KT0jCHtqJ9ec/JDr0a', 'individual', 'customer', 'fr', 0, '2023-01-01 08:00:00', 0, '2023-01-01 08:00:00'), -- nosemgrep: generic.secrets.security.detected-bcrypt-hash.detected-bcrypt-hash
 -- id 11 : inactif 37 mois MAIS commande pending en cours → protégé (ni avertissement ni suppression)
 (11, 'rgpd.inactif.protege@dev.local','$2y$10$zvmI7JOSrZn00L4Hdg6LCOcPBuoWhDyiXN7KT0jCHtqJ9ec/JDr0a', 'individual', 'customer', 'fr', 0, '2023-01-01 08:00:00', 0, '2023-01-01 08:00:00'), -- nosemgrep: generic.secrets.security.detected-bcrypt-hash.detected-bcrypt-hash
--- id 12 : abonné newsletter sans commande → segment 'sans-commande'
+-- id 12 : abonné newsletter sans commande → segment 'sans-commande' ; restauré par admin (manually_reactivated_at — test cron protection)
 (12, 'newsletter.noorder@dev.local',  '$2y$10$zvmI7JOSrZn00L4Hdg6LCOcPBuoWhDyiXN7KT0jCHtqJ9ec/JDr0a', 'individual', 'customer', 'fr', 1, '2026-01-20 08:00:00', 0, '2026-01-20 08:00:00'), -- nosemgrep: generic.secrets.security.detected-bcrypt-hash.detected-bcrypt-hash
 -- id 13 : abonné newsletter avec commande ancienne (> 6 mois) → segment 'inactifs'
 (13, 'newsletter.inactif@dev.local',  '$2y$10$zvmI7JOSrZn00L4Hdg6LCOcPBuoWhDyiXN7KT0jCHtqJ9ec/JDr0a', 'individual', 'customer', 'fr', 1, '2025-01-10 08:00:00', 0, '2025-01-10 08:00:00'); -- nosemgrep: generic.secrets.security.detected-bcrypt-hash.detected-bcrypt-hash
@@ -283,6 +283,8 @@ WHERE `id` = 7;
 UPDATE `accounts` SET `created_at` = DATE_SUB(NOW(), INTERVAL 37 MONTH) WHERE `id` IN (9, 10, 11);
 -- Marquer id 10 comme averti il y a 31 jours
 UPDATE `accounts` SET `inactivity_warning_sent_at` = DATE_SUB(NOW(), INTERVAL 31 DAY) WHERE `id` = 10;
+-- id 12 : restauré par admin il y a 10 jours, pas encore reconnecté → protégé du cron inactivité jusqu'à reconnexion
+UPDATE `accounts` SET `manually_reactivated_at` = DATE_SUB(NOW(), INTERVAL 10 DAY) WHERE `id` = 12;
 
 ALTER TABLE `accounts` AUTO_INCREMENT = 14;
 

@@ -78,6 +78,7 @@ if (!function_exists('buildInvoiceUrl')) {
             <div>
                 <div class="admin-filters-sublabel">Recherche</div>
                 <input type="text" name="search" class="admin-filters__input"
+                       aria-label="Rechercher une facture"
                        placeholder="N° facture, réf. commande…"
                        value="<?= htmlspecialchars($search ?? '') ?>">
             </div>

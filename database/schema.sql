@@ -92,6 +92,7 @@ CREATE TABLE `accounts` (
   `encryption_version`           TINYINT        NOT NULL DEFAULT 1 COMMENT 'Version de la clé AES-256-GCM — permet la rotation de clé (audit BDD 2026-04-12)',
   `last_login_at`                DATETIME       DEFAULT NULL COMMENT 'Horodatage dernière connexion réussie (login classique + OAuth) — utilisé pour calcul inactivité RGPD',
   `inactivity_warning_sent_at`   DATETIME       DEFAULT NULL COMMENT 'Horodatage envoi avertissement inactivité RGPD (Art. 5 §1e)',
+  `manually_reactivated_at`      DATETIME       DEFAULT NULL COMMENT 'Horodatage restauration manuelle par admin — exclut du cron inactivité jusqu\'à reconnexion',
   `deletion_reminder_7d_sent_at` DATETIME       DEFAULT NULL COMMENT 'Horodatage envoi rappel J-7 avant anonymisation',
   `deletion_reminder_1d_sent_at` DATETIME       DEFAULT NULL COMMENT 'Horodatage envoi rappel J-1 avant anonymisation',
   `pending_password_hash`             VARCHAR(255)   DEFAULT NULL COMMENT 'Nouveau MDP en attente de confirmation par email (TTL 1h)',

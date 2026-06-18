@@ -81,10 +81,12 @@ function accountUrl( // NOSONAR — php:S107 : params nécessaires pour reconstr
         <option value="">Toute activité</option>
         <option value="active"   <?= ($activity ?? '') === 'active'   ? 'selected' : '' ?>>Actif</option>
         <option value="inactive" <?= ($activity ?? '') === 'inactive' ? 'selected' : '' ?>>Inactif (+3 ans)</option>
+        <option value="warning"  <?= ($activity ?? '') === 'warning'  ? 'selected' : '' ?>>⚠ Alerte suppression</option>
         <option value="deleted"  <?= ($activity ?? '') === 'deleted'  ? 'selected' : '' ?>>Supprimé</option>
     </select>
 
     <input type="text" name="search" class="admin-filters__input"
+           aria-label="Rechercher un compte"
            placeholder="Email, nom, prénom…"
            value="<?= htmlspecialchars($search) ?>">
 
@@ -199,19 +201,62 @@ function accountUrl( // NOSONAR — php:S107 : params nécessaires pour reconstr
                         </td>
                         <td class="col-hide-tablet u-text-9" data-label="Activité">
                             <?php
-                            if (!empty($account['deleted_at'])) {
-                                echo '<span class="u-text-error">Supprimé</span>';
-                            } else {
-                                $lastConn = $account['last_connection'] ?? null;
-                                $isActive = $lastConn !== null && strtotime((string) $lastConn) >= strtotime('-3 years');
-                                echo $isActive
-                                    ? '<span class="u-text-green">Actif</span>'
-                                    : '<span class="u-text-soft">Inactif</span>';
-                            }
+                            $scheduledAt  = $account['scheduled_deletion_at'] ?? null;
+                            $isDeleted    = !empty($account['deleted_at']);
+                            $isWarning    = !$isDeleted && !empty($account['inactivity_warning_sent_at']);
+                            $warningDate  = $account['inactivity_warning_sent_at'] ?? null;
+                            // canCancel : alerte envoyée, pas encore soft-deleted (scheduled_deletion_at absent à ce stade)
+                            $canCancel    = $isWarning;
+                            $daysLeft     = ($canCancel && $warningDate !== null)
+                                ? max(0, (int) ceil((strtotime((string) $warningDate . ' +30 days') - time()) / 86400))
+                                : 0;
+                            // canRestore : soft-deleted dans la fenêtre J+30 avant anonymisation
+                            $canRestore   = $isDeleted && $scheduledAt !== null && strtotime((string) $scheduledAt) > time();
+                            $daysRestore  = $canRestore
+                                ? max(0, (int) ceil((strtotime((string) $scheduledAt) - time()) / 86400))
+                                : 0;
                             ?>
+                            <div class="u-flex-col u-items-start u-gap-2">
+                                <?php
+                                if ($isDeleted) {
+                                    echo '<span class="u-text-error">Supprimé</span>';
+                                } elseif ($isWarning) {
+                                    echo '<span class="u-text-warning" title="Alerte envoyée le ' . htmlspecialchars(date('d/m/Y', strtotime((string) $account['inactivity_warning_sent_at']))) . '">⚠ Alerte</span>';
+                                } else {
+                                    $lastConn = $account['last_connection'] ?? null;
+                                    $isActive = $lastConn !== null && strtotime((string) $lastConn) >= strtotime('-3 years');
+                                    echo $isActive
+                                        ? '<span class="u-text-green">Actif</span>'
+                                        : '<span class="u-text-soft">Inactif</span>';
+                                }
+                                ?>
+                                <?php if ($canCancel) : ?>
+                                    <form method="POST"
+                                          action="/admin/comptes/<?= (int) $account['id'] ?>/annuler-suppression"
+                                          data-admin-confirm="Annuler la suppression du compte <?= htmlspecialchars($account['email']) ?> ? (<?= $daysLeft ?> j restants avant anonymisation)">
+                                        <input type="hidden" name="csrf_token"
+                                               value="<?= htmlspecialchars($_SESSION['csrf'] ?? '') ?>">
+                                        <button type="submit" class="admin-btn admin-btn--danger admin-btn--sm">
+                                            Annuler suppression
+                                        </button>
+                                    </form>
+                                <?php endif; ?>
+                                <?php if ($canRestore) : ?>
+                                    <form method="POST"
+                                          action="/admin/comptes/<?= (int) $account['id'] ?>/restaurer"
+                                          data-admin-confirm="Restaurer le compte <?= htmlspecialchars($account['email']) ?> ? (<?= $daysRestore ?> j avant anonymisation définitive)">
+                                        <input type="hidden" name="csrf_token"
+                                               value="<?= htmlspecialchars($_SESSION['csrf'] ?? '') ?>">
+                                        <button type="submit" class="admin-btn admin-btn--danger admin-btn--sm">
+                                            Restaurer
+                                        </button>
+                                    </form>
+                                <?php endif; ?>
+                            </div>
                         </td>
                         <td class="u-nowrap">
-                            <?php if (!$verified) : ?>
+                            <?php
+                            if (!$verified) : ?>
                                 <form method="POST"
                                       action="/admin/comptes/<?= (int) $account['id'] ?>/verifier"
                                       class="u-inline-block"

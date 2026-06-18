@@ -1602,4 +1602,52 @@ class MailServiceCoverageTest extends TestCase
         $this->service->sendOrderStatusEmail('bob@example.com', 'Bob', 'CB-2026-REFUSED-EN', 'refund_refused', 'en', 'http://crabitan.local');
         $this->assertTrue(true);
     }
+
+    // ----------------------------------------------------------------
+    // sendAccountDeletionCancelled — branche FR + EN
+    // ----------------------------------------------------------------
+
+    /**
+     * sendAccountDeletionCancelled() branche FR — ne lève pas d'exception.
+     */
+    public function testSendAccountDeletionCancelledFrDoesNotThrow(): void
+    {
+        $this->injectMockMailer($this->service);
+        $this->service->sendAccountDeletionCancelled('client@test.local', 'Jean Dupont', 'fr');
+        $this->assertTrue(true);
+    }
+
+    /**
+     * sendAccountDeletionCancelled() branche EN — ne lève pas d'exception.
+     */
+    public function testSendAccountDeletionCancelledEnDoesNotThrow(): void
+    {
+        $this->injectMockMailer($this->service);
+        $this->service->sendAccountDeletionCancelled('client@test.local', 'Jane Doe', 'en');
+        $this->assertTrue(true);
+    }
+
+    // ----------------------------------------------------------------
+    // sendAccountRestoredByAdmin — branche FR + EN
+    // ----------------------------------------------------------------
+
+    /**
+     * sendAccountRestoredByAdmin() branche FR — ne lève pas d'exception.
+     */
+    public function testSendAccountRestoredByAdminFrDoesNotThrow(): void
+    {
+        $this->injectMockMailer($this->service);
+        $this->service->sendAccountRestoredByAdmin('client@test.local', 'Jean Dupont', 'fr');
+        $this->assertTrue(true);
+    }
+
+    /**
+     * sendAccountRestoredByAdmin() branche EN — ne lève pas d'exception.
+     */
+    public function testSendAccountRestoredByAdminEnDoesNotThrow(): void
+    {
+        $this->injectMockMailer($this->service);
+        $this->service->sendAccountRestoredByAdmin('client@test.local', 'Jane Doe', 'en');
+        $this->assertTrue(true);
+    }
 }

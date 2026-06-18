@@ -274,4 +274,128 @@ class AccountModelInactivityTest extends IntegrationTestCase
         );
         $this->assertSame(0, (int) $active['cnt']);
     }
+
+    // ── findCancellableById ──────────────────────────────────────────────────
+
+    /**
+     * Retourne un compte en alerte inactivité (warning envoyé, non soft-deleted).
+     */
+    public function testFindCancellableByIdReturnsWarningAccount(): void
+    {
+        $id = $this->insertCustomer('cancellable.warning@test.local');
+        self::$db->execute(
+            "UPDATE accounts SET inactivity_warning_sent_at = DATE_SUB(NOW(), INTERVAL 10 DAY) WHERE id = ?",
+            [$id]
+        );
+
+        $row = $this->model->findCancellableById($id);
+
+        $this->assertIsArray($row);
+        $this->assertSame($id, (int) $row['id']);
+    }
+
+    /**
+     * Retourne false pour un compte sans avertissement d'inactivité.
+     */
+    public function testFindCancellableByIdReturnsFalseForActiveAccount(): void
+    {
+        $id = $this->insertCustomer('cancellable.active@test.local');
+
+        $result = $this->model->findCancellableById($id);
+
+        $this->assertFalse($result);
+    }
+
+    /**
+     * Retourne false pour un compte soft-deleted (suppression explicite — non annulable par admin).
+     */
+    public function testFindCancellableByIdReturnsFalseForDeletedAccount(): void
+    {
+        $id = $this->insertCustomer('cancellable.deleted@test.local');
+        self::$db->execute(
+            "UPDATE accounts SET inactivity_warning_sent_at = NOW(), deleted_at = NOW() WHERE id = ?",
+            [$id]
+        );
+
+        $result = $this->model->findCancellableById($id);
+
+        $this->assertFalse($result);
+    }
+
+    // ── findRestorableById ───────────────────────────────────────────────────
+
+    /**
+     * Retourne un compte soft-deleted dans la fenêtre J+30.
+     */
+    public function testFindRestorableByIdReturnsSoftDeletedInWindow(): void
+    {
+        $id = $this->insertCustomer('restorable.window@test.local');
+        self::$db->execute(
+            "UPDATE accounts SET deleted_at = NOW(),
+             scheduled_deletion_at = DATE_ADD(NOW(), INTERVAL 20 DAY)
+             WHERE id = ?",
+            [$id]
+        );
+
+        $row = $this->model->findRestorableById($id);
+
+        $this->assertIsArray($row);
+        $this->assertSame($id, (int) $row['id']);
+    }
+
+    /**
+     * Retourne false pour un compte soft-deleted dont scheduled_deletion_at est dépassé.
+     */
+    public function testFindRestorableByIdReturnsFalseForExpiredWindow(): void
+    {
+        $id = $this->insertCustomer('restorable.expired@test.local');
+        self::$db->execute(
+            "UPDATE accounts SET deleted_at = DATE_SUB(NOW(), INTERVAL 35 DAY),
+             scheduled_deletion_at = DATE_SUB(NOW(), INTERVAL 5 DAY)
+             WHERE id = ?",
+            [$id]
+        );
+
+        $result = $this->model->findRestorableById($id);
+
+        $this->assertFalse($result);
+    }
+
+    /**
+     * Retourne false pour un compte actif (non soft-deleted).
+     */
+    public function testFindRestorableByIdReturnsFalseForActiveAccount(): void
+    {
+        $id = $this->insertCustomer('restorable.active@test.local');
+
+        $result = $this->model->findRestorableById($id);
+
+        $this->assertFalse($result);
+    }
+
+    // ── reactivate (cancelDeletion) ──────────────────────────────────────────
+
+    /**
+     * reactivate() réinitialise tous les champs d'inactivité et pose manually_reactivated_at.
+     */
+    public function testReactivateClearsInactivityFields(): void
+    {
+        $id = $this->insertCustomer('reactivate.test@test.local');
+        self::$db->execute(
+            "UPDATE accounts SET inactivity_warning_sent_at = DATE_SUB(NOW(), INTERVAL 10 DAY),
+             scheduled_deletion_at = DATE_ADD(NOW(), INTERVAL 20 DAY)
+             WHERE id = ?",
+            [$id]
+        );
+
+        $this->model->reactivate($id);
+
+        $row = self::$db->fetchOne(
+            "SELECT inactivity_warning_sent_at, scheduled_deletion_at, manually_reactivated_at FROM accounts WHERE id = ?",
+            [$id]
+        );
+        $this->assertNull($row['inactivity_warning_sent_at']);
+        $this->assertNull($row['scheduled_deletion_at']);
+        $this->assertNotNull($row['manually_reactivated_at']);
+    }
 }

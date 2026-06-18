@@ -82,6 +82,51 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
     }
 
     /**
+     * Trouve un compte soft-deleted par son identifiant (pour restauration admin).
+     *
+     * @param int $id Identifiant du compte
+     * @return array<string, mixed>|false
+     */
+    public function findDeletedById(int $id): array|false
+    {
+        $row = $this->db->fetchOne(
+            $this->withProfile() . " WHERE a.id = ? AND a.deleted_at IS NOT NULL",
+            [$id]
+        );
+        return is_array($row) ? $this->decryptRow($row) : $row;
+    }
+
+    /**
+     * Retourne un compte soft-deleted restaurable par l'admin (dans la fenêtre J+30 avant anonymisation).
+     *
+     * @param int $id Identifiant du compte
+     * @return array<string, mixed>|false
+     */
+    public function findRestorableById(int $id): array|false
+    {
+        $row = $this->db->fetchOne(
+            $this->withProfile() . " WHERE a.id = ? AND a.deleted_at IS NOT NULL AND a.scheduled_deletion_at > NOW()",
+            [$id]
+        );
+        return is_array($row) ? $this->decryptRow($row) : $row;
+    }
+
+    /**
+     * Retourne un compte en alerte inactivité annulable (warning envoyé, non encore soft-deleted).
+     *
+     * @param int $id Identifiant du compte
+     * @return array<string, mixed>|false
+     */
+    public function findCancellableById(int $id): array|false
+    {
+        $row = $this->db->fetchOne(
+            $this->withProfile() . " WHERE a.id = ? AND a.deleted_at IS NULL AND a.inactivity_warning_sent_at IS NOT NULL",
+            [$id]
+        );
+        return is_array($row) ? $this->decryptRow($row) : $row;
+    }
+
+    /**
      * Déchiffre les colonnes sensibles d'un compte retourné par la BDD.
      *
      * @param array<string, mixed> $row Ligne brute issue d'un SELECT
@@ -728,7 +773,9 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
             "UPDATE {$this->table}
              SET deleted_at = NULL,
                  scheduled_deletion_at = NULL,
-                 reactivation_token = NULL
+                 reactivation_token = NULL,
+                 inactivity_warning_sent_at = NULL,
+                 manually_reactivated_at = NOW()
              WHERE id = ?",
             [$id]
         );
@@ -882,6 +929,10 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
              WHERE a.role = 'customer'
                AND a.deleted_at IS NULL
                AND a.inactivity_warning_sent_at IS NULL
+               AND (
+                   a.manually_reactivated_at IS NULL
+                   OR (a.last_login_at IS NOT NULL AND a.last_login_at >= a.manually_reactivated_at)
+               )
                AND NOT EXISTS (
                    SELECT 1 FROM orders o
                    WHERE o.user_id = a.id AND o.status IN ('pending', 'processing')
@@ -909,6 +960,10 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
                AND a.deleted_at IS NULL
                AND a.inactivity_warning_sent_at IS NOT NULL
                AND a.inactivity_warning_sent_at < DATE_SUB(NOW(), INTERVAL 30 DAY)
+               AND (
+                   a.manually_reactivated_at IS NULL
+                   OR (a.last_login_at IS NOT NULL AND a.last_login_at >= a.manually_reactivated_at)
+               )
                AND NOT EXISTS (
                    SELECT 1 FROM connections c
                    WHERE c.user_id = a.id AND c.created_at > a.inactivity_warning_sent_at
@@ -1166,18 +1221,19 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
         $params[] = $offset;
 
         $orderBy = match ($filters->sort) {
-            'created_at_asc'         => 'a.created_at ASC',
-            'last_connection_desc'   => 'a.last_login_at DESC',
-            'last_connection_asc'    => 'a.last_login_at ASC',
-            'order_count_desc'       => 'order_count DESC',
-            'order_count_asc'        => 'order_count ASC',
-            default                  => 'a.created_at DESC',
+            'created_at_asc'         => 'a.created_at ASC, a.id ASC',
+            'last_connection_desc'   => 'a.last_login_at DESC, a.id DESC',
+            'last_connection_asc'    => 'a.last_login_at ASC, a.id ASC',
+            'order_count_desc'       => 'order_count DESC, a.id DESC',
+            'order_count_asc'        => 'order_count ASC, a.id ASC',
+            default                  => 'a.id DESC',
         };
 
         return $this->db->fetchAll(
             "SELECT a.id, a.email, a.account_type, a.role, a.lang, a.newsletter,
                     a.email_verified_at, a.has_connected, a.created_at, a.deleted_at,
                     a.is_blocked, a.last_login_at AS last_connection,
+                    a.inactivity_warning_sent_at, a.scheduled_deletion_at,
                     ai.lastname, ai.firstname, ai.civility,
                     ac.company_name, ac.siret,
                     (a.password IS NOT NULL) AS has_password,
@@ -1197,7 +1253,7 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
      *
      * @param string      $where      Clause WHERE courante (peut être vide)
      * @param string|null $hasOrdered '1' = a commandé, '0' = jamais, null = tous
-     * @param string|null $activity   'active', 'inactive', 'deleted' ou null
+     * @param string|null $activity   'active', 'inactive', 'warning', 'deleted' ou null
      * @return string Clause WHERE enrichie
      */
     private function applyAdminFlagFilters(string $where, ?string $hasOrdered, ?string $activity): string
@@ -1213,8 +1269,9 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
         if ($activity === 'active') {
             $where .= $join($where) . ' a.deleted_at IS NULL AND a.last_login_at >= DATE_SUB(NOW(), INTERVAL 3 YEAR)';
         } elseif ($activity === 'inactive') {
-            $where .= $join($where)
-                . ' a.deleted_at IS NULL AND (a.last_login_at IS NULL OR a.last_login_at < DATE_SUB(NOW(), INTERVAL 3 YEAR))';
+            $where .= $join($where) . ' a.deleted_at IS NULL AND (a.last_login_at IS NULL OR a.last_login_at < DATE_SUB(NOW(), INTERVAL 3 YEAR))';
+        } elseif ($activity === 'warning') {
+            $where .= $join($where) . ' a.deleted_at IS NULL AND a.inactivity_warning_sent_at IS NOT NULL';
         } elseif ($activity === 'deleted') {
             $where .= $join($where) . ' a.deleted_at IS NOT NULL';
         }
@@ -1607,7 +1664,8 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
 
     private function buildAdminFilters(?string $role, ?string $search, ?string $type = null): array
     {
-        $conds  = ['a.deleted_at IS NULL'];
+        // Sans filtre activity → tous les comptes (supprimés et anonymisés inclus)
+        $conds  = [];
         $params = [];
 
         $validRoles = ['customer', 'admin', 'super_admin'];
@@ -1631,7 +1689,7 @@ class AccountModel extends Model // NOSONAR php:S1448 — regroupement intention
             $params[] = $like;
         }
 
-        $where = 'WHERE ' . implode(' AND ', $conds);
+        $where = empty($conds) ? '' : 'WHERE ' . implode(' AND ', $conds);
         return [$where, $params];
     }
 

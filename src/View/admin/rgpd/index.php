@@ -134,14 +134,15 @@ if (!function_exists('rgpdUrl')) {
                                 <div class="rgpd-actions__dropdown">
                                     <form method="POST" action="/admin/rgpd/demandes/<?= (int) $req['id'] ?>/statut" class="u-mb-1">
                                         <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf'] ?? '') ?>">
-                                        <select name="status" class="admin-filters__select u-w-full u-mb-1">
+                                        <select name="status" aria-label="Statut de la demande" class="admin-filters__select u-w-full u-mb-1">
                                             <?php foreach ($statusLabels as $val => $label) : ?>
                                                 <option value="<?= htmlspecialchars($val) ?>" <?= $req['status'] === $val ? 'selected' : '' ?>>
                                                     <?= htmlspecialchars($label) ?>
                                                 </option>
                                             <?php endforeach; ?>
                                         </select>
-                                        <textarea name="response_note" placeholder="Note de réponse (optionnel)"
+                                        <textarea name="response_note" aria-label="Note de réponse"
+                                            placeholder="Note de réponse (optionnel)"
                                             class="rgpd-note-textarea"
                                             rows="2"><?= htmlspecialchars($req['response_note'] ?? '') ?></textarea>
                                         <button type="submit" class="admin-btn admin-btn--primary admin-btn--xs u-w-full u-mt-1">Enregistrer statut</button>
@@ -220,11 +221,14 @@ $logTotalPages = \Controller\Admin\RgpdAdminController::DEFAULT_PER_PAGE > 0 ? (
     <?php foreach (['status' => $statusFilter ?? null, 'type' => $typeFilter ?? null, 'page' => $page ?? 1, 'per_page' => $perPage ?? 20] as $k => $v) : ?>
         <?php if ($v) : ?><input type="hidden" name="<?= htmlspecialchars($k) ?>" value="<?= htmlspecialchars((string) $v) ?>"><?php endif; ?>
     <?php endforeach; ?>
-    <input type="text" name="log_email" placeholder="Filtrer par email"
+    <input type="text" name="log_email" aria-label="Filtrer par email"
+           placeholder="Filtrer par email"
            value="<?= htmlspecialchars($logEmail ?? '') ?>"
            class="admin-filters__select admin-filters__input--wide">
-    <input type="date" name="log_date_from" value="<?= htmlspecialchars($logDateFrom ?? '') ?>" class="admin-filters__select">
-    <input type="date" name="log_date_to"   value="<?= htmlspecialchars($logDateTo   ?? '') ?>" class="admin-filters__select">
+    <input type="date" name="log_date_from" aria-label="Date début"
+           value="<?= htmlspecialchars($logDateFrom ?? '') ?>" class="admin-filters__select">
+    <input type="date" name="log_date_to" aria-label="Date fin"
+           value="<?= htmlspecialchars($logDateTo   ?? '') ?>" class="admin-filters__select">
     <button type="submit" class="admin-btn admin-btn--outline admin-btn--sm">Filtrer</button>
     <a href="/admin/rgpd/demandes" class="admin-btn admin-btn--ghost admin-btn--sm">Réinitialiser</a>
 </form>

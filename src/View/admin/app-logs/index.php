@@ -50,6 +50,7 @@ $levelColors = [
         <?php endforeach; ?>
     </select>
     <input type="text" name="search" class="admin-filters__input"
+           aria-label="Recherche texte"
            placeholder="Recherche texte…"
            value="<?= htmlspecialchars($search) ?>">
     <select name="per_page" class="admin-filters__select" aria-label="Lignes par page">
