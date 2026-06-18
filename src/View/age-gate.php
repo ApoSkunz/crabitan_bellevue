@@ -10,6 +10,7 @@
 </head>
 <body class="age-gate-page">
 
+<div class="age-gate__container">
 <main class="age-gate" role="main">
     <p class="age-gate__quote"><?= htmlspecialchars(__('age_gate.quote')) ?></p>
     <p class="age-gate__subquote"><?= htmlspecialchars(__('age_gate.subquote')) ?></p>
@@ -81,6 +82,7 @@
         <?= htmlspecialchars(__('footer.legal_notice')) ?>
     </a>
 </footer>
+</div>
 
 <?php require_once SRC_PATH . '/View/partials/cookie-banner.php'; ?>
 

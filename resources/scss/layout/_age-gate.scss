@@ -8,12 +8,20 @@
     background-color: var(--color-bg);
     min-height: 100dvh;
     overflow-x: hidden; // WCAG 1.4.4 — overflow-x uniquement : empêche scroll horizontal parasite sans bloquer scroll vertical à fort zoom
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.age-gate__container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
 }
 
 .age-gate {
     position: relative;
     width: 100%;
-    min-height: 100dvh;
     padding: 2.5rem 1rem;
     display: flex;
     flex-direction: column;
@@ -311,22 +319,12 @@
     }
 
     .age-gate {
-        padding: 1rem 1rem 0.5rem; // FR/EN + toggle dans la carte — pas de barre fixe à dégager
+        padding: 1rem 1rem 0.5rem;
         gap: 0.75rem;
-        justify-content: center;
     }
 
     .age-gate::before {
-        inset: 12px; // sort du mode "réserver le bas pour le banner" ; retour au cadre uniforme
-    }
-
-    .age-gate__legal-footer {
-        position: static;
-        flex-shrink: 0;
-        margin: 0.5rem auto;
-        padding: 0 1rem;
-        flex-wrap: wrap;
-        text-align: center;
+        inset: 12px;
     }
 
     .age-gate__quote {
@@ -485,15 +483,16 @@
     }
 }
 
-// Micro-footer légal — liens politique de confidentialité et mentions légales
-// position:fixed uniquement sur desktop (≥ 576px) — sur mobile, position:static dans le flux
-// (cascade fix : la règle position:fixed venant APRÈS le @media(max-width:575px) l'écrasait)
+// Micro-footer légal — dans le flux du container flex (plus de position:fixed)
 .age-gate__legal-footer {
     display: flex;
     justify-content: center;
+    flex-wrap: wrap;
     gap: 0.75rem;
     font-size: 0.72rem;
     letter-spacing: 0.05em;
+    padding: 0.5rem 1rem;
+    text-align: center;
 
     a {
         color: var(--color-text-muted);
@@ -512,11 +511,21 @@
     }
 }
 
-@media (min-width: 576px) {
+
+// Dark theme — amélioration contraste éléments age-gate trop atténués
+[data-theme='dark'] {
+    .age-gate__declare {
+        color: var(--color-text);
+        opacity: 0.7;
+    }
+
+    .age-gate__btn-exit--outline {
+        color: var(--color-text);
+        opacity: 0.7;
+    }
+
     .age-gate__legal-footer {
-        position: fixed;
-        bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
-        left: 0;
-        right: 0;
+        a { opacity: 0.85; }
+        span { opacity: 0.6; }
     }
 }
