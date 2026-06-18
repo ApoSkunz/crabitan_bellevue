@@ -2,6 +2,23 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+## [1.33.1](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.33.0...v1.33.1) (2026-06-18)
+
+
+### Bug Fixes
+
+* **age-gate:** ajouter js-theme-toggle sur bouton toggle pour init JS ([8d83097](https://github.com/ApoSkunz/crabitan_bellevue/commit/8d83097f035247231b2734f317e6a2ec83fbed12))
+* **age-gate:** centrage vertical via container flex + dark theme contraste ([9c7735e](https://github.com/ApoSkunz/crabitan_bellevue/commit/9c7735e4f9cc2e59ade22490cecb837b928842ec))
+* **age-gate:** FR/EN + theme-toggle déplacés dans la carte (card-header) ([ad60689](https://github.com/ApoSkunz/crabitan_bellevue/commit/ad60689b078c88c3492b064ac7d4f5895b2ed6ff))
+* **age-gate:** legal-footer position:fixed dans min-width:576px — cascade bug mobile ([305bb3e](https://github.com/ApoSkunz/crabitan_bellevue/commit/305bb3eaa4ae035d782121de54f8e53138c41a4b))
+* **age-gate:** no-scroll mobile — body 100dvh flex-column, main flex:1 scroll interne ([1bacb90](https://github.com/ApoSkunz/crabitan_bellevue/commit/1bacb90ad47e20a6a46db85dac3a56c60de1c91c))
+* **age-gate:** retirer texte redondant "Château Crabitan Bellevue" sous le logo ([6b32d8d](https://github.com/ApoSkunz/crabitan_bellevue/commit/6b32d8dae36d612fd37a8fe3a7013e9b11adc531))
+
+
+### Reverts
+
+* **age-gate:** annuler no-scroll 100dvh — boutons tronqués sur iPhone ([457b1ed](https://github.com/ApoSkunz/crabitan_bellevue/commit/457b1edc830628fb2e5f3f4dfc50a91f5ee6212b))
+
 # [1.33.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.32.0...v1.33.0) (2026-06-18)
 
 
