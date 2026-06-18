@@ -2,6 +2,33 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [1.33.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.32.0...v1.33.0) (2026-06-18)
+
+
+### Bug Fixes
+
+* **accessibility:** corriger 21 bugs Web:InputWithoutLabelCheck (Sonar main) ([43b5d07](https://github.com/ApoSkunz/crabitan_bellevue/commit/43b5d07dd411b363c57fa35799e1b74e5348e1a5))
+* **admin:** accounts — tri par a.id ASC par défaut + tiebreaker id sur tous les sorts ([da3a025](https://github.com/ApoSkunz/crabitan_bellevue/commit/da3a025f5caf8547ab72bcaabd2bcd27fe3422bc))
+* **admin:** accounts — tri par défaut a.id DESC (plus récent en premier) ([db4edef](https://github.com/ApoSkunz/crabitan_bellevue/commit/db4edefa39f93bea008482b3e1d0518457d9fce9))
+* **admin:** activité cell mobile — wrapper flex-col pour badge + boutons empilés ([f1a9d29](https://github.com/ApoSkunz/crabitan_bellevue/commit/f1a9d29ad5b5649af6ee92c4ba997a5f77f1e364))
+* **admin:** boutons annuler-suppression et restaurer → admin-btn--danger (rouge) ([7aa2442](https://github.com/ApoSkunz/crabitan_bellevue/commit/7aa244200a9a09b0c0945339d207ecb280088bd4))
+* **admin:** comptes — filtre 'Supprimé' corrigé + filtre 'Alerte suppression' ajouté ([63e00cb](https://github.com/ApoSkunz/crabitan_bellevue/commit/63e00cb73c48b4d3a48a83672fee10c2ade7d1b0))
+* **admin:** restauration compte — reset inactivity + email confirmation RGPD ([a90af57](https://github.com/ApoSkunz/crabitan_bellevue/commit/a90af575cb8a5d5941e16288ac97c944a312df30))
+* **admin:** SQL invalide 'WHERE ' quand conds vide (filtre deleted sans critères) ([ea65d09](https://github.com/ApoSkunz/crabitan_bellevue/commit/ea65d09afa22c4cf01cf355a6f1e1e64f4fe3add))
+* **age-gate:** iOS Safari BFC — flex-column overlay, safe-area insets, zéro position:fixed dans overlay ([9514a3a](https://github.com/ApoSkunz/crabitan_bellevue/commit/9514a3aa07514df66f9143f69cda8aaec1ad85f0))
+* **age-gate:** overlay — wrapper age-overlay__header (lang + topbar) pour flex-column iOS fix ([e81b0b1](https://github.com/ApoSkunz/crabitan_bellevue/commit/e81b0b1dcfc4fa9d1454b9a67384221344b3a961))
+* **age-gate:** viewport-fit=cover — active env(safe-area-inset-*) pour Dynamic Island iPhone 17 ([1bd90fb](https://github.com/ApoSkunz/crabitan_bellevue/commit/1bd90fb190f8d64584fe8254c691d61ed57751eb))
+* **e2e:** admin-accounts CSRF test — opaque redirect status 0 → 302 via res.type check ([740687b](https://github.com/ApoSkunz/crabitan_bellevue/commit/740687b13a0e9b2b7703db44668ba7eece2cd156))
+* **maintenance:** responsive mobile + iOS Safari safe-area + BFC fix ([b58f45e](https://github.com/ApoSkunz/crabitan_bellevue/commit/b58f45ee8d92170eadc6668162b21bd13d2701a1))
+
+
+### Features
+
+* **admin:** annuler suppression programmée — parcours complet (model, controller, route, vue) ([659a582](https://github.com/ApoSkunz/crabitan_bellevue/commit/659a5822491f0b06ffc85428b2f3b4e2de956908))
+* **admin:** colonne manually_reactivated_at — exclut du cron inactivité jusqu'à reconnexion ([1a77804](https://github.com/ApoSkunz/crabitan_bellevue/commit/1a778046882d6be53f5a53e2358ce14170f145e8))
+* **admin:** restauration compte soft-deleted par admin (RGPD J+30) ([e23781c](https://github.com/ApoSkunz/crabitan_bellevue/commit/e23781ce659c98f5b8ccaf4a39c3af42421a936b))
+* **admin:** restaurer compte soft-deleted (J+30) + fix bouton annuler suppression ([53656ed](https://github.com/ApoSkunz/crabitan_bellevue/commit/53656edf2947ebe8b7356fcc01b7b1591e2f58a5))
+
 # [1.32.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.31.2...v1.32.0) (2026-06-14)
 
 
