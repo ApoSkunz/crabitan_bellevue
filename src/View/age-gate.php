@@ -10,31 +10,7 @@
 </head>
 <body class="age-gate-page">
 
-<nav class="age-gate__lang" aria-label="Langue / Language">
-    <?php foreach (['fr', 'en'] as $l) :
-        $href = '/age-gate?' . http_build_query(['lang' => $l, 'redirect' => $redirect]);
-        ?>
-        <a
-            href="<?= htmlspecialchars($href) ?>"
-            lang="<?= htmlspecialchars($l) ?>"
-            class="<?= $l === ($lang ?? 'fr') ? 'active' : '' ?>"
-            <?= $l === ($lang ?? 'fr') ? 'aria-current="true"' : '' ?>
-        ><?= strtoupper($l) ?></a>
-    <?php endforeach; ?>
-</nav>
-
-<div class="age-gate__topbar">
-    <button
-        id="theme-toggle"
-        class="theme-toggle"
-        type="button"
-        aria-label="<?= __('common.toggle_theme') ?>"
-    >
-        <span class="icon-sun" aria-hidden="true">&#9728;</span>
-        <span class="icon-moon" aria-hidden="true">&#9790;</span>
-    </button>
-</div>
-
+<div class="age-gate__container">
 <main class="age-gate" role="main">
     <p class="age-gate__quote"><?= htmlspecialchars(__('age_gate.quote')) ?></p>
     <p class="age-gate__subquote"><?= htmlspecialchars(__('age_gate.subquote')) ?></p>
@@ -42,9 +18,33 @@
     <div class="age-gate__card-wrapper">
         <span></span><span></span><span></span><span></span>
         <div class="age-gate__card">
+
+            <div class="age-gate__card-header">
+                <nav class="age-gate__lang" aria-label="Langue / Language">
+                    <?php foreach (['fr', 'en'] as $l) :
+                        $href = '/age-gate?' . http_build_query(['lang' => $l, 'redirect' => $redirect]);
+                        ?>
+                        <a
+                            href="<?= htmlspecialchars($href) ?>"
+                            lang="<?= htmlspecialchars($l) ?>"
+                            class="<?= $l === ($lang ?? 'fr') ? 'active' : '' ?>"
+                            <?= $l === ($lang ?? 'fr') ? 'aria-current="true"' : '' ?>
+                        ><?= strtoupper($l) ?></a>
+                    <?php endforeach; ?>
+                </nav>
+                <button
+                    id="theme-toggle"
+                    class="theme-toggle js-theme-toggle"
+                    type="button"
+                    aria-label="<?= __('common.toggle_theme') ?>"
+                >
+                    <span class="icon-sun" aria-hidden="true">&#9728;</span>
+                    <span class="icon-moon" aria-hidden="true">&#9790;</span>
+                </button>
+            </div>
+
             <div class="age-gate__logo">
                 <img src="/assets/images/logo/crabitan-bellevue-logo-restored.png" alt="<?= htmlspecialchars(APP_NAME) ?>" width="195" height="130">
-                <p class="age-gate__logo-text">Château<br>Crabitan&#160;Bellevue</p>
             </div>
 
             <p class="age-gate__intro"><?= htmlspecialchars(__('age_gate.intro')) ?></p>
@@ -64,7 +64,7 @@
                     </form>
                     <form method="post" action="/age-gate">
                         <input type="hidden" name="legal_age" value="0">
-                        <button type="submit" class="age-overlay__btn-exit age-overlay__btn-exit--outline"><?= htmlspecialchars(__('age_gate.exit')) ?></button>
+                        <button type="submit" class="age-gate__btn-exit age-gate__btn-exit--outline"><?= htmlspecialchars(__('age_gate.exit')) ?></button>
                     </form>
                 </div>
             </div>
@@ -82,6 +82,7 @@
         <?= htmlspecialchars(__('footer.legal_notice')) ?>
     </a>
 </footer>
+</div>
 
 <?php require_once SRC_PATH . '/View/partials/cookie-banner.php'; ?>
 

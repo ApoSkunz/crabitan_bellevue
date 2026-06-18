@@ -8,12 +8,20 @@
     background-color: var(--color-bg);
     min-height: 100dvh;
     overflow-x: hidden; // WCAG 1.4.4 — overflow-x uniquement : empêche scroll horizontal parasite sans bloquer scroll vertical à fort zoom
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.age-gate__container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
 }
 
 .age-gate {
     position: relative;
     width: 100%;
-    min-height: 100dvh;
     padding: 2.5rem 1rem;
     display: flex;
     flex-direction: column;
@@ -208,6 +216,25 @@
     }
 }
 
+// Header interne de la carte — lang (gauche) + theme-toggle (droite)
+.age-gate__card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    margin-bottom: 1rem;
+}
+
+// Quand lang/topbar sont dans la card : position statique, pas de safe-area offset
+.age-gate__card .age-gate__lang,
+.age-gate__card .theme-toggle {
+    position: static;
+    top: auto;
+    left: auto;
+    right: auto;
+    z-index: auto;
+}
+
 // Logo
 .age-gate__logo {
     text-align: center;
@@ -220,14 +247,6 @@
     }
 }
 
-.age-gate__logo-text {
-    font-family: var(--font-serif);
-    font-size: 1rem;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--color-text-muted);
-    line-height: 1.6;
-}
 
 // Texte intro
 .age-gate__intro {
@@ -300,24 +319,12 @@
     }
 
     .age-gate {
-        // Mobile : legal-footer redevient statique → plus besoin de réserver 150px en bas
-        padding: 3rem 1rem 0.5rem; // top: dégager FR/EN + theme-toggle (fixed top:1rem ~35px)
+        padding: 1rem 1rem 0.5rem;
         gap: 0.75rem;
-        justify-content: center;
     }
 
     .age-gate::before {
-        inset: 12px; // sort du mode "réserver le bas pour le banner" ; retour au cadre uniforme
-    }
-
-    // Mobile : bascule le footer légal dans le flux pour ne plus chevaucher
-    // les boutons ENTRER / QUITTER de la carte
-    .age-gate__legal-footer {
-        position: static;
-        margin: 0.5rem auto 0.5rem;
-        padding: 0 1rem;
-        flex-wrap: wrap;
-        text-align: center;
+        inset: 12px;
     }
 
     .age-gate__quote {
@@ -378,8 +385,7 @@
 
 // Sur l'age-gate (page et overlay), btn--ghost ne prend pas la couleur gold au hover
 // — cohérence avec le bouton QUITTER (neutre, pas de dorure)
-.age-gate-page .btn--ghost,
-.age-overlay .btn--ghost {
+.age-gate-page .btn--ghost {
     color: var(--color-text-muted);
     border-color: var(--color-border);
 
@@ -421,13 +427,6 @@
 }
 
 
-.age-gate__topbar {
-    position: fixed;
-    top: calc(1rem + env(safe-area-inset-top, 0px));
-    right: calc(1.25rem + env(safe-area-inset-right, 0px));
-    z-index: 100;
-}
-
 .age-gate__intro-link {
     margin-left: 0.25rem;
     color: var(--color-gold);
@@ -455,68 +454,7 @@
     }
 }
 
-// ============================================================
-// Overlay age gate — injectée dans header.php
-// ============================================================
-
-// Bloque le scroll de la page tant que l'overlay est visible
-// zoom: overflow intentionnel — modale fullscreen obligatoire (déclaration majorité Art. L3342-1 CSP), scroll bloqué intentionnellement
-body:has(.age-overlay) {
-    overflow: hidden;
-}
-
-// Conteneur opaque plein écran — pas d'animation d'opacité (évite le flash au chargement)
-// Seul le contenu intérieur anime son entrée via .age-gate (fade-in 0.6s)
-.age-overlay {
-    position: fixed;
-    inset: 0;
-    z-index: 9000;
-    background: var(--color-bg);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    // Dynamic Island (top) + home bar (bottom) — nécessite viewport-fit=cover
-    padding-top: env(safe-area-inset-top, 0px);
-    padding-right: env(safe-area-inset-right, 0px);
-    padding-bottom: env(safe-area-inset-bottom, 0px);
-    padding-left: env(safe-area-inset-left, 0px);
-
-    // Enfants en flux naturel — zéro position:fixed dans un BFC iOS Safari
-    .age-gate__lang,
-    .age-gate__topbar {
-        position: static;
-        z-index: auto;
-        top: auto;
-        left: auto;
-        right: auto;
-    }
-
-    .age-gate__legal-footer {
-        position: static;
-        z-index: auto;
-        bottom: auto;
-        padding: 0.5rem 0;
-    }
-
-    // Main occupe l'espace restant, scroll interne si contenu dépasse
-    .age-gate {
-        flex: 1;
-        min-height: 0;
-        overflow-y: auto;
-        -webkit-overflow-scrolling: touch;
-    }
-}
-
-// Header overlay : lang (gauche) + theme-toggle (droite) en ligne — position:static dans flex-column
-.age-overlay__header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0.75rem 1.25rem 0;
-    flex-shrink: 0;
-}
-
-.age-overlay__btn-exit {
+.age-gate__btn-exit {
     background: none;
     border: none;
     color: var(--color-text-muted);
@@ -545,17 +483,16 @@ body:has(.age-overlay) {
     }
 }
 
-// Micro-footer légal — liens politique de confidentialité et mentions légales
+// Micro-footer légal — dans le flux du container flex (plus de position:fixed)
 .age-gate__legal-footer {
-    position: fixed;
-    bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
-    left: 0;
-    right: 0;
     display: flex;
     justify-content: center;
+    flex-wrap: wrap;
     gap: 0.75rem;
     font-size: 0.72rem;
     letter-spacing: 0.05em;
+    padding: 0.5rem 1rem;
+    text-align: center;
 
     a {
         color: var(--color-text-muted);
@@ -571,5 +508,24 @@ body:has(.age-overlay) {
     span {
         color: var(--color-text-muted);
         opacity: 0.4;
+    }
+}
+
+
+// Dark theme — amélioration contraste éléments age-gate trop atténués
+[data-theme='dark'] {
+    .age-gate__declare {
+        color: var(--color-text);
+        opacity: 0.7;
+    }
+
+    .age-gate__btn-exit--outline {
+        color: var(--color-text);
+        opacity: 0.7;
+    }
+
+    .age-gate__legal-footer {
+        a { opacity: 0.85; }
+        span { opacity: 0.6; }
     }
 }
