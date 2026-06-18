@@ -302,17 +302,17 @@ function accountUrl( // NOSONAR — php:S107 : params nécessaires pour reconstr
         $nextDisabled   = $page >= $totalPages ? $disabledSuffix : '';
         ?>
         <div class="admin-pagination">
-            <a href="<?= htmlspecialchars(accountUrl(1, $role, $type ?? null, $search, $perPage, $sort ?? null, $hasOrdered ?? null)) ?>"
+            <a href="<?= htmlspecialchars(accountUrl(1, $role, $type ?? null, $search, $perPage, $sort ?? null, $hasOrdered ?? null, $activity ?? null)) ?>"
                class="admin-pagination__item<?= $prevDisabled ?>" aria-label="Première page">«</a>
-            <a href="<?= htmlspecialchars(accountUrl(max(1, $page - 1), $role, $type ?? null, $search, $perPage, $sort ?? null, $hasOrdered ?? null)) ?>"
+            <a href="<?= htmlspecialchars(accountUrl(max(1, $page - 1), $role, $type ?? null, $search, $perPage, $sort ?? null, $hasOrdered ?? null, $activity ?? null)) ?>"
                class="admin-pagination__item<?= $prevDisabled ?>">‹</a>
             <?php for ($i = max(1, $page - 2); $i <= min($totalPages, $page + 2); $i++) : ?>
-                <a href="<?= htmlspecialchars(accountUrl($i, $role, $type ?? null, $search, $perPage, $sort ?? null, $hasOrdered ?? null)) ?>"
+                <a href="<?= htmlspecialchars(accountUrl($i, $role, $type ?? null, $search, $perPage, $sort ?? null, $hasOrdered ?? null, $activity ?? null)) ?>"
                    class="admin-pagination__item<?= $i === $page ? ' active' : '' ?>"><?= $i ?></a>
             <?php endfor; ?>
-            <a href="<?= htmlspecialchars(accountUrl(min($totalPages, $page + 1), $role, $type ?? null, $search, $perPage, $sort ?? null, $hasOrdered ?? null)) ?>"
+            <a href="<?= htmlspecialchars(accountUrl(min($totalPages, $page + 1), $role, $type ?? null, $search, $perPage, $sort ?? null, $hasOrdered ?? null, $activity ?? null)) ?>"
                class="admin-pagination__item<?= $nextDisabled ?>">›</a>
-            <a href="<?= htmlspecialchars(accountUrl($totalPages, $role, $type ?? null, $search, $perPage, $sort ?? null, $hasOrdered ?? null)) ?>"
+            <a href="<?= htmlspecialchars(accountUrl($totalPages, $role, $type ?? null, $search, $perPage, $sort ?? null, $hasOrdered ?? null, $activity ?? null)) ?>"
                class="admin-pagination__item<?= $nextDisabled ?>" aria-label="Dernière page">»</a>
         </div>
     <?php endif; ?>
