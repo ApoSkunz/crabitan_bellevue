@@ -33,7 +33,7 @@
                 </nav>
                 <button
                     id="theme-toggle"
-                    class="theme-toggle"
+                    class="theme-toggle js-theme-toggle"
                     type="button"
                     aria-label="<?= __('common.toggle_theme') ?>"
                 >
