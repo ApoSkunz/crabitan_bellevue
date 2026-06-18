@@ -158,7 +158,7 @@ test.describe('Age Gate — comportements', () => {
         // la restriction CSP form-action qui bloquait la redirection cross-origin en Chromium.
         await Promise.all([
             page.waitForURL(/google\.com/, { timeout: 5000 }),
-            page.locator('.age-overlay__btn-exit--outline').click(),
+            page.locator('.age-gate__btn-exit--outline').click(),
         ]);
         expect(page.url()).toContain('google.com');
     });
@@ -169,7 +169,7 @@ test.describe('Age Gate — comportements', () => {
 
         await Promise.all([
             page.waitForURL(/google\.com/, { timeout: 5000 }),
-            page.locator('.age-overlay__btn-exit--outline').click(),
+            page.locator('.age-gate__btn-exit--outline').click(),
         ]);
 
         const cookies = await context.cookies();

@@ -63,7 +63,7 @@
                     </form>
                     <form method="post" action="/age-gate">
                         <input type="hidden" name="legal_age" value="0">
-                        <button type="submit" class="age-overlay__btn-exit age-overlay__btn-exit--outline"><?= htmlspecialchars(__('age_gate.exit')) ?></button>
+                        <button type="submit" class="age-gate__btn-exit age-gate__btn-exit--outline"><?= htmlspecialchars(__('age_gate.exit')) ?></button>
                     </form>
                 </div>
             </div>
