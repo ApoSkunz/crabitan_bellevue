@@ -571,8 +571,8 @@ class WineAdminController extends AdminController
         }
         // Slug : toujours auto en création, conservé en modification
         $slug = $existing !== null
-            ? ($existing['slug'] ?? $this->generateSlug($labelName, $vintage))
-            : $this->generateSlug($labelName, $vintage);
+            ? ($existing['slug'] ?? $this->generateSlug($labelName, $vintage, $format, (bool) $isCuvee))
+            : $this->generateSlug($labelName, $vintage, $format, (bool) $isCuvee);
 
         // ---- Upload image — phase 1 : validation seule, aucun déplacement ----
         $file      = $_FILES['image'] ?? [];
@@ -748,9 +748,30 @@ class WineAdminController extends AdminController
         };
     }
 
-    private function generateSlug(string $name, int $vintage): string
+    /**
+     * Génère le slug d'un vin à partir de l'appellation et du millésime.
+     *
+     * Le format (hors « bottle ») et la marque cuvée spéciale sont suffixés
+     * pour garantir l'unicité : deux vins de même appellation/millésime mais
+     * de format ou de statut cuvée différents ne doivent pas entrer en
+     * collision sur la contrainte uq_wines_slug. Les vins standards en
+     * bouteille conservent le slug historique (rétrocompatibilité URL).
+     *
+     * @param string $name    Appellation (label_name)
+     * @param int    $vintage Millésime
+     * @param string $format  Format du contenant (« bottle » par défaut)
+     * @param bool   $isCuvee Vrai si cuvée spéciale
+     * @return string Slug normalisé
+     */
+    private function generateSlug(string $name, int $vintage, string $format = 'bottle', bool $isCuvee = false): string
     {
         $slug = strtolower(self::deaccent($name) . '-' . $vintage);
+        if ($format !== 'bottle' && $format !== '') {
+            $slug .= '-' . $format;
+        }
+        if ($isCuvee) {
+            $slug .= '-cuvee-speciale';
+        }
         $slug = preg_replace('/[^a-z0-9]+/', '-', $slug) ?? $slug;
         return trim($slug, '-');
     }

@@ -97,6 +97,42 @@ class WineAdminControllerTest extends TestCase
         $this->assertNotSame($slug21, $slug22);
     }
 
+    public function testGenerateSlugBottleStandardKeepsHistoricalSlug(): void
+    {
+        $ctrl   = $this->makeController();
+        $result = $this->generateSlug->invoke($ctrl, 'Sainte-Croix-du-Mont', 2017, 'bottle', false);
+        $this->assertSame('sainte-croix-du-mont-2017', $result);
+    }
+
+    public function testGenerateSlugCuveeSpecialeAddsSuffix(): void
+    {
+        $ctrl   = $this->makeController();
+        $result = $this->generateSlug->invoke($ctrl, 'Sainte-Croix-du-Mont', 2017, 'bottle', true);
+        $this->assertSame('sainte-croix-du-mont-2017-cuvee-speciale', $result);
+    }
+
+    public function testGenerateSlugCuveeDiffersFromStandard(): void
+    {
+        $ctrl     = $this->makeController();
+        $standard = $this->generateSlug->invoke($ctrl, 'Sainte-Croix-du-Mont', 2017, 'bottle', false);
+        $cuvee    = $this->generateSlug->invoke($ctrl, 'Sainte-Croix-du-Mont', 2017, 'bottle', true);
+        $this->assertNotSame($standard, $cuvee);
+    }
+
+    public function testGenerateSlugNonBottleFormatAddsSuffix(): void
+    {
+        $ctrl   = $this->makeController();
+        $result = $this->generateSlug->invoke($ctrl, 'Bordeaux Rouge', 2022, 'bib', false);
+        $this->assertSame('bordeaux-rouge-2022-bib', $result);
+    }
+
+    public function testGenerateSlugFormatAndCuveeCombined(): void
+    {
+        $ctrl   = $this->makeController();
+        $result = $this->generateSlug->invoke($ctrl, 'Bordeaux Rouge', 2022, 'bib', true);
+        $this->assertSame('bordeaux-rouge-2022-bib-cuvee-speciale', $result);
+    }
+
     // ----------------------------------------------------------------
     // parseNutritionPost — ingrédients bilingues
     // ----------------------------------------------------------------
