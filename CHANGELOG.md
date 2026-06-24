@@ -2,6 +2,13 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+## [1.33.3](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.33.2...v1.33.3) (2026-06-24)
+
+
+### Bug Fixes
+
+* **admin:** inclure format et cuvée spéciale dans le slug des vins ([0c93df6](https://github.com/ApoSkunz/crabitan_bellevue/commit/0c93df6586601b8e05d753c4ebb9d25f31d26c94))
+
 ## [1.33.2](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.33.1...v1.33.2) (2026-06-18)
 
 
