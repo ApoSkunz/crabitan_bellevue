@@ -2,6 +2,13 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+## [1.33.4](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.33.3...v1.33.4) (2026-06-25)
+
+
+### Bug Fixes
+
+* **admin:** styler les modals QR code et confirmation (overlay centré) ([cde8c11](https://github.com/ApoSkunz/crabitan_bellevue/commit/cde8c11f642e0b59964f26659daa65c56d92dac0))
+
 ## [1.33.3](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.33.2...v1.33.3) (2026-06-24)
 
 
