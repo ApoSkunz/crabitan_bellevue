@@ -50,6 +50,7 @@ $isPublicPath = str_starts_with($path, '/age-gate')
     || str_ends_with($path, '/fiche-technique')     // PDF direct — mention Loi Evin incluse
     || str_ends_with($path, '/fiche-technique/qr')  // QR loader — fetch PDF en background
     || str_starts_with($path, '/cron/')           // Cron jobs IONOS HTTP GET — auth par token interne
+    || $path === '/payment/ipn'                   // IPN CA server-to-server — auth par signature RSA, aucun cookie possible
     || $path === '/sitemap.xml'
     || $path === '/sitemap-index.xml'
     || $path === '/sitemap-media.xml'
