@@ -191,4 +191,17 @@ test.describe('Age Gate — comportements', () => {
         await expect(page).not.toHaveURL(/\/age-gate/);
     });
 
+    // ── Endpoints machine-à-machine ─────────────────────────────────────────
+
+    test('IPN CA — POST sans cookie age_verified n\'est pas redirigé vers age-gate', async ({ page, context }) => {
+        await context.clearCookies();
+        // Aucune signature valide fournie : la réponse attendue est 400 (IpnController),
+        // pas 302 (ce qui prouverait que le age-gate a intercepté l'appel serveur-à-serveur).
+        const response = await page.request.post('/payment/ipn', {
+            maxRedirects: 0,
+            failOnStatusCode: false,
+        });
+        expect(response.status()).toBe(400);
+    });
+
 });
