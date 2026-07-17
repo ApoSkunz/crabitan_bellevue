@@ -95,6 +95,14 @@ $paymentMap  = [
                 </div>
             </section>
 
+            <?php if (!empty($order['customer_note'])) : ?>
+            <!-- Commentaire client -->
+            <section class="account-section">
+                <h2 class="account-section__title"><?= __('account.order_customer_note') ?></h2>
+                <p class="order-detail-note"><?= nl2br(htmlspecialchars($order['customer_note'])) ?></p>
+            </section>
+            <?php endif; ?>
+
             <!-- Timeline statut (commandes non annulées) -->
             <?php if ($order['status'] !== 'cancelled') : ?>
                 <section class="account-section">

@@ -71,6 +71,44 @@
         flex-direction: column;
         gap: 1rem;
     }
+
+    &--note {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+}
+
+.checkout-note {
+    &__label {
+        font-weight: 600;
+        color: var(--color-text);
+        font-size: 0.95rem;
+    }
+
+    &__optional {
+        font-weight: 400;
+        color: var(--color-text-muted);
+        font-size: 0.85rem;
+    }
+
+    &__textarea {
+        width: 100%;
+        min-height: 4.5rem;
+        padding: 0.65rem 0.85rem;
+        font-family: inherit;
+        font-size: 0.9rem;
+        color: var(--color-text);
+        background: var(--color-bg);
+        border: 1px solid var(--color-border);
+        border-radius: 4px;
+        resize: vertical;
+
+        &:focus {
+            outline: none;
+            border-color: var(--color-gold);
+        }
+    }
 }
 
 .checkout-delivery-method {
