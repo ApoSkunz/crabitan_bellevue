@@ -91,9 +91,14 @@ class InvoiceService
         $discountRow = $this->buildDiscountRow($shippingDiscount);
         $totalsRows  = $this->buildTotalsRows($total);
         $logoTag     = $this->buildLogoTag($logoPath, self::APP_NAME);
+        $customerNote = trim((string) ($order['customer_note'] ?? ''));
 
         $sectionLabel = 'font-size:7pt;font-weight:bold;color:#c1a14b;text-transform:uppercase;'
             . 'letter-spacing:1.5px;margin:0 0 6px;';
+
+        $noteHtml = $customerNote !== '' ? '
+<p style="' . $sectionLabel . '">Commentaire client</p>
+<p style="font-size:9pt;margin:0 0 14px;white-space:pre-line;">' . nl2br(htmlspecialchars($customerNote, ENT_QUOTES)) . '</p>' : '';
 
         return '
 <style>
@@ -177,7 +182,7 @@ table { width: 100%; border-collapse: collapse; }
 </tr>
 ' . $rows . $discountRow . $totalsRows . '
 </table>
-
+' . $noteHtml . '
 <!-- PIED DE PAGE LÉGAL -->
 <hr style="border:0;border-top:1px solid #e0d8cc;margin-bottom:8px;" />
 <table>
