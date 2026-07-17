@@ -131,7 +131,8 @@ class IpnController
                 $ref,
                 $numappel,
                 $numtrans,
-                (string) ($snapshot['delivery_method'] ?? 'shipping')
+                (string) ($snapshot['delivery_method'] ?? 'shipping'),
+                isset($snapshot['customer_note']) ? (string) $snapshot['customer_note'] : null
             );
 
             $this->intents->delete($ref);
@@ -195,6 +196,7 @@ class IpnController
 
                 $pdfContext     = (new \Service\OrderPdfContextBuilder())->build($snapshot);
                 $deliveryMethod = (string) ($snapshot['delivery_method'] ?? 'shipping');
+                $customerNote   = isset($snapshot['customer_note']) ? (string) $snapshot['customer_note'] : null;
                 $this->mail->sendOrderConfirmationToClient(
                     $email,
                     $name,
@@ -205,7 +207,8 @@ class IpnController
                     $lang,
                     $discount,
                     $pdfContext,
-                    $deliveryMethod
+                    $deliveryMethod,
+                    $customerNote
                 );
                 $this->mail->sendOrderConfirmationToOwner(
                     $email,
@@ -216,7 +219,8 @@ class IpnController
                     $total,
                     $discount,
                     $pdfContext,
-                    $deliveryMethod
+                    $deliveryMethod,
+                    $customerNote
                 );
             } catch (\Throwable $mailError) {
                 \Core\ErrorLogger::warning($mailError, self::LOG_CONTEXT);
