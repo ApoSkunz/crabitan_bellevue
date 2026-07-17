@@ -95,7 +95,7 @@ $paymentMap  = [
                 </div>
             </section>
 
-            <?php if (!empty($order['customer_note'])) : ?>
+            <?php if (trim((string) ($order['customer_note'] ?? '')) !== '') : ?>
             <!-- Commentaire client -->
             <section class="account-section">
                 <h2 class="account-section__title"><?= __('account.order_customer_note') ?></h2>

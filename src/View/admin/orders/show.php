@@ -170,7 +170,7 @@ $cartItems = json_decode($order['content'] ?? '[]', true) ?? [];
             </div>
         </div>
 
-        <?php if (!empty($order['customer_note'])) : ?>
+        <?php if (trim((string) ($order['customer_note'] ?? '')) !== '') : ?>
         <!-- Commentaire client -->
         <div class="admin-card">
             <div class="admin-card__header"><h2>Commentaire client</h2></div>
