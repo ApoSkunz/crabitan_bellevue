@@ -346,6 +346,7 @@ CREATE TABLE `orders` (
   `status`               ENUM('pending','paid','processing','shipped','delivered','cancelled','refunded','return_requested','refund_refused','refund_pending','ready_for_pickup','collected') NOT NULL DEFAULT 'pending',
   `delivery_method`      ENUM('shipping','pickup') NOT NULL DEFAULT 'shipping' COMMENT 'Mode de livraison : shipping = livraison domicile, pickup = retrait château (Click & Collect)',
   `cgv_version`          VARCHAR(20)    NOT NULL DEFAULT '1.0' COMMENT 'Version des CGV acceptées au moment de la commande',
+  `customer_note`        VARCHAR(500)   DEFAULT NULL COMMENT 'Commentaire libre du client à la commande (ex: demande de livraison différée)',
   `ca_numappel`          VARCHAR(11)    DEFAULT NULL COMMENT 'NUMAPPEL CA e-Transactions (lettre T PBX_RETOUR) — requis pour remboursement GAE',
   `ca_numtrans`          VARCHAR(11)    DEFAULT NULL COMMENT 'NUMTRANS CA e-Transactions (lettre S PBX_RETOUR) — requis pour remboursement GAE',
   `invoice_number`       VARCHAR(30)    DEFAULT NULL COMMENT 'Numéro de facture WEB-INVOICE-YYYY-XXXX',
