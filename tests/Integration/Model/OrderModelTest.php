@@ -1591,4 +1591,123 @@ class OrderModelTest extends IntegrationTestCase
         // Avec d'autres commandes potentielles, on vérifie juste que c'est > 0
         $this->assertGreaterThan(0.0, $avg);
     }
+
+    // ----------------------------------------------------------------
+    // create() / createFromIpn() — customer_note
+    // ----------------------------------------------------------------
+
+    /**
+     * create() persiste le commentaire client trimé.
+     */
+    public function testCreatePersistsCustomerNote(): void
+    {
+        $userId    = $this->insertAccount('note_create_' . bin2hex(random_bytes(4)) . '@example.com');
+        $billingId = $this->insertAddress($userId, 'billing');
+
+        $reference = $this->model->create(
+            $userId,
+            [['wine_id' => 1, 'qty' => 12, 'price' => 15.0]],
+            180.0,
+            'virement',
+            0.0,
+            $billingId,
+            null,
+            '1.0',
+            'shipping',
+            '  Livraison à partir du 15/08/2026  '
+        );
+
+        $row = self::$db->fetchOne(
+            'SELECT customer_note FROM orders WHERE order_reference = ?',
+            [$reference]
+        );
+        $this->assertSame('Livraison à partir du 15/08/2026', $row['customer_note']);
+    }
+
+    /**
+     * create() tronque le commentaire à 500 caractères.
+     */
+    public function testCreateTruncatesCustomerNoteTo500Chars(): void
+    {
+        $userId    = $this->insertAccount('note_trunc_' . bin2hex(random_bytes(4)) . '@example.com');
+        $billingId = $this->insertAddress($userId, 'billing');
+        $longNote  = str_repeat('a', 600);
+
+        $reference = $this->model->create(
+            $userId,
+            [['wine_id' => 1, 'qty' => 12, 'price' => 15.0]],
+            180.0,
+            'virement',
+            0.0,
+            $billingId,
+            null,
+            '1.0',
+            'shipping',
+            $longNote
+        );
+
+        $row = self::$db->fetchOne(
+            'SELECT customer_note FROM orders WHERE order_reference = ?',
+            [$reference]
+        );
+        $this->assertSame(500, strlen((string) $row['customer_note']));
+    }
+
+    /**
+     * create() stocke NULL quand le commentaire est vide ou absent.
+     */
+    public function testCreateStoresNullWhenCustomerNoteEmpty(): void
+    {
+        $userId    = $this->insertAccount('note_null_' . bin2hex(random_bytes(4)) . '@example.com');
+        $billingId = $this->insertAddress($userId, 'billing');
+
+        $reference = $this->model->create(
+            $userId,
+            [['wine_id' => 1, 'qty' => 12, 'price' => 15.0]],
+            180.0,
+            'virement',
+            0.0,
+            $billingId,
+            null,
+            '1.0'
+        );
+
+        $row = self::$db->fetchOne(
+            'SELECT customer_note FROM orders WHERE order_reference = ?',
+            [$reference]
+        );
+        $this->assertNull($row['customer_note']);
+    }
+
+    /**
+     * createFromIpn() persiste le commentaire client.
+     */
+    public function testCreateFromIpnPersistsCustomerNote(): void
+    {
+        $userId     = $this->insertAccount('note_ipn_' . bin2hex(random_bytes(4)) . '@example.com');
+        $billingId  = $this->insertAddress($userId, 'billing');
+        $deliveryId = $this->insertAddress($userId, 'delivery');
+        $reference  = 'WEB-CB-' . strtoupper(bin2hex(random_bytes(4))) . '-2026';
+
+        $this->model->createFromIpn(
+            $userId,
+            [['wine_id' => 1, 'qty' => 12, 'price' => 15.0]],
+            180.0,
+            0.0,
+            $billingId,
+            $deliveryId,
+            '1.0',
+            $reference,
+            '12345',
+            '67890',
+            'shipping',
+            'Merci de livrer après 18h'
+        );
+
+        $row = self::$db->fetchOne(
+            'SELECT customer_note FROM orders WHERE order_reference = ?',
+            [$reference]
+        );
+        $this->assertSame('Merci de livrer après 18h', $row['customer_note']);
+    }
 }

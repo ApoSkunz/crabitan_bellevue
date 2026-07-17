@@ -734,7 +734,8 @@ class IpnControllerHandleFlowTest extends TestCase
                 'fr',               // lang par défaut
                 0.0,                // delivery_discount par défaut
                 $this->anything(),  // pdfContext (null si AddressModel indisponible)
-                'shipping'          // delivery_method par défaut
+                'shipping',         // delivery_method par défaut
+                null                // customer_note absent du snapshot
             );
 
         $caught = null;
