@@ -105,6 +105,46 @@ class GoogleOAuthControllerMfaDisabledTest extends TestCase
     }
 
     // ================================================================
+    // MFA_EMAIL_ENABLED='' (parse_ini_file coerce false/no/off non quoté
+    // en chaîne vide) → doit être traité comme désactivé, pas comme activé.
+    // ================================================================
+
+    public function testIssueSessionAutoTrustsDeviceWithEmptyStringFromIniParsing(): void
+    {
+        $_ENV['MFA_EMAIL_ENABLED'] = '';
+
+        $stub = $this->createStub(Database::class);
+        $this->dbInstanceProp->setValue(null, $stub);
+
+        $stub->method('fetchOne')->willReturnOnConsecutiveCalls(
+            false,
+            ['majority_declared_at' => '2025-01-01 00:00:00']
+        );
+
+        $account = [
+            'id'            => 43,
+            'role'          => 'customer',
+            'lang'          => 'fr',
+            'has_connected' => true,
+            'account_type'  => 'individual',
+            'firstname'     => 'Jean',
+            'lastname'      => 'Dupont',
+            'company_name'  => null,
+        ];
+
+        $caught = null;
+        try {
+            $this->callIssueSession($this->makeController(), $account, 'fr');
+        } catch (HttpException $e) {
+            $caught = $e;
+        }
+
+        $this->assertNotNull($caught);
+        $this->assertSame(302, $caught->status);
+        $this->assertArrayNotHasKey('pending_device', $_SESSION);
+    }
+
+    // ================================================================
     // MFA_EMAIL_ENABLED=true → handleUntrustedDevice → /nouvel-appareil
     // ================================================================
 

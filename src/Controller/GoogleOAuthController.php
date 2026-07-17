@@ -468,7 +468,10 @@ class GoogleOAuthController extends Controller
         // MFA requis : appareil non de confiance et pas la 1ʳᵉ connexion → challenge email
         // MFA_EMAIL_ENABLED=false : auto-trust temporaire (limite SMTP IONOS < 30 jours).
         if (!$trusted) {
-            $mfaEnabled = ($_ENV['MFA_EMAIL_ENABLED'] ?? 'true') !== 'false';
+            // parse_ini_file() convertit une valeur non quotée false/no/off en chaîne vide —
+            // ne pas comparer à la seule chaîne littérale 'false'.
+            $mfaRaw     = strtolower(trim((string) ($_ENV['MFA_EMAIL_ENABLED'] ?? 'true')));
+            $mfaEnabled = !in_array($mfaRaw, ['', 'false', '0', 'no', 'off'], true);
             if ($mfaEnabled) {
                 $this->handleUntrustedDevice($account, $deviceToken, $deviceName, $lang);
             } else {
