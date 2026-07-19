@@ -1,45 +1,20 @@
 ﻿// @ts-check
-import { test, expect, setVerifiedCookie } from './support/fixtures.js';
-
-// ============================================================
-// Constants
-// ============================================================
-
-const CUSTOMER_EMAIL    = 'client.verifie@dev.local';
-const CUSTOMER_PASSWORD = 'Dev123456789!';
-const CUSTOMER_DEVICE   = 'b2c3d4e5b2c3d4e5b2c3d4e5b2c3d4e5b2c3d4e5b2c3d4e5b2c3d4e5b2c3d4e5';
+import { test, expect, setVerifiedCookie, applyCustomerSession } from './support/fixtures.js';
 
 // ============================================================
 // Helpers
 // ============================================================
 
 /**
- * Pose les cookies age_verified + device_token, ouvre le modal login,
- * remplit les credentials et attend la fermeture du modal ou la redirection.
+ * Applique la session client déjà authentifiée (storageState partagé, voir
+ * global-setup.js) au lieu de rejouer un login complet à chaque test.
  *
  * @param {import('@playwright/test').Page} page
  * @param {import('@playwright/test').BrowserContext} context
  */
 async function loginAsCustomer(page, context) {
-    const domain = new URL(process.env.APP_URL || 'http://crabitan.local').hostname;
-
-    await context.addCookies([
-        { name: 'age_verified', value: '1',             domain, path: '/', httpOnly: true,  sameSite: 'Lax' },
-        { name: 'device_token', value: CUSTOMER_DEVICE, domain, path: '/', httpOnly: false, sameSite: 'Lax' },
-    ]);
-
+    await applyCustomerSession(context);
     await page.goto('/fr');
-
-    await page.locator('#login-modal-trigger').click();
-    await expect(page.locator('#login-modal')).toHaveAttribute('aria-hidden', 'false');
-
-    await page.locator('#login-modal-email').fill(CUSTOMER_EMAIL);
-    await page.locator('#login-modal-password').fill(CUSTOMER_PASSWORD);
-
-    await Promise.all([
-        page.waitForURL(/\/(fr|en)/, { timeout: 10000 }),
-        page.locator('form[action*="/connexion"] button[type="submit"]').click(),
-    ]);
 }
 
 /**

@@ -1,60 +1,6 @@
 ﻿// @ts-check
 import { test, expect, setVerifiedCookie } from './support/fixtures.js';
-
-// ============================================================
-// Helpers
-// ============================================================
-
-const DOMAIN = new URL(process.env.APP_URL || 'http://crabitan.local').hostname;
-
-/**
- * Authentifie Sophie (client.verifie@dev.local) via le modal de connexion.
- * Pose le cookie age_verified=1 et le device_token de confiance avant toute navigation,
- * ce qui permet au MFA de passer sans challenge OTP.
- *
- * @param {import('@playwright/test').Page}           page
- * @param {import('@playwright/test').BrowserContext} context
- */
-async function loginAsCustomer(page, context) {
-    // 1. Cookies préalables : age gate + appareil de confiance
-    await context.addCookies([
-        {
-            name: 'age_verified',
-            value: '1',
-            domain: DOMAIN,
-            path: '/',
-            httpOnly: true,
-            sameSite: 'Lax',
-            expires: Math.floor(Date.now() / 1000) + 3600,
-        },
-        {
-            name: 'device_token',
-            value: 'b2c3d4e5b2c3d4e5b2c3d4e5b2c3d4e5b2c3d4e5b2c3d4e5b2c3d4e5b2c3d4e5',
-            domain: DOMAIN,
-            path: '/',
-            httpOnly: true,
-            sameSite: 'Lax',
-            expires: Math.floor(Date.now() / 1000) + 3600,
-        },
-    ]);
-
-    // 2. Charger la homepage
-    await page.goto('/fr');
-
-    // 3. Ouvrir le modal de connexion
-    await page.locator('#login-modal-trigger').click();
-    await expect(page.locator('#login-modal')).toHaveAttribute('aria-hidden', 'false');
-
-    // 4. Remplir les champs
-    await page.locator('#login-modal-email').fill('client.verifie@dev.local');
-    await page.locator('#login-modal-password').fill('Dev123456789!');
-
-    // 5. Soumettre et attendre la navigation (modal ferme ou redirect vers mon-compte)
-    await Promise.all([
-        page.waitForURL(/.+/, { timeout: 15000 }),
-        page.locator('form[action*="/connexion"] button[type="submit"]').click(),
-    ]);
-}
+import { CUSTOMER_STORAGE_STATE } from './support/global-setup.js';
 
 // ============================================================
 // Suite : Accès espace client — non connecté
@@ -84,9 +30,7 @@ test.describe('Accès espace client — non connecté', () => {
 
 test.describe('Dashboard mon-compte — connecté', () => {
 
-    test.beforeEach(async ({ page, context }) => {
-        await loginAsCustomer(page, context);
-    });
+    test.use({ storageState: CUSTOMER_STORAGE_STATE });
 
     test('/fr/mon-compte se charge avec header et main visibles', async ({ page }) => {
         await page.goto('/fr/mon-compte');
@@ -144,9 +88,7 @@ test.describe('Dashboard mon-compte — connecté', () => {
 
 test.describe('Profil', () => {
 
-    test.beforeEach(async ({ page, context }) => {
-        await loginAsCustomer(page, context);
-    });
+    test.use({ storageState: CUSTOMER_STORAGE_STATE });
 
     test('/fr/mon-compte/profil se charge', async ({ page }) => {
         await page.goto('/fr/mon-compte/profil');
@@ -191,9 +133,7 @@ test.describe('Profil', () => {
 
 test.describe('Commandes', () => {
 
-    test.beforeEach(async ({ page, context }) => {
-        await loginAsCustomer(page, context);
-    });
+    test.use({ storageState: CUSTOMER_STORAGE_STATE });
 
     test('/fr/mon-compte/commandes se charge', async ({ page }) => {
         await page.goto('/fr/mon-compte/commandes');
@@ -229,9 +169,7 @@ test.describe('Commandes', () => {
 
 test.describe('Adresses', () => {
 
-    test.beforeEach(async ({ page, context }) => {
-        await loginAsCustomer(page, context);
-    });
+    test.use({ storageState: CUSTOMER_STORAGE_STATE });
 
     test('/fr/mon-compte/adresses se charge', async ({ page }) => {
         await page.goto('/fr/mon-compte/adresses');
@@ -274,9 +212,7 @@ test.describe('Adresses', () => {
 
 test.describe('Sécurité', () => {
 
-    test.beforeEach(async ({ page, context }) => {
-        await loginAsCustomer(page, context);
-    });
+    test.use({ storageState: CUSTOMER_STORAGE_STATE });
 
     test('/fr/mon-compte/securite se charge', async ({ page }) => {
         await page.goto('/fr/mon-compte/securite');
@@ -326,9 +262,7 @@ test.describe('Sécurité', () => {
 
 test.describe('RGPD — export des données', () => {
 
-    test.beforeEach(async ({ page, context }) => {
-        await loginAsCustomer(page, context);
-    });
+    test.use({ storageState: CUSTOMER_STORAGE_STATE });
 
     test('/fr/mon-compte/export se charge', async ({ page }) => {
         await page.goto('/fr/mon-compte/export');
@@ -368,9 +302,7 @@ test.describe('RGPD — export des données', () => {
 
 test.describe('Newsletter — préférence dans le profil', () => {
 
-    test.beforeEach(async ({ page, context }) => {
-        await loginAsCustomer(page, context);
-    });
+    test.use({ storageState: CUSTOMER_STORAGE_STATE });
 
     test('/fr/mon-compte/profil affiche l\'option d\'abonnement newsletter', async ({ page }) => {
         await page.goto('/fr/mon-compte/profil');

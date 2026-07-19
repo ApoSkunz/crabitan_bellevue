@@ -27,7 +27,8 @@ class OrderSummaryPdfService
      *   total: float,
      *   shipping_discount?: float,
      *   billing: array<string, mixed>,
-     *   delivery?: array<string, mixed>|null
+     *   delivery?: array<string, mixed>|null,
+     *   customer_note?: string|null
      * } $data
      */
     public function generate(array $data): string
@@ -44,7 +45,7 @@ class OrderSummaryPdfService
         $pdf->setPrintFooter(false);
         $pdf->AddPage();
 
-        $logoPath = ROOT_PATH . '/public/assets/images/logo/crabitan-bellevue-logo-restored.png';
+        $logoPath = ROOT_PATH . '/public/assets/images/logo/crabitan-bellevue-logo-pdf.png';
         $html     = $this->buildHtml($data, is_file($logoPath) ? $logoPath : null);
         $pdf->writeHTML($html, true, false, true, false, '');
 
@@ -66,6 +67,7 @@ class OrderSummaryPdfService
         $deliveryMethod   = (string) ($data['delivery_method'] ?? 'shipping');
         $billing          = (array)  ($data['billing']  ?? []);
         $delivery         = isset($data['delivery']) && is_array($data['delivery']) ? $data['delivery'] : null;
+        $customerNote     = trim((string) ($data['customer_note'] ?? ''));
 
         $paymentLabels = [
             'card'     => 'Carte bancaire',
@@ -86,6 +88,10 @@ class OrderSummaryPdfService
 
         $sectionLabel = 'font-size:7pt;font-weight:bold;color:#c1a14b;text-transform:uppercase;'
             . 'letter-spacing:1.5px;margin:0 0 6px;';
+
+        $noteHtml = $customerNote !== '' ? '
+<p style="' . $sectionLabel . '">Commentaire client</p>
+<p style="font-size:9pt;margin:0 0 14px;white-space:pre-line;">' . nl2br(htmlspecialchars($customerNote, ENT_QUOTES)) . '</p>' : '';
 
         return '
 <style>
@@ -146,7 +152,7 @@ table { width: 100%; border-collapse: collapse; }
 </tr>
 ' . $rows . $discountRow . $totalRow . '
 </table>
-
+' . $noteHtml . '
 <p style="font-size:7pt;color:#aaa;margin:18px 0 0;font-style:italic;">
   Document interne &#8212; r&#233;capitulatif de commande. Ne tient pas lieu de facture.
 </p>';

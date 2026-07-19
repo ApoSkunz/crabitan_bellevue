@@ -14,7 +14,7 @@
 // ----------------------------------------------------------------
 
 .account-shell {
-    max-width: 1080px;
+    max-width: 1280px;
     margin: 0 auto;
     display: grid;
     grid-template-columns: 220px 1fr;
@@ -774,6 +774,12 @@
         font-size: 0.9rem;
         color: var(--color-text);
     }
+}
+
+.order-detail-note {
+    font-size: 0.9rem;
+    color: var(--color-text);
+    white-space: pre-line;
 }
 
 // ----------------------------------------------------------------

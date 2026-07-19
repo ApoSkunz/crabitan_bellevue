@@ -133,7 +133,7 @@ if (!function_exists('ordersUrl')) {
                                             <span class="badge-delivery">Livraison</span>
                                         <?php endif; ?>
                                     </td>
-                                    <td data-label="<?= htmlspecialchars(__('account.order_price')) ?>"><?= number_format((float) $order['price'], 2, ',', ' ') ?> €</td>
+                                    <td data-label="<?= htmlspecialchars(__('account.order_price')) ?>"><?= number_format((float) $order['price'], 2, ',', "\u{A0}") ?>&nbsp;€</td>
                                     <td data-label="<?= htmlspecialchars(__('account.order_invoice')) ?>">
                                         <?php if ($order['path_invoice']) : ?>
                                             <a href="/<?= htmlspecialchars($lang) ?>/mon-compte/commandes/<?= (int) $order['id'] ?>/facture"

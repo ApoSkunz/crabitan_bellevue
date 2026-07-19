@@ -166,7 +166,10 @@ class AuthController extends Controller // NOSONAR — php:S1448 — controller 
         // Le JWT n'est PAS émis ici — la connexion est bloquée jusqu'à validation du lien email.
         // MFA_EMAIL_ENABLED=false : auto-trust temporaire (limite SMTP IONOS < 30 jours).
         if (!$trusted) {
-            $mfaEnabled = ($_ENV['MFA_EMAIL_ENABLED'] ?? 'true') !== 'false';
+            // parse_ini_file() convertit une valeur non quotée false/no/off en chaîne vide —
+            // ne pas comparer à la seule chaîne littérale 'false'.
+            $mfaRaw     = strtolower(trim((string) ($_ENV['MFA_EMAIL_ENABLED'] ?? 'true')));
+            $mfaEnabled = !in_array($mfaRaw, ['', 'false', '0', 'no', 'off'], true);
             if ($mfaEnabled) {
                 $this->handleUntrustedDevice($account, $deviceToken, $deviceName, $lang, $safeBack);
             } else {

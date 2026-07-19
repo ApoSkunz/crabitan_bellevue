@@ -46,6 +46,7 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
      * @param int|null                         $idDeliveryAddress ID adresse de livraison (null = même que facturation)
      * @param string                           $cgvVersion        Version des CGV acceptées
      * @param string                           $deliveryMethod    Mode de livraison : 'shipping' ou 'pickup' (Click & Collect)
+     * @param string|null                      $customerNote      Commentaire libre du client (500 caractères max)
      * @return string Référence de commande générée
      */
     public function create( // NOSONAR php:S107 — paramètres atomiques requis par le schéma BDD ; DTO prévu à l'audit architecture
@@ -57,7 +58,8 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
         int $idBillingAddress,
         ?int $idDeliveryAddress,
         string $cgvVersion,
-        string $deliveryMethod = 'shipping'
+        string $deliveryMethod = 'shipping',
+        ?string $customerNote = null
     ): string {
         if (!in_array($paymentMethod, self::VALID_PAYMENT_METHODS, true)) {
             $paymentMethod = 'card';
@@ -82,12 +84,14 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
         }
 
         $deliveryMethod = in_array($deliveryMethod, ['shipping', 'pickup'], true) ? $deliveryMethod : 'shipping';
+        $customerNote   = $customerNote !== null ? mb_substr(trim($customerNote), 0, 500) : null;
+        $customerNote   = $customerNote !== '' ? $customerNote : null;
 
         $this->db->insert(
             "INSERT INTO {$this->table}
              (user_id, order_reference, content, price, payment_method, shipping_discount,
-              id_billing_snapshot, id_delivery_snapshot, cgv_version, delivery_method, status)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')", // phpcs:ignore Generic.Files.LineLength
+              id_billing_snapshot, id_delivery_snapshot, cgv_version, delivery_method, customer_note, status)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')", // phpcs:ignore Generic.Files.LineLength
             [
                 $userId,
                 $reference,
@@ -99,6 +103,7 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
                 $deliverySnapshotId,
                 $cgvVersion,
                 $deliveryMethod,
+                $customerNote,
             ]
         );
 
@@ -117,7 +122,7 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
         $row = $this->db->fetchOne(
             "SELECT o.id, o.user_id, o.order_reference, o.content, o.price, o.payment_method,
                     o.shipping_discount, o.id_billing_snapshot, o.id_delivery_snapshot, o.status,
-                    o.cgv_version, o.invoice_number, o.path_invoice,
+                    o.cgv_version, o.customer_note, o.invoice_number, o.path_invoice,
                     o.ordered_at, o.delivered_at, o.rating_email_sent_at, o.updated_at,
                     b.civility  AS bill_civility,  b.firstname AS bill_firstname, b.lastname AS bill_lastname,
                     b.street    AS bill_street,    b.city      AS bill_city,
@@ -154,6 +159,7 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
      * @param string                           $reference         Référence pré-générée (WEB-CB-XXXXX-YYYY)
      * @param string                           $numappel          NUMAPPEL CA (lettre T PBX_RETOUR)
      * @param string                           $numtrans          NUMTRANS CA (lettre S PBX_RETOUR)
+     * @param string|null                      $customerNote      Commentaire libre du client (500 caractères max)
      * @return string Référence de la commande créée
      * @throws \PDOException Si la collision de référence persiste après 3 tentatives
      */
@@ -168,10 +174,13 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
         string $reference,
         string $numappel,
         string $numtrans,
-        string $deliveryMethod = 'shipping'
+        string $deliveryMethod = 'shipping',
+        ?string $customerNote = null
     ): string {
         $content        = json_encode($items, JSON_UNESCAPED_UNICODE);
         $deliveryMethod = in_array($deliveryMethod, ['shipping', 'pickup'], true) ? $deliveryMethod : 'shipping';
+        $customerNote   = $customerNote !== null ? mb_substr(trim($customerNote), 0, 500) : null;
+        $customerNote   = $customerNote !== '' ? $customerNote : null;
         $typeCode       = 'CB';
         $maxTries       = 3;
 
@@ -186,8 +195,9 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
                 $this->db->insert(
                     "INSERT INTO {$this->table}
                      (user_id, order_reference, content, price, payment_method, shipping_discount,
-                      id_billing_snapshot, id_delivery_snapshot, status, cgv_version, delivery_method, ca_numappel, ca_numtrans)
-                     VALUES (?, ?, ?, ?, 'card', ?, ?, ?, 'paid', ?, ?, ?, ?)", // phpcs:ignore Generic.Files.LineLength
+                      id_billing_snapshot, id_delivery_snapshot, status, cgv_version, delivery_method,
+                      customer_note, ca_numappel, ca_numtrans)
+                     VALUES (?, ?, ?, ?, 'card', ?, ?, ?, 'paid', ?, ?, ?, ?, ?)", // phpcs:ignore Generic.Files.LineLength
                     [
                         $userId,
                         $reference,
@@ -198,6 +208,7 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
                         $deliverySnapshotId,
                         $cgvVersion,
                         $deliveryMethod,
+                        $customerNote,
                         $numappel,
                         $numtrans,
                     ]
@@ -302,7 +313,7 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
         $row = $this->db->fetchOne(
             "SELECT o.id, o.user_id, o.order_reference, o.content, o.price, o.payment_method,
                     o.shipping_discount, o.id_billing_snapshot, o.id_delivery_snapshot, o.status,
-                    o.cgv_version, o.ca_numappel, o.ca_numtrans, o.delivery_method,
+                    o.cgv_version, o.customer_note, o.ca_numappel, o.ca_numtrans, o.delivery_method,
                     o.invoice_number, o.path_invoice,
                     o.ordered_at, o.delivered_at, o.rating_email_sent_at, o.updated_at,
                     a.email, a.lang,
@@ -399,7 +410,7 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
         $row = $this->db->fetchOne(
             "SELECT o.id, o.user_id, o.order_reference, o.content, o.price, o.payment_method,
                     o.shipping_discount, o.id_billing_snapshot, o.id_delivery_snapshot, o.status,
-                    o.cgv_version, o.invoice_number, o.path_invoice,
+                    o.cgv_version, o.customer_note, o.invoice_number, o.path_invoice,
                     o.ordered_at, o.delivered_at, o.updated_at,
                     a.email, a.lang,
                     COALESCE(ai.firstname, ac.company_name, '') AS firstname,
@@ -434,7 +445,7 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
         $row = $this->db->fetchOne(
             "SELECT o.id, o.user_id, o.order_reference, o.content, o.price, o.payment_method,
                     o.shipping_discount, o.id_billing_snapshot, o.id_delivery_snapshot, o.status,
-                    o.cgv_version, o.ca_numappel, o.ca_numtrans, o.delivery_method,
+                    o.cgv_version, o.customer_note, o.ca_numappel, o.ca_numtrans, o.delivery_method,
                     o.invoice_number, o.path_invoice,
                     o.ordered_at, o.delivered_at, o.rating_email_sent_at, o.updated_at,
                     a.email, a.lang,
@@ -628,7 +639,7 @@ class OrderModel extends Model // NOSONAR php:S1448 — regroupement intentionne
         $row = $this->db->fetchOne(
             "SELECT o.id, o.user_id, o.order_reference, o.content, o.price, o.payment_method,
                     o.shipping_discount, o.id_billing_snapshot, o.id_delivery_snapshot, o.status,
-                    o.cgv_version, o.ca_numappel, o.ca_numtrans, o.delivery_method,
+                    o.cgv_version, o.customer_note, o.ca_numappel, o.ca_numtrans, o.delivery_method,
                     o.invoice_number, o.path_invoice,
                     o.ordered_at, o.delivered_at, o.rating_email_sent_at, o.updated_at,
                     b.civility  AS bill_civility,  b.firstname AS bill_firstname, b.lastname AS bill_lastname,

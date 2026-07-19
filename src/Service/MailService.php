@@ -1218,7 +1218,8 @@ INNER;
         string $lang,
         float $shippingDiscount = 0.0,
         ?array $addressContext = null,
-        string $deliveryMethod = 'shipping'
+        string $deliveryMethod = 'shipping',
+        ?string $customerNote = null
     ): void {
         $this->setMailType('order');
         $safeRef  = htmlspecialchars($orderRef, ENT_QUOTES);
@@ -1300,8 +1301,15 @@ INNER;
 
         $addressesHtml = $this->buildAddressBlock($addressContext, $deliveryMethod, $lang);
 
+        $safeNote  = trim((string) $customerNote);
+        $labelNote = $lang === 'en' ? 'Your comment' : 'Votre commentaire';
+        $noteHtml  = $safeNote !== ''
+            ? "<br><strong>{$labelNote} :</strong> " . nl2br(htmlspecialchars($safeNote, ENT_QUOTES))
+            : '';
+
         $message = $itemsHtml
             . $addressesHtml
+            . $noteHtml
             . "<br><strong>{$labelPayment} :</strong> {$paymentLabel}{$deferredNote}"
             . "<br><strong>{$labelDelay} :</strong> {$delayValue}"
             . "<br>{$withdrawalNote}"
@@ -1510,7 +1518,8 @@ INNER;
         float $total,
         float $shippingDiscount = 0.0,
         ?array $pdfContext = null,
-        string $deliveryMethod = 'shipping'
+        string $deliveryMethod = 'shipping',
+        ?string $customerNote = null
     ): void {
         $this->setMailType('order');
         $ownerEmail    = $_ENV['CONTACT_OWNER_EMAIL'] ?? self::OWNER_EMAIL_DEFAULT;
@@ -1542,9 +1551,14 @@ INNER;
             : null;
         $addressesHtml = $this->buildAddressBlock($ownerAddrCtx, $deliveryMethod, 'fr');
 
+        $safeNote = trim((string) $customerNote);
+        $noteHtml = $safeNote !== ''
+            ? "<br><strong>Commentaire client :</strong> " . nl2br(htmlspecialchars($safeNote, ENT_QUOTES))
+            : '';
+
         $message = "<strong>Client :</strong> {$safeClient} ({$safeEmail})<br>"
             . "<strong>Référence :</strong> {$safeRef}<br>"
-            . "<strong>Paiement :</strong> {$paymentLabel}<br><br>"
+            . "<strong>Paiement :</strong> {$paymentLabel}{$noteHtml}<br><br>"
             . $itemsHtml
             . $addressesHtml;
 
@@ -1570,6 +1584,7 @@ INNER;
                     'delivery_method'   => $deliveryMethod,
                     'billing'           => (array) ($pdfContext['billing']  ?? []),
                     'delivery'          => $pdfContext['delivery'] ?? null,
+                    'customer_note'     => $customerNote,
                 ];
                 $pdfContent = $this->newOrderSummaryPdfService()->generate($pdfData);
                 $safeRefFile = preg_replace('/[^A-Za-z0-9_\-]/', '_', $orderRef) ?? 'order';

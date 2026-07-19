@@ -114,6 +114,53 @@ class AuthControllerMfaDisabledTest extends TestCase
     }
 
     // ================================================================
+    // MFA_EMAIL_ENABLED='' (parse_ini_file coerce false/no/off non quoté
+    // en chaîne vide) → doit être traité comme désactivé, pas comme activé.
+    // ================================================================
+
+    public function testLoginSucceedsWithMfaDisabledViaEmptyStringFromIniParsing(): void
+    {
+        $_ENV['MFA_EMAIL_ENABLED'] = '';
+
+        $_POST = [
+            'email'      => 'jean@example.com',
+            'password'   => 'TestPass123!',
+            'csrf_token' => 'valid-csrf',
+        ];
+
+        $stub = $this->setDbMock();
+        $stub->method('fetchOne')->willReturnOnConsecutiveCalls(
+            [
+                'id'                => 1,
+                'email'             => 'jean@example.com',
+                'password'          => $this->hash,
+                'role'              => 'customer',
+                'account_type'      => 'individual',
+                'has_connected'     => '1',
+                'email_verified_at' => '2025-01-01 00:00:00',
+                'lang'              => 'fr',
+                'firstname'         => 'Jean',
+                'lastname'          => 'Dupont',
+                'company_name'      => null,
+            ],
+            false,
+            false,
+            ['majority_declared_at' => '2025-01-01 00:00:00']
+        );
+
+        $caught = null;
+        try {
+            (new AuthController(new Request()))->login(['lang' => 'fr']);
+        } catch (HttpException $e) {
+            $caught = $e;
+        }
+
+        $this->assertNotNull($caught);
+        $this->assertSame(302, $caught->status);
+        $this->assertArrayNotHasKey('pending_device', $_SESSION);
+    }
+
+    // ================================================================
     // MFA_EMAIL_ENABLED=true (défaut) → comportement inchangé → MFA
     // ================================================================
 

@@ -1,8 +1,9 @@
 // @ts-check
 import { test as base, expect } from '@playwright/test';
-import { writeFileSync, mkdirSync } from 'fs';
+import { writeFileSync, mkdirSync, readFileSync, existsSync } from 'fs';
 import { join } from 'path';
 import { randomUUID } from 'crypto';
+import { CUSTOMER_STORAGE_STATE } from './global-setup.js';
 
 /**
  * Pose le cookie age_verified=1 sur le contexte donné.
@@ -15,6 +16,26 @@ export async function setVerifiedCookie(context) {
     await context.addCookies([
         { name: 'age_verified', value: '1', domain, path: '/', httpOnly: true, sameSite: 'Lax' },
     ]);
+}
+
+/**
+ * Applique au contexte donné les cookies de session client déjà authentifiés
+ * (produits une seule fois par le globalSetup Playwright), sans repasser par le
+ * formulaire de connexion. Évite de recréer une session par test : sur ~30 tests
+ * enchaînés en CI (1 seul worker), rejouer le POST /connexion à chaque fois
+ * déclenchait le rate limiter (AuthController::MAX_LOGIN_IP, 10/15min) et cassait
+ * en cascade tous les tests suivants nécessitant une session connectée.
+ *
+ * @param {import('@playwright/test').BrowserContext} context
+ */
+export async function applyCustomerSession(context) {
+    if (!existsSync(CUSTOMER_STORAGE_STATE)) {
+        throw new Error(
+            `Fichier storageState introuvable : ${CUSTOMER_STORAGE_STATE} — le globalSetup a-t-il tourné ?`
+        );
+    }
+    const state = JSON.parse(readFileSync(CUSTOMER_STORAGE_STATE, 'utf-8'));
+    await context.addCookies(state.cookies ?? []);
 }
 
 /**

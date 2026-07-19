@@ -170,6 +170,16 @@ $cartItems = json_decode($order['content'] ?? '[]', true) ?? [];
             </div>
         </div>
 
+        <?php if (trim((string) ($order['customer_note'] ?? '')) !== '') : ?>
+        <!-- Commentaire client -->
+        <div class="admin-card">
+            <div class="admin-card__header"><h2>Commentaire client</h2></div>
+            <div class="admin-card__body">
+                <p class="u-text-85 u-leading-loose u-text-primary"><?= nl2br(htmlspecialchars($order['customer_note'])) ?></p>
+            </div>
+        </div>
+        <?php endif; ?>
+
     </div>
 
     <!-- Droite : récap + changement de statut -->

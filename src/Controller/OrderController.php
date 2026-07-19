@@ -170,6 +170,7 @@ class OrderController extends Controller // NOSONAR — php:S1448 : MVC cohéren
             'pricingRule'            => $pricingRule,
             'isNewsletterSubscribed' => $isNewsletterSubscribed,
             'submitToken'            => $submitToken,
+            'noteDatePlaceholder'    => date('d/m/Y', strtotime('+15 days')),
         ]);
     }
 
@@ -272,6 +273,10 @@ class OrderController extends Controller // NOSONAR — php:S1448 : MVC cohéren
         $cgvDoc           = (new LegalDocumentModel())->findBySlug('cgv');
         $cgvVersion       = (string) ($cgvDoc['version'] ?? '1.0');
 
+        // Commentaire libre client — optionnel, borné à 500 caractères
+        $customerNote = mb_substr(trim($this->request->post('customer_note', '')), 0, 500);
+        $customerNote = $customerNote !== '' ? $customerNote : null;
+
         // ---- Chemin carte bancaire (CA) ----
         if ($paymentMethod === 'card') {
             $this->checkPaymentRateLimit($userId, $lang);
@@ -306,6 +311,7 @@ class OrderController extends Controller // NOSONAR — php:S1448 : MVC cohéren
                     'client_email'        => $clientEmail,
                     'client_name'         => $clientName,
                     'delivery_method'     => $deliveryMethod,
+                    'customer_note'       => $customerNote,
                 ];
 
                 // Persister le snapshot en BDD — l'IPN CA (server-to-server) n'a pas
@@ -370,7 +376,8 @@ class OrderController extends Controller // NOSONAR — php:S1448 : MVC cohéren
             $billingAddressId,
             $deliveryAddressId,
             $cgvVersion,
-            $deliveryMethod
+            $deliveryMethod,
+            $customerNote
         );
 
         // Vider le panier + décrémenter le stock
@@ -399,7 +406,8 @@ class OrderController extends Controller // NOSONAR — php:S1448 : MVC cohéren
                 (string) (($account !== false ? ($account['lang'] ?? null) : null) ?? $lang),
                 round($deliveryDiscount, 2),
                 $pdfContext,
-                $deliveryMethod
+                $deliveryMethod,
+                $customerNote
             );
         }
 
@@ -482,7 +490,8 @@ class OrderController extends Controller // NOSONAR — php:S1448 : MVC cohéren
                         $ref,
                         $numappel,
                         $numtrans,
-                        (string) ($snapshot['delivery_method'] ?? 'shipping')
+                        (string) ($snapshot['delivery_method'] ?? 'shipping'),
+                        isset($snapshot['customer_note']) ? (string) $snapshot['customer_note'] : null
                     );
 
                     (new \Model\PaymentIntentModel())->delete($ref);
@@ -500,6 +509,7 @@ class OrderController extends Controller // NOSONAR — php:S1448 : MVC cohéren
                     try {
                         $discount       = (float) ($snapshot['delivery_discount'] ?? 0.0);
                         $deliveryMethod = (string) ($snapshot['delivery_method']   ?? 'shipping');
+                        $customerNote   = isset($snapshot['customer_note']) ? (string) $snapshot['customer_note'] : null;
                         $pdfContext     = (new \Service\OrderPdfContextBuilder())->build((array) $snapshot);
                         $mail           = $this->newMailService();
                         $mail->sendOrderConfirmationToClient(
@@ -512,7 +522,8 @@ class OrderController extends Controller // NOSONAR — php:S1448 : MVC cohéren
                             $lang,
                             $discount,
                             $pdfContext,
-                            $deliveryMethod
+                            $deliveryMethod,
+                            $customerNote
                         );
                         $mail->sendOrderConfirmationToOwner(
                             (string) ($snapshot['client_email'] ?? ''),
@@ -523,7 +534,8 @@ class OrderController extends Controller // NOSONAR — php:S1448 : MVC cohéren
                             (float) $snapshot['total'],
                             $discount,
                             $pdfContext,
-                            $deliveryMethod
+                            $deliveryMethod,
+                            $customerNote
                         );
                     } catch (\Throwable $mailError) {
                         \Core\ErrorLogger::warning($mailError, '[RETURN_OK]');
@@ -992,7 +1004,8 @@ class OrderController extends Controller // NOSONAR — php:S1448 : MVC cohéren
         string $lang,
         float $shippingDiscount = 0.0,
         ?array $pdfContext = null,
-        string $deliveryMethod = 'shipping'
+        string $deliveryMethod = 'shipping',
+        ?string $customerNote = null
     ): void {
         try {
             $mailer = $this->newMailService();
@@ -1006,7 +1019,8 @@ class OrderController extends Controller // NOSONAR — php:S1448 : MVC cohéren
                 $lang,
                 $shippingDiscount,
                 $pdfContext,
-                $deliveryMethod
+                $deliveryMethod,
+                $customerNote
             );
             $mailer->sendOrderConfirmationToOwner(
                 $email,
@@ -1017,7 +1031,8 @@ class OrderController extends Controller // NOSONAR — php:S1448 : MVC cohéren
                 $total,
                 $shippingDiscount,
                 $pdfContext,
-                $deliveryMethod
+                $deliveryMethod,
+                $customerNote
             );
         } catch (\Throwable $e) {
             \Core\ErrorLogger::warning($e, self::LOG_CONTEXT);

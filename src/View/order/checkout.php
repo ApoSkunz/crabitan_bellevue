@@ -31,6 +31,7 @@ $deliveryDelay    = $deliveryDelay    ?? ($lang === 'en' ? '7 to 15 days upon re
 $isEn                    = ($lang === 'en');
 $isNewsletterSubscribed  = (bool) ($isNewsletterSubscribed ?? false);
 $submitToken             = $submitToken ?? '';
+$noteDatePlaceholder     = $noteDatePlaceholder ?? date('d/m/Y', strtotime('+15 days'));
 
 $billingAddresses  = array_values(array_filter($addresses, fn($a) => $a['type'] === 'billing'));
 $deliveryAddresses = array_values(array_filter($addresses, fn($a) => $a['type'] === 'delivery'));
@@ -399,6 +400,18 @@ $renderAddressForm = function (string $prefix, array $post, string $idSuffix) us
                             &#8617; <?= htmlspecialchars(__('checkout.reassurance_retractation')) ?>
                         </span>
                     </div>
+
+                    <!-- === Commentaire additionnel === -->
+                    <section class="checkout-card checkout-card--note">
+                        <label class="checkout-note__label" for="checkout-customer-note">
+                            <?= htmlspecialchars(__('checkout.customer_note_label')) ?>
+                            <span class="checkout-note__optional">(<?= htmlspecialchars(__('contact.optional')) ?>)</span>
+                        </label>
+                        <textarea id="checkout-customer-note" name="customer_note" maxlength="500"
+                                  class="checkout-note__textarea"
+                                  placeholder="<?= htmlspecialchars(sprintf(__('checkout.customer_note_placeholder'), $noteDatePlaceholder ?? '')) ?>"
+                        ><?= htmlspecialchars($post['customer_note'] ?? '') ?></textarea>
+                    </section>
 
                     <!-- === CGV + Newsletter === -->
                     <section class="checkout-card checkout-card--terms">
