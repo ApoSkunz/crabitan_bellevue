@@ -2,6 +2,31 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [1.34.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.33.4...v1.34.0) (2026-07-20)
+
+
+### Bug Fixes
+
+* **account:** espace insécable total commande + largeur tableau ([99b1e6a](https://github.com/ApoSkunz/crabitan_bellevue/commit/99b1e6a40b9823c9837ea910ed45aadcb2fe7fa3))
+* **auth:** MFA_EMAIL_ENABLED=false mal interprété via parse_ini_file ([3995099](https://github.com/ApoSkunz/crabitan_bellevue/commit/399509968b34279ec8abdbfcc966fd2604db62bd))
+* **e2e:** storageState partagé pour éviter le rate limit login en CI ([b510856](https://github.com/ApoSkunz/crabitan_bellevue/commit/b510856ba3b092099f11ad9439f292b2a70df4df))
+* **security:** whitelister /payment/ipn du age-gate ([0b31078](https://github.com/ApoSkunz/crabitan_bellevue/commit/0b31078d25c5ead63826bbe6341b633f6ad89e94))
+* **view:** affichage customer_note "0" masqué par !empty() ([bfafed7](https://github.com/ApoSkunz/crabitan_bellevue/commit/bfafed7c1bebf680be03a65d1c73541b2c8dd19c))
+
+
+### Features
+
+* **controller:** transmission customer_note checkout → commande ([41fe03f](https://github.com/ApoSkunz/crabitan_bellevue/commit/41fe03f9ae6d0989d61555f8d09a283a67f927b2))
+* **i18n:** clés commentaire commande fr/en ([9863d1e](https://github.com/ApoSkunz/crabitan_bellevue/commit/9863d1edd57da52de8b90e73df9b63d9d0434ce7))
+* **mail:** afficher customer_note dans emails récap et PDF ([cf559d6](https://github.com/ApoSkunz/crabitan_bellevue/commit/cf559d69cbedd09a38d7fe8b6e14cb5ca78b8336))
+* **model:** customer_note sur create() et createFromIpn() ([6aeecea](https://github.com/ApoSkunz/crabitan_bellevue/commit/6aeeceac777fb615a39e6c165d580e7273c20c49))
+* **view:** champ commentaire checkout + affichage client/admin ([731f37b](https://github.com/ApoSkunz/crabitan_bellevue/commit/731f37b756493e39113c5fc49a3cb8c76d68cb98))
+
+
+### Performance Improvements
+
+* **pdf:** logo réduit dédié pour génération PDF (facture/récap/fiche) ([9673b9d](https://github.com/ApoSkunz/crabitan_bellevue/commit/9673b9de67a4f4e61e2c4e3f0ef478a4ecfbc202))
+
 ## [1.33.4](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.33.3...v1.33.4) (2026-06-25)
 
 
