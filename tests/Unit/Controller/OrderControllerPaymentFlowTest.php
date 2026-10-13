@@ -1211,6 +1211,53 @@ class OrderControllerPaymentFlowTest extends TestCase
         $this->assertArrayNotHasKey('last_order_ref', $_SESSION);
     }
 
+    /**
+     * Adresse de livraison enregistrée hors France (Roumanie, zip 6 chiffres) → refus avant paiement.
+     *
+     * @return void
+     */
+    public function testPaymentRejectsForeignDeliveryAddress(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SERVER['REQUEST_URI']    = '/fr/commande/paiement';
+        $_COOKIE['auth_token']     = $this->makeValidJwt(1, 'customer');
+        $_SESSION['submit_token']  = 'test-submit-token';
+        $_SESSION['payment_attempts'][1] = ['count' => 0, 'window_start' => time()];
+
+        $_POST = [
+            'csrf_token'          => 'valid-csrf',
+            'submit_token'        => 'test-submit-token',
+            'payment_method'      => 'card',
+            'cgv'                 => '1',
+            'same_address'        => '1',
+            'delivery_address_id' => '5',
+        ];
+
+        $foreign = ['id' => 5, 'firstname' => 'Ion', 'lastname' => 'Popescu',
+                    'zip_code' => '010101', 'city' => 'Bucuresti', 'country' => 'Roumanie'];
+
+        $stub = $this->setDbMock();
+        $stub->method('fetchOne')->willReturnOnConsecutiveCalls(
+            ['id' => 1],                                           // AuthMiddleware
+            ['majority_declared_at' => '2025-01-01 00:00:00'],     // hasDeclaredMajority
+            ['user_id' => 1, 'content' => json_encode([['wine_id' => 1, 'qty' => 12]])], // cart
+            ['id' => 1, 'price' => 10.0, 'label_name' => 'Wine', 'is_cuvee_speciale' => false], // wine
+            $foreign,                                              // resolveAddress
+            $foreign                                               // contrôle France métropolitaine
+        );
+
+        $caught = null;
+        try {
+            (new OrderController(new Request()))->payment(['lang' => 'fr']);
+        } catch (HttpException $e) {
+            $caught = $e;
+        }
+
+        $this->assertNotNull($caught);
+        $this->assertSame(302, $caught->status);
+        $this->assertArrayHasKey('delivery', $_SESSION['flash']['checkout_errors'] ?? []);
+    }
+
     // ================================================================
     // dispatchOrderEmails() — catch Throwable (L865) via flux virement
     // ================================================================

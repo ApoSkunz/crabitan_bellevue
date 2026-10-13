@@ -1032,6 +1032,7 @@ return [
     'checkout.same_as_delivery'       => 'Même adresse que la livraison',
     'checkout.beneficiary'            => 'Bénéficiaire',
     'checkout.error_zip_mainland'     => 'La livraison est disponible uniquement en France métropolitaine (hors Corse et DOM-TOM).',
+    'checkout.address_not_deliverable' => 'Livraison impossible hors France métropolitaine (hors Corse et DOM-TOM).',
     'checkout.new_address'            => 'Nouvelle adresse',
     'checkout.new_address_billing'    => 'Nouvelle adresse de facturation',
     'checkout.new_address_delivery'   => 'Nouvelle adresse de livraison',

@@ -224,6 +224,25 @@
         text-align: center;
     }
 
+    // Adresse hors zone de livraison : non sélectionnable, explication visible
+    &--disabled {
+        cursor: not-allowed;
+        color: var(--color-text-muted);
+        background: transparent;
+
+        &:hover {
+            border-color: var(--color-border);
+        }
+    }
+
+    &__notice {
+        display: block;
+        margin-top: 0.4rem;
+        font-size: 0.8rem;
+        font-style: italic;
+        color: var(--color-text-muted);
+    }
+
     &__radio {
         margin-top: 0.15rem;
         accent-color: var(--color-gold);
