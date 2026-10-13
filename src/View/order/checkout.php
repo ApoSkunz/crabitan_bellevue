@@ -73,6 +73,11 @@ $renderAddressForm = function (string $prefix, array $post, string $idSuffix) us
     </div>
     <div class="form-group">
         <label for="addr-country-<?= $idSuffix ?>"><?= htmlspecialchars(__('account.address_country')) ?> *</label>
+        <?php if ($prefix === 'del_') : ?>
+        <?php // Livraison : France uniquement (CGV) — valeur figée, revalidée côté serveur ?>
+        <input type="text" id="addr-country-<?= $idSuffix ?>" name="<?= $prefix ?>country"
+               value="France" readonly required autocomplete="country-name">
+        <?php else : ?>
         <input type="text" id="addr-country-<?= $idSuffix ?>" name="<?= $prefix ?>country"
                value="<?= $v('country') ?: 'France' ?>"
                required autocomplete="country-name"
@@ -80,6 +85,7 @@ $renderAddressForm = function (string $prefix, array $post, string $idSuffix) us
         <datalist id="addr-country-list-<?= $idSuffix ?>">
             <?php foreach ($countries as $c) : ?><option value="<?= htmlspecialchars($c) ?>"><?php endforeach; ?>
         </datalist>
+        <?php endif; ?>
     </div>
     <div class="form-group form-group--row">
         <div>
@@ -600,7 +606,7 @@ $renderAddressForm = function (string $prefix, array $post, string $idSuffix) us
         : 'La livraison n\'est disponible qu\'en France métropolitaine (hors Corse et DOM-TOM).') ?>;
 
     function isMainlandFranceZip(zip) {
-        if (!/^\d{5}$/.test(zip)) { return true; }
+        if (!/^\d{5}$/.test(zip)) { return zip === ''; }
         var dept = parseInt(zip.substring(0, 2), 10);
         if (dept === 20) { return false; }
         if (dept >= 97)  { return false; }
