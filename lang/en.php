@@ -1031,6 +1031,7 @@ return [
     'checkout.same_as_delivery'       => 'Same as delivery address',
     'checkout.beneficiary'            => 'Payable to',
     'checkout.error_zip_mainland'     => 'Delivery is only available to mainland France (excluding Corsica and overseas territories).',
+    'checkout.address_not_deliverable' => 'Delivery not available outside mainland France (excluding Corsica and overseas territories).',
     'checkout.new_address'            => 'New address',
     'checkout.new_address_billing'    => 'New billing address',
     'checkout.new_address_delivery'   => 'New delivery address',
