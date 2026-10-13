@@ -2,6 +2,22 @@
 
 All notable changes to Crabitan Bellevue are documented here.
 
+# [1.35.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.34.0...v1.35.0) (2026-10-13)
+
+
+### Bug Fixes
+
+* **checkout:** verrou livraison France sur pays et code postal ([73fdd0a](https://github.com/ApoSkunz/crabitan_bellevue/commit/73fdd0a34654defc3e19631add5d575c947962c3))
+* **deps:** squizlabs/php_codesniffer 4.0.1 -> 4.0.4 (CVE-2026-67434) ([e6ca4ce](https://github.com/ApoSkunz/crabitan_bellevue/commit/e6ca4cee25ebdf0c61bce83cbfa3a34c05c5d14b))
+* **view:** pays livraison figé à France au checkout ([31b8972](https://github.com/ApoSkunz/crabitan_bellevue/commit/31b897228f79acf5d7980a28e98d8f22d7d29d62))
+
+
+### Features
+
+* **i18n:** clé adresse de livraison non livrable fr/en ([cbebed4](https://github.com/ApoSkunz/crabitan_bellevue/commit/cbebed411681f2e512c13bbb757f895a3235c8e3))
+* **scss:** état désactivé des cartes adresse de livraison ([0cfd52c](https://github.com/ApoSkunz/crabitan_bellevue/commit/0cfd52c882b9259a7bfc3f0e17c112deddb5ace2))
+* **view:** griser les adresses de livraison hors zone au checkout ([b3879e7](https://github.com/ApoSkunz/crabitan_bellevue/commit/b3879e730ba0c3c7a61f8868a1fb28364cae2e7f))
+
 # [1.34.0](https://github.com/ApoSkunz/crabitan_bellevue/compare/v1.33.4...v1.34.0) (2026-07-20)
 
 
