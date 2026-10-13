@@ -351,7 +351,7 @@ class OrderControllerCheckoutTest extends TestCase
         $this->assertFalse($method->invoke($ctrl, '98000'));
     }
 
-    public function testIsMainlandFranceZipAcceptsNonNumeric(): void
+    public function testIsMainlandFranceZipRejectsNonFiveDigitZip(): void
     {
         $method = new \ReflectionMethod(OrderController::class, 'isMainlandFranceZip');
 
@@ -359,7 +359,35 @@ class OrderControllerCheckoutTest extends TestCase
         $_SERVER['REQUEST_URI']    = '/fr/commande';
         $ctrl = new OrderController(new Request());
 
-        $this->assertTrue($method->invoke($ctrl, 'abc'));
+        $this->assertFalse($method->invoke($ctrl, 'abc'));
+        $this->assertFalse($method->invoke($ctrl, '010101'));  // code postal roumain (6 chiffres)
+        $this->assertFalse($method->invoke($ctrl, ''));
+    }
+
+    public function testIsFranceCountryAcceptsFranceVariants(): void
+    {
+        $method = new \ReflectionMethod(OrderController::class, 'isFranceCountry');
+
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $_SERVER['REQUEST_URI']    = '/fr/commande';
+        $ctrl = new OrderController(new Request());
+
+        $this->assertTrue($method->invoke($ctrl, 'France'));
+        $this->assertTrue($method->invoke($ctrl, ' france '));
+        $this->assertTrue($method->invoke($ctrl, 'FR'));
+    }
+
+    public function testIsFranceCountryRejectsForeignCountries(): void
+    {
+        $method = new \ReflectionMethod(OrderController::class, 'isFranceCountry');
+
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $_SERVER['REQUEST_URI']    = '/fr/commande';
+        $ctrl = new OrderController(new Request());
+
+        $this->assertFalse($method->invoke($ctrl, 'Roumanie'));
+        $this->assertFalse($method->invoke($ctrl, 'RO'));
+        $this->assertFalse($method->invoke($ctrl, ''));
     }
 
     // ================================================================
