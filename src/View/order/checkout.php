@@ -36,6 +36,29 @@ $noteDatePlaceholder     = $noteDatePlaceholder ?? date('d/m/Y', strtotime('+15 
 $billingAddresses  = array_values(array_filter($addresses, fn($a) => $a['type'] === 'billing'));
 $deliveryAddresses = array_values(array_filter($addresses, fn($a) => $a['type'] === 'delivery'));
 
+// Adresse livrable = France + code postal métropole hors Corse (miroir de OrderController::payment)
+$isDeliverable = static function (array $a): bool {
+    $country = mb_strtolower(trim((string) ($a['country'] ?? '')));
+    $zip     = (string) ($a['zip_code'] ?? '');
+    if (!in_array($country, ['france', 'fr'], true) || !preg_match('/^\d{5}$/', $zip)) {
+        return false;
+    }
+    $dept = (int) substr($zip, 0, 2);
+    return $dept !== 20 && $dept < 97;
+};
+
+// Présélection : première adresse livrable, sinon « nouvelle adresse » (0)
+$defaultDeliveryId = 0;
+foreach ($deliveryAddresses as $candidate) {
+    if ($isDeliverable($candidate)) {
+        $defaultDeliveryId = (int) $candidate['id'];
+        break;
+    }
+}
+$newDeliverySelected = empty($post)
+    ? ($defaultDeliveryId === 0)
+    : ((int) ($post['delivery_address_id'] ?? -1) === 0);
+
 $countries = [
     'France', 'Belgique', 'Luxembourg', 'Suisse', 'Allemagne', 'Pays-Bas',
     'Espagne', 'Italie', 'Royaume-Uni', 'Portugal', 'Autriche', 'Irlande',
@@ -225,28 +248,35 @@ $renderAddressForm = function (string $prefix, array $post, string $idSuffix) us
                         <?php if (!empty($deliveryAddresses)) : ?>
                         <div class="checkout-address-list">
                             <?php foreach ($deliveryAddresses as $addr) :
-                                $isChecked = empty($post)
-                                    ? ($addr === reset($deliveryAddresses))
-                                    : ((int)($post['delivery_address_id'] ?? 0) === (int)$addr['id']);
+                                $deliverable = $isDeliverable($addr);
+                                $isChecked   = $deliverable && (empty($post)
+                                    ? ((int) $addr['id'] === $defaultDeliveryId)
+                                    : ((int)($post['delivery_address_id'] ?? 0) === (int)$addr['id']));
                             ?>
-                            <label class="checkout-address-card <?= $isChecked ? 'checkout-address-card--selected' : '' ?>">
+                            <label class="checkout-address-card <?= $isChecked ? 'checkout-address-card--selected' : '' ?><?= $deliverable ? '' : ' checkout-address-card--disabled' ?>">
                                 <input type="radio" name="delivery_address_id"
                                        value="<?= (int) $addr['id'] ?>"
                                        class="checkout-address-card__radio js-delivery-radio"
-                                       <?= $isChecked ? 'checked' : '' ?>>
+                                       <?= $isChecked ? 'checked' : '' ?>
+                                       <?= $deliverable ? '' : 'disabled aria-describedby="delivery-unavailable-' . (int) $addr['id'] . '"' ?>>
                                 <span class="checkout-address-card__body">
                                     <strong><?= htmlspecialchars("{$addr['firstname']} {$addr['lastname']}") ?></strong><br>
                                     <?= htmlspecialchars($addr['street']) ?><br>
                                     <?= htmlspecialchars("{$addr['zip_code']} {$addr['city']}") ?><br>
                                     <?= htmlspecialchars($addr['country']) ?>
+                                    <?php if (!$deliverable) : ?>
+                                    <span class="checkout-address-card__notice" id="delivery-unavailable-<?= (int) $addr['id'] ?>">
+                                        <?= htmlspecialchars(__('checkout.address_not_deliverable')) ?>
+                                    </span>
+                                    <?php endif; ?>
                                 </span>
                             </label>
                             <?php endforeach; ?>
-                            <label class="checkout-address-card checkout-address-card--new <?= ((int)($post['delivery_address_id'] ?? -1) === 0) ? 'checkout-address-card--selected' : '' ?>">
+                            <label class="checkout-address-card checkout-address-card--new <?= $newDeliverySelected ? 'checkout-address-card--selected' : '' ?>">
                                 <input type="radio" name="delivery_address_id"
                                        value="0"
                                        class="checkout-address-card__radio js-delivery-radio"
-                                       <?= ((int)($post['delivery_address_id'] ?? -1) === 0) ? 'checked' : '' ?>>
+                                       <?= $newDeliverySelected ? 'checked' : '' ?>>
                                 <span class="checkout-address-card__body checkout-address-card__body--new">
                                     + <?= htmlspecialchars(__('checkout.new_address')) ?>
                                 </span>
@@ -256,7 +286,7 @@ $renderAddressForm = function (string $prefix, array $post, string $idSuffix) us
                         <input type="hidden" name="delivery_address_id" value="0">
                         <?php endif; ?>
 
-                        <div class="checkout-new-address js-new-delivery-form" <?= (empty($deliveryAddresses) || (int)($post['delivery_address_id'] ?? -1) === 0) ? '' : 'hidden' ?>>
+                        <div class="checkout-new-address js-new-delivery-form" <?= (empty($deliveryAddresses) || $newDeliverySelected) ? '' : 'hidden' ?>>
                             <h3 class="checkout-new-address__title"><?= htmlspecialchars(__('checkout.new_address_delivery')) ?></h3>
                             <?php $renderAddressForm('del_', $post, 'del'); ?>
                         </div>
