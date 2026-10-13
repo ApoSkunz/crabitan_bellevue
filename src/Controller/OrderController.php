@@ -238,10 +238,14 @@ class OrderController extends Controller // NOSONAR — php:S1448 : MVC cohéren
         // Résoudre l'adresse de livraison (toujours requise — saisie en premier dans le formulaire)
         $deliveryAddressId = $this->resolveAddress($userId, 'delivery', 'del_', $back);
 
-        // Valider que le code postal de livraison est en France métropolitaine
-        $deliveryAddr = $this->addresses->findByIdForUser($deliveryAddressId, $userId);
-        $deliveryZip  = (string) ($deliveryAddr !== null ? ($deliveryAddr['zip_code'] ?? '') : '');
-        if (!$this->isMainlandFranceZip($deliveryZip)) {
+        // Valider que l'adresse de livraison est en France métropolitaine (pays ET code postal)
+        $deliveryAddr    = $this->addresses->findByIdForUser($deliveryAddressId, $userId);
+        $deliveryZip     = (string) ($deliveryAddr !== null ? ($deliveryAddr['zip_code'] ?? '') : '');
+        $deliveryCountry = (string) ($deliveryAddr !== null ? ($deliveryAddr['country'] ?? 'France') : '');
+        if (
+            !$this->isFranceCountry($deliveryCountry)
+            || !$this->isMainlandFranceZip($deliveryZip)
+        ) {
             $_SESSION['flash']['checkout_errors']['delivery'] = __('checkout.error_zip_mainland');
             $_SESSION['flash']['checkout_post'] = $_POST;
             Response::redirect($back);
@@ -747,6 +751,13 @@ class OrderController extends Controller // NOSONAR — php:S1448 : MVC cohéren
             Response::redirect($back);
         }
 
+        // Livraison hors France refusée avant toute création (CGV : France métropolitaine uniquement)
+        if ($type === 'delivery' && !$this->isFranceCountry($country)) {
+            $_SESSION['flash']['checkout_errors'][$type] = __('checkout.error_zip_mainland');
+            $_SESSION['flash']['checkout_post'] = $_POST;
+            Response::redirect($back);
+        }
+
         $newId = $this->addresses->create($userId, $type, $firstname, $lastname, $civility, $street, $city, $zipCode, $country, $phone); // phpcs:ignore Generic.Files.LineLength
         if ($newId === 0) {
             $_SESSION['flash']['checkout_errors'][$type] = __('checkout.error_address_invalid');
@@ -799,8 +810,7 @@ class OrderController extends Controller // NOSONAR — php:S1448 : MVC cohéren
      * Vérifie qu'un code postal correspond à la France métropolitaine.
      *
      * Exclut la Corse (20xxx) et les DOM-TOM (97xxx–98xxx).
-     * Retourne true si le zip est vide ou non numérique (pas bloquant — la validation
-     * des champs requis est faite en amont dans resolveAddress).
+     * Un code postal qui n'est pas composé de 5 chiffres (ex. code étranger) est refusé.
      *
      * @param string $zip Code postal à vérifier
      * @return bool
@@ -808,10 +818,23 @@ class OrderController extends Controller // NOSONAR — php:S1448 : MVC cohéren
     private function isMainlandFranceZip(string $zip): bool
     {
         if (!preg_match('/^\d{5}$/', $zip)) {
-            return true; // Format invalide : laissé passer, validation champs requis faite en amont
+            return false;
         }
         $dept = (int) substr($zip, 0, 2);
         return $dept !== 20 && $dept < 97;
+    }
+
+    /**
+     * Vérifie que le pays de livraison est la France.
+     *
+     * Accepte « France » (insensible à la casse) et le code ISO « FR ».
+     *
+     * @param string $country Pays de l'adresse de livraison
+     * @return bool
+     */
+    private function isFranceCountry(string $country): bool
+    {
+        return in_array(mb_strtolower(trim($country)), ['france', 'fr'], true);
     }
 
     /**
