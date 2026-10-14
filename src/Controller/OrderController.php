@@ -807,9 +807,9 @@ class OrderController extends Controller // NOSONAR — php:S1448 : MVC cohéren
     }
 
     /**
-     * Vérifie qu'un code postal correspond à la France métropolitaine.
+     * Vérifie qu'un code postal correspond à la France métropolitaine continentale.
      *
-     * Exclut la Corse (20xxx) et les DOM-TOM (97xxx–98xxx).
+     * Exclut la Corse, les DOM-TOM et les îles (voir DeliveryZoneService).
      * Un code postal qui n'est pas composé de 5 chiffres (ex. code étranger) est refusé.
      *
      * @param string $zip Code postal à vérifier
@@ -817,11 +817,7 @@ class OrderController extends Controller // NOSONAR — php:S1448 : MVC cohéren
      */
     private function isMainlandFranceZip(string $zip): bool
     {
-        if (!preg_match('/^\d{5}$/', $zip)) {
-            return false;
-        }
-        $dept = (int) substr($zip, 0, 2);
-        return $dept !== 20 && $dept < 97;
+        return \Service\DeliveryZoneService::isMainlandZip($zip);
     }
 
     /**
@@ -834,7 +830,7 @@ class OrderController extends Controller // NOSONAR — php:S1448 : MVC cohéren
      */
     private function isFranceCountry(string $country): bool
     {
-        return in_array(mb_strtolower(trim($country)), ['france', 'fr'], true);
+        return \Service\DeliveryZoneService::isFranceCountry($country);
     }
 
     /**

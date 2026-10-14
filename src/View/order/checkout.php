@@ -36,16 +36,11 @@ $noteDatePlaceholder     = $noteDatePlaceholder ?? date('d/m/Y', strtotime('+15 
 $billingAddresses  = array_values(array_filter($addresses, fn($a) => $a['type'] === 'billing'));
 $deliveryAddresses = array_values(array_filter($addresses, fn($a) => $a['type'] === 'delivery'));
 
-// Adresse livrable = France + code postal métropole hors Corse (miroir de OrderController::payment)
-$isDeliverable = static function (array $a): bool {
-    $country = mb_strtolower(trim((string) ($a['country'] ?? '')));
-    $zip     = (string) ($a['zip_code'] ?? '');
-    if (!in_array($country, ['france', 'fr'], true) || !preg_match('/^\d{5}$/', $zip)) {
-        return false;
-    }
-    $dept = (int) substr($zip, 0, 2);
-    return $dept !== 20 && $dept < 97;
-};
+// Adresse livrable = France + code postal métropole continentale (règle partagée avec OrderController::payment)
+$isDeliverable = static fn(array $a): bool => \Service\DeliveryZoneService::isDeliverable(
+    (string) ($a['country'] ?? ''),
+    (string) ($a['zip_code'] ?? '')
+);
 
 // Présélection : première adresse livrable, sinon « nouvelle adresse » (0)
 $defaultDeliveryId = 0;
@@ -240,9 +235,7 @@ $renderAddressForm = function (string $prefix, array $post, string $idSuffix) us
                             <?= htmlspecialchars(__('checkout.delivery_address')) ?>
                         </h2>
                         <p class="checkout-delivery-zone">
-                            <?= htmlspecialchars($isEn
-                                ? 'Delivery to mainland France only (excluding Corsica and overseas territories).'
-                                : 'Livraison en France métropolitaine uniquement (hors Corse et DOM-TOM).') ?>
+                            <?= htmlspecialchars(__('checkout.delivery_zone_notice')) ?>
                         </p>
 
                         <?php if (!empty($deliveryAddresses)) : ?>
@@ -631,16 +624,15 @@ $renderAddressForm = function (string $prefix, array $post, string $idSuffix) us
 
     // ---- Validation code postal livraison (France métropolitaine) ----
     var zipDelInput  = document.getElementById('addr-zip-del');
-    var zipErrMsg    = <?= json_encode($isEn
-        ? 'Delivery is only available to mainland France (excluding Corsica and overseas territories).'
-        : 'La livraison n\'est disponible qu\'en France métropolitaine (hors Corse et DOM-TOM).') ?>;
+    var zipErrMsg    = <?= json_encode(__('checkout.error_zip_mainland')) ?>;
+    var islandZips   = <?= json_encode(\Service\DeliveryZoneService::ISLAND_ZIPS) ?>;
 
     function isMainlandFranceZip(zip) {
         if (!/^\d{5}$/.test(zip)) { return zip === ''; }
         var dept = parseInt(zip.substring(0, 2), 10);
         if (dept === 20) { return false; }
         if (dept >= 97)  { return false; }
-        return true;
+        return islandZips.indexOf(zip) === -1;
     }
 
     function validateDelZip() {
